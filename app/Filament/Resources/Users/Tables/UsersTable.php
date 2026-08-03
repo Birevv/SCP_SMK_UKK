@@ -3,6 +3,7 @@
 namespace App\Filament\Resources\Users\Tables;
 
 use Filament\Actions\BulkActionGroup;
+use Filament\Actions\DeleteAction;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
 use Filament\Actions\ForceDeleteBulkAction;
@@ -17,6 +18,10 @@ class UsersTable
     {
         return $table
             ->columns([
+                    Tables\Columns\TextColumn::make('role.name')
+                        ->label('Role Akses')
+                        ->searchable()
+                        ->sortable(),
                     Tables\Columns\TextColumn::make('classroom.name')
                         ->label('Kelas')
                         ->searchable(),
@@ -46,6 +51,7 @@ class UsersTable
             ])
             ->recordActions([
                 EditAction::make(),
+                DeleteAction::make(),
             ]);
            
     }

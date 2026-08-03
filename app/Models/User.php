@@ -9,11 +9,12 @@ use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Hidden;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 
-#[Fillable(['classroom_id', 'full_name', 'username', 'email', 'password'])]
+#[Fillable(['role_id', 'classroom_id', 'parent_id', 'full_name', 'username', 'email', 'password'])]
 #[Hidden(['password', 'remember_token'])]
 class User extends Authenticatable implements HasName
 {
@@ -41,5 +42,20 @@ class User extends Authenticatable implements HasName
     public function classroom() : BelongsTo
     {
         return $this->belongsTo(Classroom::class);
+    }
+
+    public function parent() : BelongsTo
+    {
+        return $this->belongsTo(User::class, 'parent_id');
+    }
+
+    public function children() : HasMany
+    {
+        return $this->hasMany(User::class, 'parent_id');
+    }
+
+    public function role() : BelongsTo 
+    {   
+        return $this->belongsTo(Role::class, 'role_id');
     }
 }

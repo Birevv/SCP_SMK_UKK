@@ -11,11 +11,11 @@ use Filament\Schemas\Schema;
 class EditProfile extends PagesEditProfile
 {
 
-        protected function getRedirectUrl(): ?string
+    protected function getRedirectUrl(): ?string
     {
         return '/admin';
     }
-        public static function getLabel(): string
+    public static function getLabel(): string
     {
         return "Edit Profile";
     }
