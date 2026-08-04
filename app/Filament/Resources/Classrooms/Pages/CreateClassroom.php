@@ -9,8 +9,10 @@ class CreateClassroom extends CreateRecord
 {
     protected static string $resource = ClassroomResource::class;
 
+    protected static ?string $title = "Tambah Kelas";
+
     protected function getRedirectUrl(): string
     {
-        return '/admin/classrooms';
+        return $this->getResource()::getUrl('index');
     }
 }

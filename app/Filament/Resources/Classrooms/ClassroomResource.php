@@ -19,12 +19,14 @@ class ClassroomResource extends Resource
 {
     protected static ?string $model = Classroom::class;
 
-    protected static ?string $label = "Kelas";
+    protected static ?string $navigationLabel = "Kelas";
+    
+     protected static ?string $pluralLabel = "Data Kelas";
 
+    protected static ?int $navigationSort = 2;
     protected static string|UnitEnum|null $navigationGroup = "Data Master";
 
-
-    protected static string|BackedEnum|null $navigationIcon = Heroicon::BuildingOffice;
+    protected static string|BackedEnum|null $navigationIcon = Heroicon::AcademicCap;
 
     public static function form(Schema $schema): Schema
     {

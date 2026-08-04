@@ -12,6 +12,8 @@ class EditUser extends EditRecord
 {
     protected static string $resource = UserResource::class;
 
+    protected static ?string $title = "Edit User";
+
     protected function getHeaderActions(): array
     {
         return [
@@ -21,8 +23,8 @@ class EditUser extends EditRecord
         ];
     }
 
-    protected function getRedirectUrl(): ?string
+    protected function getRedirectUrl(): string
     {
-        return '/admin/users';
+        return $this->getResource()::getUrl('index');
     }
 }

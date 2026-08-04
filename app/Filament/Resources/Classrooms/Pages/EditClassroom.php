@@ -10,6 +10,8 @@ class EditClassroom extends EditRecord
 {
     protected static string $resource = ClassroomResource::class;
 
+    protected static ?string $title = "Edit Kelas";
+
     protected function getHeaderActions(): array
     {
         return [
@@ -17,8 +19,8 @@ class EditClassroom extends EditRecord
         ];
     }
 
-    protected function getRedirectUrl(): ?string
+     protected function getRedirectUrl(): string
     {
-        return '/admin/classrooms';
+        return $this->getResource()::getUrl('index');
     }
 }

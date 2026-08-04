@@ -9,6 +9,8 @@ class CreateUser extends CreateRecord
 {
     protected static string $resource = UserResource::class;
 
+    protected static ?string $title = "Tambah User";
+
     protected function mutateFormDataBeforeCreate(array $data): array
     {
         $data['password'] = bcrypt('password');
@@ -18,6 +20,6 @@ class CreateUser extends CreateRecord
 
     protected function getRedirectUrl(): string
     {
-        return '/admin/users';
+        return $this->getResource()::getUrl('index');
     }
 }
