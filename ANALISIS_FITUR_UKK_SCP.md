@@ -15,8 +15,8 @@ Dokumen ini membedah setiap langkah pengerjaan secara bertahap (satu per satu) b
 - [x] **Step 1: Modul Hak Akses & Role (`roles`)**
 - [x] **Step 2: Update Tabel `users` (`role_id` & `parent_id`)**
 - [x] **Step 3: Master Data Ruangan (`rooms`)**
-- [🔄] **Step 4: Konfigurasi Sistem (`system_configurations`)** *(Langkah Selanjutnya)*
-- [ ] **Step 5: Seeder Data Awal (Roles, Default Config, Ruangan, Users)**
+- [x] **Step 4: Konfigurasi Sistem (`system_configurations`)**
+- [🔄] **Step 5: Seeder Data Awal (Roles, Default Config, Ruangan, Users)** *(Langkah Selanjutnya)*
 - [ ] **Step 6: Tabel Transactional (Jadwal, Jurnal, Presensi, Perizinan)**
 - [ ] **Step 7: Implemetasi 5 Logika Bisnis Utama (Kunci Kelulusan UKK)**
 
@@ -141,7 +141,7 @@ Dokumen ini membedah setiap langkah pengerjaan secara bertahap (satu per satu) b
 
 ## 🎯 LANGKAH SELANJUTNYA UNTUK ANDA:
 
-Langkah 1.3 telah selesai! Langkah selanjutnya adalah **Langkah 1.4: Migration & Model Konfigurasi Sistem (`system_configurations`)**.  
-Panduan langkah demi langkah yang detail telah dibuat di file [LANGKAH_1_4_SYSTEM_CONFIGURATIONS.md](file:///d:/Project%20UKK/Paket%203%20SCP/SCP_SMK/LANGKAH_1_4_SYSTEM_CONFIGURATIONS.md).
+Langkah 1.4 telah selesai! Langkah selanjutnya adalah **Step 5: Database Seeder Data Awal (Roles, Default Config, Ruangan, & Users)**.
+
 
 

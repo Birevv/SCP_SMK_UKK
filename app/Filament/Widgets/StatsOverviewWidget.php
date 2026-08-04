@@ -1,14 +1,14 @@
 <?php
 
-namespace App\Livewire;
+namespace App\Filament\Widgets;
 
 use App\Models\Classroom;
+use App\Models\Room;
 use App\Models\User;
-use Filament\Widgets\StatsOverviewWidget;
+use Filament\Widgets\StatsOverviewWidget as BaseWidget;
 use Filament\Widgets\StatsOverviewWidget\Stat;
-use Illuminate\Console\Attributes\Description;
 
-class TotalUserWidget extends StatsOverviewWidget
+class StatsOverviewWidget extends BaseWidget
 {
     protected function getStats(): array
     {
@@ -17,14 +17,14 @@ class TotalUserWidget extends StatsOverviewWidget
                 ->description('Total Pengguna Aktif')
                 ->descriptionIcon('heroicon-o-users')
                 ->color('success'),
-            
+            Stat::make('Total Ruangan', Room::count())
+                ->description('Total Ruangan Aktif')
+                ->descriptionIcon('heroicon-o-building-office')
+                ->color('success'),
             Stat::make('Total Kelas', Classroom::count())
                 ->description('Total Kelas Aktif')
-                ->descriptionIcon('heroicon-o-building-office')
-                ->color('primary'),
-            
-            
-
+                ->descriptionIcon('heroicon-o-academic-cap')
+                ->color('success'),
         ];
     }
 }
