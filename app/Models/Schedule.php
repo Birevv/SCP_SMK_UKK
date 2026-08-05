@@ -38,4 +38,10 @@ class Schedule extends Model
     {
         return $this->hasMany(Journal::class);
     }
+
+    public function scopeForActiveCycle($query)
+    {
+        $active_cycle = SystemConfiguration::first()?->active_cycle ?? 'Putaran 1';
+        return $query->where('cycle_type', $active_cycle);
+    }
 }

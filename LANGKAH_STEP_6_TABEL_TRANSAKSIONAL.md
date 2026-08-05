@@ -369,9 +369,9 @@ php artisan migrate
 
 ## 📌 CHECKLIST SELESAI STEP 6
 
-- [ ] Model & Migration `schedules` dibuat & dikonfigurasi.
-- [ ] Model & Migration `journals` dibuat & dikonfigurasi.
-- [ ] Model & Migration `leave_requests` dibuat & dikonfigurasi.
-- [ ] Model & Migration `attendances` dibuat & dikonfigurasi.
-- [ ] Relasi Eloquent pada setiap Model disesuaikan.
-- [ ] Migration database berhasil dijalankan tanpa error (`php artisan migrate`).
+- [x] Model & Migration `schedules` dibuat & dikonfigurasi.
+- [x] Model & Migration `journals` dibuat & dikonfigurasi.
+- [x] Model & Migration `leave_requests` dibuat & dikonfigurasi.
+- [x] Model & Migration `attendances` dibuat & dikonfigurasi.
+- [x] Relasi Eloquent pada setiap Model disesuaikan.
+- [x] Migration database berhasil dijalankan tanpa error (`php artisan migrate`).
