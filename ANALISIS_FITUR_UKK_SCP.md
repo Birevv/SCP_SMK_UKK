@@ -17,7 +17,7 @@ Dokumen ini membedah setiap langkah pengerjaan secara bertahap (satu per satu) b
 - [x] **Step 3: Master Data Ruangan (`rooms`)**
 - [x] **Step 4: Konfigurasi Sistem (`system_configurations`)**
 - [x] **Step 5: Seeder Data Awal (Roles, Default Config, Ruangan, Users)**
-- [🔄] **Step 6: Tabel Transactional (Jadwal, Jurnal, Presensi, Perizinan)** *(Langkah Selanjutnya)*
+- [🔄] **Step 6: Tabel Transactional (Jadwal, Jurnal, Presensi, Perizinan)** *(Sedang Dikerjakan)*
 - [ ] **Step 7: Implemetasi 5 Logika Bisnis Utama (Kunci Kelulusan UKK)**
 
 ---
