@@ -234,23 +234,98 @@ public function boot(): void
 
 ### 📍 LOGIKA 5: DASHBOARD ALERT REMINDER UNTUK GURU
 
-#### Penjelasan:
-Jika jam saat ini sudah melebihi **`end_time + 30 menit`** dari jadwal hari ini, dan Guru belum mengisi Jurnal untuk jadwal tersebut, maka Widget Dashboard Guru akan menampilkan kartu peringatan (Alert Warning) berwarna merah.
+#### Penjelasan & Lokasi Penyimpanan:
+Logika ini ditaruh di sebuah **Filament Widget** bernama `UnfilledJournalAlertWidget`:
+- **File Class Widget:** [`app/Filament/Widgets/UnfilledJournalAlertWidget.php`](file:///d:/Project%20UKK/Paket%203%20SCP/SCP_SMK/app/Filament/Widgets/UnfilledJournalAlertWidget.php)
+- **File Tampilan (Blade):** [`resources/views/filament/widgets/unfilled-journal-alert-widget.blade.php`](file:///d:/Project%20UKK/Paket%203%20SCP/SCP_SMK/resources/views/filament/widgets/unfilled-journal-alert-widget.blade.php)
 
-#### Implementasi Query Alert:
+Widget ini dipasang di Dashboard Guru. Jika jam saat ini sudah melebihi **`end_time + 30 menit`** dari jadwal hari ini dan Guru belum mengisi Jurnal untuk jadwal tersebut, maka widget ini menampilkan spanduk/kartu peringatan berwarna merah.
 
+#### 1. Perintah Artisan Membuat Widget:
+```bash
+php artisan make:filament-widget UnfilledJournalAlertWidget --custom
+```
+
+#### 2. Kode Class Widget (`app/Filament/Widgets/UnfilledJournalAlertWidget.php`):
 ```php
-$today = now()->locale('id')->isoFormat('dddd'); // Contoh: 'Senin'
-$currentTime = now()->format('H:i:s');
+<?php
 
-$unfilledSchedules = Schedule::where('teacher_id', auth()->id())
-    ->where('day_of_week', $today)
-    ->forActiveCycle()
-    ->whereRaw("ADDTIME(end_time, '00:30:00') < ?", [$currentTime])
-    ->whereDoesntHave('journals', function ($query) {
-        $query->whereDate('date', now()->toDateString());
-    })
-    ->get();
+namespace App\Filament\Widgets;
+
+use App\Models\Schedule;
+use Filament\Widgets\Widget;
+use Illuminate\Support\Carbon;
+
+class UnfilledJournalAlertWidget extends Widget
+{
+    protected static string $view = 'filament.widgets.unfilled-journal-alert-widget';
+
+    protected static ?int $sort = -1; // Tampil paling atas di dashboard
+
+    public static function canView(): bool
+    {
+        // Hanya tampil untuk role Guru
+        return auth()->user()?->role?->name === 'Guru';
+    }
+
+    public function getViewData(): array
+    {
+        $todayInIndonesian = match (Carbon::now()->dayOfWeekIso) {
+            1 => 'Senin',
+            2 => 'Selasa',
+            3 => 'Rabu',
+            4 => 'Kamis',
+            5 => 'Jumat',
+            6 => 'Sabtu',
+            7 => 'Minggu',
+        };
+
+        $currentTime = Carbon::now()->format('H:i:s');
+
+        $unfilledSchedules = Schedule::with(['classroom', 'room'])
+            ->where('teacher_id', auth()->id())
+            ->where('day_of_week', $todayInIndonesian)
+            ->forActiveCycle()
+            ->whereRaw("ADDTIME(end_time, '00:30:00') < ?", [$currentTime])
+            ->whereDoesntHave('journals', function ($query) {
+                $query->whereDate('date', Carbon::today());
+            })
+            ->get();
+
+        return [
+            'unfilledSchedules' => $unfilledSchedules,
+        ];
+    }
+}
+```
+
+#### 3. Kode Blade View (`resources/views/filament/widgets/unfilled-journal-alert-widget.blade.php`):
+```blade
+<x-filament-widgets::widget>
+    @if(count($unfilledSchedules) > 0)
+        <div class="p-4 bg-danger-500/10 border border-danger-500 rounded-xl">
+            <div class="flex items-center gap-3 mb-2 text-danger-600 dark:text-danger-400 font-bold text-lg">
+                <x-heroicon-o-exclamation-triangle class="w-6 h-6 animate-pulse" />
+                <span>Peringatan Jurnal Belum Diisi!</span>
+            </div>
+            <p class="text-sm text-gray-600 dark:text-gray-300 mb-3">
+                Anda memiliki jadwal mengajar hari ini yang jam pengajarannya telah selesai (lebih dari 30 menit) namun jurnalnya belum dibuat:
+            </p>
+            <ul class="space-y-2">
+                @foreach($unfilledSchedules as $schedule)
+                    <li class="flex items-center justify-between p-3 bg-white dark:bg-gray-800 rounded-lg shadow-sm">
+                        <div>
+                            <span class="font-semibold text-gray-900 dark:text-white">{{ $schedule->subject_name }}</span>
+                            <span class="text-xs text-gray-500 dark:text-gray-400 block">
+                                {{ $schedule->classroom->name }} | {{ $schedule->room->name }} | {{ $schedule->start_time }} - {{ $schedule->end_time }}
+                            </span>
+                        </div>
+                    </li>
+                @endforeach
+            </ul>
+        </div>
+    @endif
+</x-filament-widgets::widget>
 ```
 
 ---
