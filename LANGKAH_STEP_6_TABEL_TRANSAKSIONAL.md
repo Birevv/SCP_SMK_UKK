@@ -1,4 +1,4 @@
-    # PANDUAN PENGEMBANGAN: STEP 6 — TABEL TRANSAKSIONAL (JADWAL, JURNAL, PRESENSI, & PERIZINAN)
+        # PANDUAN PENGEMBANGAN: STEP 6 — TABEL TRANSAKSIONAL (JADWAL, JURNAL, PRESENSI, & PERIZINAN)
 
 > **Sistem:** School Class Progress (SCP) - UKK 2026  
 > **Modul:** Master Transaksi Utama (`schedules`, `journals`, `leave_requests`, `attendances`)
