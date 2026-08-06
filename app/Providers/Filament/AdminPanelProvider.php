@@ -31,6 +31,7 @@ class AdminPanelProvider extends PanelProvider
             ->path('admin')
             ->login()
             ->passwordReset()
+            ->brandName('Waka Kurikulum')
             ->profile(EditProfile::class)
             ->colors([
                 'primary' => Color::Blue,

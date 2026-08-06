@@ -14,7 +14,7 @@
                         <div>
                             <span class="font-semibold text-gray-900 dark:text-white">{{ $schedule->subject_name }}</span>
                             <span class="text-xs text-gray-500 dark:text-gray-400 block">
-                                {{ $schedule->classroom?->name ?? 'Kelas -' }} | {{ $schedule->room?->room_name ?? $schedule->room?->name ?? 'Ruangan -' }} | {{ $schedule->start_time }} - {{ $schedule->end_time }}
+                                {{ $schedule->classroom?->name ?? 'Kelas -' }} | {{ $schedule->room?->name ?? 'Ruangan -' }} | {{ $schedule->start_time }} - {{ $schedule->end_time }}
                             </span>
                         </div>
                     </li>
