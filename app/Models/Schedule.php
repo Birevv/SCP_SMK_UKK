@@ -6,6 +6,9 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
+/**
+ * @method static \Illuminate\Database\Eloquent\Builder forActiveCycle()
+ */
 class Schedule extends Model
 {
     protected $fillable = [

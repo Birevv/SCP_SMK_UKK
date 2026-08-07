@@ -25,9 +25,9 @@ class UserResource extends Resource
 
     protected static string|UnitEnum|null $navigationGroup = "Data Master";
 
-    protected static ?string $navigationLabel = "User";
+    protected static ?string $navigationLabel = "Pengguna";
 
-    protected static ?string $pluralLabel = "Data User";
+    protected static ?string $pluralLabel = "Data Pengguna";
 
     protected static ?int $navigationSort = 1;
 

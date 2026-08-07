@@ -9,7 +9,7 @@ class CreateUser extends CreateRecord
 {
     protected static string $resource = UserResource::class;
 
-    protected static ?string $title = "Tambah User";
+    protected static ?string $title = "Tambah Pengguna";
 
     protected function mutateFormDataBeforeCreate(array $data): array
     {

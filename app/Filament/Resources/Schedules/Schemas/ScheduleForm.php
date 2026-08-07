@@ -17,19 +17,28 @@ class ScheduleForm
         return $schema
             ->components([
                 Select::make('teacher_id')
-                    ->relationship('teacher', 'full_name')
+                    ->relationship(
+                        name: 'teacher',
+                        titleAttribute: 'full_name',
+                        modifyQueryUsing: fn ($query) => $query->whereHas('role', fn ($q) => $q->where('name', 'Guru'))
+                    )
                     ->required()
                     ->searchable()
+                    ->preload()
                     ->label('Guru Pengajar'),
 
                 Select::make('classroom_id')
                     ->relationship('classroom', 'name')
                     ->required()
+                    ->searchable()
+                    ->preload()
                     ->label('Kelas'),
 
                 Select::make('room_id')
                     ->relationship('room', 'name')
                     ->required()
+                    ->searchable()
+                    ->preload()
                     ->label('Ruangan'),
 
                 TextInput::make('subject_name')

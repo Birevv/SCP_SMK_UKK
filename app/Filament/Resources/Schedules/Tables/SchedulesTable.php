@@ -6,7 +6,6 @@ use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteAction;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
-use Filament\Tables\Columns\BadgeColumn;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
@@ -34,9 +33,10 @@ class SchedulesTable
                     ->sortable()
                     ->label('Ruangan'),
 
-                BadgeColumn::make('day_of_week')
+                TextColumn::make('day_of_week')
+                    ->badge()
                     ->color('info')
-                    ->label('hari'),
+                    ->label('Hari'),
 
                 TextColumn::make('start_time')
                     ->label('Waktu Mulai'),
@@ -44,11 +44,13 @@ class SchedulesTable
                 TextColumn::make('end_time')
                     ->label('Waktu Selesai'),
 
-                BadgeColumn::make('cycle_type')
-                    ->colors([
-                        'primary' => 'Putaran 1',
-                        'warning' => 'Putaran 2',
-                    ])
+                TextColumn::make('cycle_type')
+                    ->badge()
+                    ->color(fn (string $state): string => match ($state) {
+                        'Putaran 1' => 'primary',
+                        'Putaran 2' => 'warning',
+                        default => 'gray',
+                    })
                     ->label('Putaran Siklus'),
 
             ])
