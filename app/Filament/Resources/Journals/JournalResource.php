@@ -13,9 +13,15 @@ use UnitEnum;
 use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
 use Filament\Tables\Table;
+use Illuminate\Support\Facades\Auth;
 
 class JournalResource extends Resource
 {
+    public static function canViewAny(): bool
+    {
+        $role = Auth::user()?->role?->name;
+        return in_array($role, ['Waka Kurikulum', 'Guru', 'Wali Kelas', 'Guru BK']);
+    }
     protected static ?string $model = Journal::class;
 
     protected static string|BackedEnum|null $navigationIcon = 'heroicon-o-document-text';

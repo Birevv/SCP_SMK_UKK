@@ -13,10 +13,15 @@ use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Table;
 use App\Models\Room;
+use Illuminate\Support\Facades\Auth;
 use UnitEnum;
 
 class RoomResource extends Resource
 {
+    public static function canViewAny(): bool
+    {
+        return Auth::user()?->role?->name === 'Waka Kurikulum';
+    }
     protected static ?string $model = Room::class;
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::BuildingOffice2;

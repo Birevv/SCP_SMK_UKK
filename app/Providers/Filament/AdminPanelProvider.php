@@ -31,7 +31,7 @@ class AdminPanelProvider extends PanelProvider
             ->path('admin')
             ->login()
             ->passwordReset()
-            ->brandName('Waka Kurikulum')
+            ->brandName('SCP - School Class Progress')
             ->profile(EditProfile::class)
             ->colors([
                 'primary' => Color::Blue,

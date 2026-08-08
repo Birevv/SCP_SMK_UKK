@@ -8,8 +8,14 @@ use App\Models\User;
 use Filament\Widgets\StatsOverviewWidget as BaseWidget;
 use Filament\Widgets\StatsOverviewWidget\Stat;
 
+use Illuminate\Support\Facades\Auth;
+
 class StatsOverviewWidget extends BaseWidget
 {
+    public static function canView(): bool
+    {
+        return Auth::user()?->role?->name === 'Waka Kurikulum';
+    }
     protected function getStats(): array
     {
         return [

@@ -14,10 +14,16 @@ use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Support\Facades\Auth;
 use Override;
 
 class ScheduleResource extends Resource
 {
+    public static function canViewAny(): bool
+    {
+        $role = Auth::user()?->role?->name;
+        return in_array($role, ['Waka Kurikulum', 'Guru']);
+    }
     protected static ?string $model = Schedule::class;
 
     protected static string|BackedEnum|null $navigationIcon = 'heroicon-o-calendar';

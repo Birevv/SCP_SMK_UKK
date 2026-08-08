@@ -15,9 +15,14 @@ use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\Auth;
 
 class SystemConfigurationResource extends Resource
 {
+    public static function canViewAny(): bool
+    {
+        return Auth::user()?->role?->name === 'Waka Kurikulum';
+    }
     protected static ?string $model = SystemConfiguration::class;
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::Cog6Tooth;

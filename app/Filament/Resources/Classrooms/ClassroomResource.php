@@ -13,10 +13,15 @@ use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Table;
+use Illuminate\Support\Facades\Auth;
 use UnitEnum;
 
 class ClassroomResource extends Resource
 {
+    public static function canViewAny(): bool
+    {
+        return Auth::user()?->role?->name === 'Waka Kurikulum';
+    }
     protected static ?string $model = Classroom::class;
 
     protected static ?string $navigationLabel = "Kelas";
