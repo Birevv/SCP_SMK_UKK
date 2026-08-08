@@ -2,8 +2,6 @@
 
 namespace App\Providers;
 
-use App\Models\Journal;
-use App\Observers\JournalObserver;
 use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
@@ -18,9 +16,13 @@ class AppServiceProvider extends ServiceProvider
 
     /**
      * Bootstrap any application services.
+     * 
+     * Observers diregistrasi via #[ObservedBy] attribute pada model masing-masing:
+     * - Journal -> JournalObserver
+     * - LeaveRequest -> LeaveRequestObserver
      */
     public function boot(): void
     {
-        Journal::observe(JournalObserver::class);
+        //
     }
 }

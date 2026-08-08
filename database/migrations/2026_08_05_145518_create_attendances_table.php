@@ -16,6 +16,7 @@ return new class extends Migration
             $table->foreignId('journal_id')->constrained('journals')->cascadeOnDelete();
             $table->foreignId('student_id')->constrained('users')->cascadeOnDelete();
             $table->enum('status', ['Hadir', 'Sakit', 'Izin', 'Alpa']);
+            $table->date('date')->nullable();
             $table->text('notes')->nullable();
             $table->timestamps();
             

@@ -9,29 +9,56 @@ use App\Models\User;
 
 class JournalObserver
 {
+    /**
+     * Saat Journal dibuat, otomatis generate attendance records untuk semua siswa di kelas.
+     * Siswa dengan leave request yang sudah Approved akan di-set status Izin/Sakit.
+     */
     public function created(Journal $journal): void
     {
         $classroomId = $journal->schedule?->classroom_id;
-        if (!$classroomId) return;
+        if (!$classroomId) {
+            return;
+        }
 
-        $students = User::where('classroom_id', $classroomId)->get();
+        // Ambil semua student IDs sekaligus
+        $studentIds = User::where('classroom_id', $classroomId)->pluck('id');
+        if ($studentIds->isEmpty()) {
+            return;
+        }
 
-        foreach ($students as $student) {
-            $approvedLeave = LeaveRequest::where('student_id', $student->id)
-                ->where('status', 'Approved')
-                ->whereDate('start_date', '<=', $journal->date)
-                ->whereDate('end_date', '>=', $journal->date)
-                ->first();
+        // Pre-load semua approved leave requests dalam satu query (hindari N+1)
+        $approvedLeaves = LeaveRequest::whereIn('student_id', $studentIds)
+            ->where('status', 'Approved')
+            ->whereDate('start_date', '<=', $journal->date)
+            ->whereDate('end_date', '>=', $journal->date)
+            ->get()
+            ->keyBy('student_id');
+
+        foreach ($studentIds as $studentId) {
+            $approvedLeave = $approvedLeaves->get($studentId);
 
             if ($approvedLeave) {
                 Attendance::updateOrCreate(
                     [
                         'journal_id' => $journal->id,
-                        'student_id' => $student->id,
+                        'student_id' => $studentId,
                     ],
                     [
                         'status' => $approvedLeave->reason_type,
+                        'date' => $journal->date,
                         'notes' => 'Otomatis tersinkronisasi dari Pengajuan izin',
+                    ]
+                );
+            } else {
+                Attendance::firstOrCreate(
+                    [
+                        'journal_id' => $journal->id,
+                        'student_id' => $studentId,
+                    ],
+                    [
+                        'status' => 'Hadir',
+                        'date' => $journal->date,
+                        'notes' => null,
                     ]
                 );
             }

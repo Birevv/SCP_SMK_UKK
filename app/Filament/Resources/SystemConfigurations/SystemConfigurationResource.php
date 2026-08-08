@@ -14,6 +14,7 @@ use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Auth;
 
@@ -22,6 +23,11 @@ class SystemConfigurationResource extends Resource
     public static function canViewAny(): bool
     {
         return Auth::user()?->role?->name === 'Waka Kurikulum';
+    }
+
+    public static function getEloquentQuery(): Builder
+    {
+        return parent::getEloquentQuery()->with('updatedBy');
     }
     protected static ?string $model = SystemConfiguration::class;
 

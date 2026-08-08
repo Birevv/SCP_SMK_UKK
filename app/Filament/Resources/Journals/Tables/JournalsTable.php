@@ -7,6 +7,7 @@ use Filament\Actions\DeleteAction;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
 use Filament\Actions\ViewAction;
+use Filament\Tables\Columns\ImageColumn;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
 
@@ -24,7 +25,7 @@ class JournalsTable
                 TextColumn::make('teacher.full_name')
                     ->label('Guru'),
 
-                TextColumn::make('activity_photo')
+                ImageColumn::make('activity_photo')
                     ->label('Bukti Foto'),
 
                 TextColumn::make('schedule.subject_name')

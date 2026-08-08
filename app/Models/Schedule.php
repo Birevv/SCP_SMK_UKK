@@ -44,7 +44,7 @@ class Schedule extends Model
 
     public function scopeForActiveCycle($query)
     {
-        $active_cycle = SystemConfiguration::first()?->active_cycle ?? 'Putaran 1';
+        $active_cycle = SystemConfiguration::current()->active_cycle;
         return $query->where('cycle_type', $active_cycle);
     }
 }

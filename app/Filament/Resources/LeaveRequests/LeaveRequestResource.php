@@ -14,6 +14,7 @@ use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
 use Filament\Tables\Table;
 
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\Auth;
 
 class LeaveRequestResource extends Resource
@@ -28,6 +29,20 @@ class LeaveRequestResource extends Resource
     {
         $role = Auth::user()?->role?->name;
         return in_array($role, ['Siswa', 'Orang Tua', 'Wali Kelas', 'Waka Kurikulum']);
+    }
+
+    public static function getEloquentQuery(): Builder
+    {
+        $query = parent::getEloquentQuery()->with(['student', 'submittedBy', 'verifiedBy']);
+        $user = Auth::user();
+
+        if ($user && $user->role?->name === 'Siswa') {
+            $query->where('student_id', $user->id);
+        } elseif ($user && $user->role?->name === 'Orang Tua') {
+            $query->where('submitted_by', $user->id);
+        }
+
+        return $query;
     }
 
     protected static ?string $model = LeaveRequest::class;

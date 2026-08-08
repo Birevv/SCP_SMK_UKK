@@ -5,6 +5,7 @@ namespace App\Filament\Resources\Journals;
 use App\Filament\Resources\Journals\Pages\CreateJournal;
 use App\Filament\Resources\Journals\Pages\EditJournal;
 use App\Filament\Resources\Journals\Pages\ListJournals;
+use App\Filament\Resources\Journals\RelationManagers\AttendancesRelationManager;
 use App\Filament\Resources\Journals\Schemas\JournalForm;
 use App\Filament\Resources\Journals\Tables\JournalsTable;
 use App\Models\Journal;
@@ -14,6 +15,7 @@ use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
 use Filament\Tables\Table;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Database\Eloquent\Builder;
 
 class JournalResource extends Resource
 {
@@ -22,6 +24,19 @@ class JournalResource extends Resource
         $role = Auth::user()?->role?->name;
         return in_array($role, ['Waka Kurikulum', 'Guru', 'Wali Kelas', 'Guru BK']);
     }
+
+    public static function getEloquentQuery(): Builder
+    {
+        $query = parent::getEloquentQuery()->with(['teacher', 'schedule.classroom']);
+        $user = Auth::user();
+
+        if ($user && $user->role?->name === 'Guru') {
+            $query->where('teacher_id', $user->id);
+        }
+
+        return $query;
+    }
+
     protected static ?string $model = Journal::class;
 
     protected static string|BackedEnum|null $navigationIcon = 'heroicon-o-document-text';
@@ -45,7 +60,7 @@ class JournalResource extends Resource
     public static function getRelations(): array
     {
         return [
-            //
+            AttendancesRelationManager::class,
         ];
     }
 

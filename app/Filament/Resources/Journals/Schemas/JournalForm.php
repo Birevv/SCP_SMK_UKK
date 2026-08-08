@@ -18,7 +18,7 @@ class JournalForm
         return $schema
             ->components([
                 Select::make('schedule_id')
-                    ->relationship('schedule', 'subject_name', function (Builder $query) {
+                    ->relationship('schedule', 'subject_name', function (Builder $query) {  
                         $user = Auth::user();
                         if ($user && $user->role?->name === 'Guru') {
                             $query->where('teacher_id', $user->id);

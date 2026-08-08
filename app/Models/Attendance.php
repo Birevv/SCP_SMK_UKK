@@ -11,7 +11,12 @@ class Attendance extends Model
         'journal_id',
         'student_id',
         'status',
+        'date',
         'notes',
+    ];
+
+    protected $casts = [
+        'date' => 'date',
     ];
     
     public function journal() : BelongsTo

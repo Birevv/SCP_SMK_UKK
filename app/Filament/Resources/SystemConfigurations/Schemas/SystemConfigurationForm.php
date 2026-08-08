@@ -17,7 +17,10 @@ class SystemConfigurationForm
             ->components([
                 Select::make('active_cycle')
                     ->label('Putaran Aktif')
-                    ->options(['Putaran 1' => 'Putaran 1', 'Putaran 2' => 'Putaran 2'])
+                    ->options([
+                        'Putaran 1' => 'Putaran 1',
+                        'Putaran 2' => 'Putaran 2',
+                    ])
                     ->default('Putaran 1')
                     ->required(),
                     

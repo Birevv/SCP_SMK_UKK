@@ -24,6 +24,12 @@ class UserResource extends Resource
     {
         return Auth::user()?->role?->name === 'Waka Kurikulum';
     }
+
+    public static function getEloquentQuery(): Builder
+    {
+        return parent::getEloquentQuery()->with(['role', 'classroom']);
+    }
+
     protected static ?string $model = User::class;
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::Users;

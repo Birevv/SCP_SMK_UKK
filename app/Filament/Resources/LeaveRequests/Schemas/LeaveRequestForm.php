@@ -8,19 +8,28 @@ use Filament\Forms\Components\Hidden;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
 use Filament\Schemas\Schema;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\Auth;
 
 class LeaveRequestForm
 {
     public static function configure(Schema $schema): Schema
     {
+        $user = Auth::user();
+        $role = $user?->role?->name;
+
         return $schema
             ->components([
                 Select::make('student_id')
-                    ->relationship('student', 'full_name')
+                    ->relationship('student', 'full_name', fn (Builder $query) =>
+                        $query->whereHas('role', fn ($q) => $q->where('name', 'Siswa'))
+                    )
                     ->required()
                     ->searchable()
-                    ->label('Nama Siswa'),
+                    ->preload()
+                    ->label('Nama Siswa')
+                    ->default(fn () => $role === 'Siswa' ? $user?->id : null)
+                    ->disabled(fn () => $role === 'Siswa'),
 
                 Hidden::make('submitted_by')
                     ->default(Auth::id()),
@@ -31,6 +40,7 @@ class LeaveRequestForm
 
                 DatePicker::make('end_date')
                     ->required()
+                    ->afterOrEqual('start_date')
                     ->label('Tanggal Selesai'),
 
                 Select::make('reason_type')
@@ -48,6 +58,8 @@ class LeaveRequestForm
 
                 FileUpload::make('attachment_photo')
                     ->image()
+                    ->maxSize(2048)
+                    ->acceptedFileTypes(['image/jpeg', 'image/png', 'image/jpg', 'application/pdf'])
                     ->directory('leave_attachments')
                     ->label('Lampiran / Surat Dokter'),
 
@@ -59,7 +71,7 @@ class LeaveRequestForm
                     ])
                     ->default('Pending')
                     ->required()
-                    ->disabled(fn () => !in_array(Auth::user()?->role?->name, ['Wali Kelas', 'Guru BK', 'Waka Kurikulum']))
+                    ->disabled(fn () => !in_array($role, ['Wali Kelas', 'Guru BK', 'Waka Kurikulum']))
                     ->dehydrated()
                     ->label('Status Verifikasi'),
             ]);

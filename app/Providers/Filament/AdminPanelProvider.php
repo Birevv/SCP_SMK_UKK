@@ -4,6 +4,7 @@ namespace App\Providers\Filament;
 
 use App\Filament\Profile\EditProfile;
 use App\Filament\Widgets\StatsOverviewWidget;
+use App\Filament\Widgets\UnfilledJournalAlertWidget;
 use Filament\Http\Middleware\Authenticate;
 use Filament\Http\Middleware\AuthenticateSession;
 use Filament\Http\Middleware\DisableBladeIconComponents;
@@ -45,6 +46,8 @@ class AdminPanelProvider extends PanelProvider
             ->widgets([
                 AccountWidget::class,
                 StatsOverviewWidget::class,
+                UnfilledJournalAlertWidget::class,
+
             ])
             ->middleware([
                 EncryptCookies::class,
