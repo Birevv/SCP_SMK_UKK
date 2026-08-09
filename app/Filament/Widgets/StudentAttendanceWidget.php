@@ -45,7 +45,11 @@ class StudentAttendanceWidget extends Widget
             return ['stats' => null];
         }
 
-        $attendances = Attendance::where('student_id', $studentId)->get();
+        $attendances = Attendance::with(['journal.schedule'])
+            ->where('student_id', $studentId)
+            ->latest('date')
+            ->latest('id')
+            ->get();
 
         $hadir = $attendances->where('status', 'Hadir')->count();
         $sakit = $attendances->where('status', 'Sakit')->count();
@@ -64,6 +68,7 @@ class StudentAttendanceWidget extends Widget
                 'alpa' => $alpa,
                 'total' => $total,
                 'percentage' => $percentage,
+                'history' => $attendances->take(10),
             ],
         ];
     }
