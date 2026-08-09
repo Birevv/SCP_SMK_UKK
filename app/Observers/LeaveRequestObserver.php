@@ -40,8 +40,7 @@ class LeaveRequestObserver
         $journals = Journal::whereHas('schedule', function ($q) use ($student) {
             $q->where('classroom_id', $student->classroom_id);
         })
-        ->whereDate('date', '>=', $leaveRequest->start_date)
-        ->whereDate('date', '<=', $leaveRequest->end_date)
+        ->whereBetween('date', [$leaveRequest->start_date, $leaveRequest->end_date])
         ->get();
 
         foreach ($journals as $journal) {

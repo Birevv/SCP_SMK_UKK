@@ -20,12 +20,13 @@ class AttendancesTable
 
                 TextColumn::make('status')
                     ->badge()
-                    ->colors([
-                        'success' => 'Hadir',
-                        'warning' => 'Sakit',
-                        'info' => 'Izin',
-                        'danger' => 'Alpa',
-                    ])
+                    ->color(fn (string $state): string => match ($state) {
+                        'Hadir' => 'success',
+                        'Sakit' => 'warning',
+                        'Izin' => 'info',
+                        'Alpa' => 'danger',
+                        default => 'gray',
+                    })
                     ->label('Status'),
 
                 TextColumn::make('notes')

@@ -1,58 +1,85 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# 🏫 School Class Progress (SCP) - UKK 2026
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+![Laravel](https://img.shields.io/badge/Laravel-13.x-FF2D20?style=for-the-badge&logo=laravel&logoColor=white)
+![Filament](https://img.shields.io/badge/Filament-v4.x-FDAE4B?style=for-the-badge&logo=filament&logoColor=black)
+![PHPUnit](https://img.shields.io/badge/PHPUnit-Tested-blue?style=for-the-badge&logo=php)
 
-## About Laravel
+Sistem Informasi Pengelolaan Presensi, Jurnal Mengajar Guru, dan Perizinan Siswa berbasis **Mobile-First Design** untuk Sekolah Menengah Kejuruan (SMK) dengan dukungan **Jadwal Blok 2-Mingguan (Putaran 1 & Putaran 2)**.
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+Proyek ini dibangun khusus untuk memenuhi kualifikasi nilai tertinggi pada **Uji Kompetensi Keahlian (UKK) Tahun Ajaran 2026/2027 Paket 3 Rekayasa Perangkat Lunak (RPL)**.
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+---
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+## 🎯 5 LOGIKA BISNIS UTAMA (KUNCI KELULUSAN UKK)
 
-## Learning Laravel
+1. **Anti-Tabrakan Waktu (Conflict Prevention):**  
+   Validasi otomatis saat input jadwal mengajar guru (`Schedule`). Sistem menolak jika terjadi bentrok irisan jam (`start_time < new_end AND end_time > new_start`) pada hari, putaran, dan (ruang OR kelas OR guru) yang sama.
+2. **Saklar Putaran Blok (Cycle Toggle):**  
+   Panel Waka Kurikulum untuk mengatur status siklus aktif (`Putaran 1` / `Putaran 2`). Seluruh query jadwal dan antarmuka operasional guru menyesuaikan secara global.
+3. **Mekanisme Kunci Jadwal (Lock Schedule):**  
+   Fitur *Lock* dari Waka Kurikulum untuk memproteksi form pembuatan, pengubahan, dan penghapusan jadwal guru baik di UI maupun di backend policy.
+4. **Alur Sync Perizinan Absensi Otomatis:**  
+   Pengajuan surat izin siswa/ortu berstatus `Approved` otomatis mensinkronkan status presensi (`Sakit`/`Izin`) saat Guru mengisi Jurnal Mengajar harian.
+5. **Dashboard Alert Reminder:**  
+   Indikator visual peringatan keterlambatan pengisian jurnal di dashboard jika jadwal mengajar guru sudah selesai (>30 menit) namun jurnal belum terisi.
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
+---
 
-In addition, [Laracasts](https://laracasts.com) contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+## 👥 AKUN HAK AKSES DEFAULT (RBAC 6 ROLES)
 
-You can also watch bite-sized lessons with real-world projects on [Laravel Learn](https://laravel.com/learn), where you will be guided through building a Laravel application from scratch while learning PHP fundamentals.
+Seluruh akun default telah diseed dan dapat digunakan langsung untuk pengujian:
 
-## Agentic Development
+| Role | Username | Password | Deskripsi Akses |
+| --- | --- | --- | --- |
+| **Waka Kurikulum** | `waka` | `password` | Master Data, Lock Schedule, Cycle Toggle, Laporan Presensi |
+| **Guru** | `guru1` | `password` | Input Jadwal Mandiri, Input Jurnal + Foto Realtime, Alert Reminder |
+| **Wali Kelas** | `walikelas1` | `password` | Verifikasi/Approve Surat Izin, Laporan Rekap Presensi Siswa |
+| **Guru BK** | `gurubk` | `password` | Verifikasi/Approve Surat Izin, Laporan Rekap Presensi Siswa |
+| **Siswa** | `siswa1` | `password` | Pengajuan Surat Izin (+Upload Bukti), Widget Kehadiran Siswa |
+| **Orang Tua** | `ortu1` | `password` | Pengajuan Surat Izin Anak (+Upload Bukti), Widget Kehadiran Anak |
 
-Laravel's predictable structure and conventions make it ideal for AI coding agents like Claude Code, Cursor, and GitHub Copilot. Install [Laravel Boost](https://laravel.com/docs/ai) to supercharge your AI workflow:
+---
 
+## 🛠️ PANDUAN INSTALASI & MENJALANKAN PROYEK
+
+### 1. Clone & Install Dependencies
 ```bash
-composer require laravel/boost --dev
-
-php artisan boost:install
+composer install
+npm install
 ```
 
-Boost provides your agent 15+ tools and skills that help agents build Laravel applications while following best practices.
+### 2. Konfigurasi Environment & Migration + Seeder
+```bash
+cp .env.example .env
+php artisan key:generate
+php artisan migrate:fresh --seed
+```
 
-## Contributing
+### 3. Jalankan Server Lokal
+```bash
+php artisan serve
+npm run dev
+```
+Akses panel admin di browser: `http://localhost:8000/admin`
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+---
 
-## Code of Conduct
+## 🧪 AUTOMATED FEATURE TESTING SUITE
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+Proyek ini dilengkapi dengan *unit test / feature test* otomatis untuk memverifikasi kebenaran 5 Logika Bisnis Utama:
 
-## Security Vulnerabilities
+```bash
+php artisan test
+```
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+Hasil pengujian otomatis: **5 Passed / 7 Assertions (100% Success)**.
 
-## License
+---
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+## 📄 MODUL LAPORAN & DOKUMENTASI STEP-BY-STEP
+
+Dokumen petunjuk pengembangan lengkap per tahap tersimpan pada direktori `Instruction/`:
+- [ANALISIS_FITUR_UKK_SCP.md](file:///d:/Project%20UKK/Paket%203%20SCP/SCP_SMK/Instruction/ANALISIS_FITUR_UKK_SCP.md)
+- [LANGKAH_STEP_8_FILAMENT_RESOURCES.md](file:///d:/Project%20UKK/Paket%203%20SCP/SCP_SMK/Instruction/LANGKAH_STEP_8_FILAMENT_RESOURCES.md)
+- [LANGKAH_STEP_9_PRESENSI_WIDGETS_TESTING.md](file:///d:/Project%20UKK/Paket%203%20SCP/SCP_SMK/Instruction/LANGKAH_STEP_9_PRESENSI_WIDGETS_TESTING.md)
+- [LANGKAH_STEP_10_LAPORAN_EXPORT_DAN_DOKUMENTASI_FINAL.md](file:///d:/Project%20UKK/Paket%203%20SCP/SCP_SMK/Instruction/LANGKAH_STEP_10_LAPORAN_EXPORT_DAN_DOKUMENTASI_FINAL.md)

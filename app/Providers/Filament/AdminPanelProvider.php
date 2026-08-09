@@ -4,6 +4,7 @@ namespace App\Providers\Filament;
 
 use App\Filament\Profile\EditProfile;
 use App\Filament\Widgets\StatsOverviewWidget;
+use App\Filament\Widgets\StudentAttendanceWidget;
 use App\Filament\Widgets\UnfilledJournalAlertWidget;
 use Filament\Http\Middleware\Authenticate;
 use Filament\Http\Middleware\AuthenticateSession;
@@ -47,7 +48,7 @@ class AdminPanelProvider extends PanelProvider
                 AccountWidget::class,
                 StatsOverviewWidget::class,
                 UnfilledJournalAlertWidget::class,
-
+                StudentAttendanceWidget::class,
             ])
             ->middleware([
                 EncryptCookies::class,

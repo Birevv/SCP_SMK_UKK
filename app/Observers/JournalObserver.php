@@ -29,8 +29,8 @@ class JournalObserver
         // Pre-load semua approved leave requests dalam satu query (hindari N+1)
         $approvedLeaves = LeaveRequest::whereIn('student_id', $studentIds)
             ->where('status', 'Approved')
-            ->whereDate('start_date', '<=', $journal->date)
-            ->whereDate('end_date', '>=', $journal->date)
+            ->where('start_date', '<=', $journal->date)
+            ->where('end_date', '>=', $journal->date)
             ->get()
             ->keyBy('student_id');
 
