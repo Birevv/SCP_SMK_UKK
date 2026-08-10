@@ -33,7 +33,7 @@ class AdminPanelProvider extends PanelProvider
             ->path('admin')
             ->login()
             ->passwordReset()
-            ->brandName('SCP - School Class Progress')
+            ->brandName('School Class Progress')
             ->profile(EditProfile::class)
             ->colors([
                 'primary' => Color::Blue,

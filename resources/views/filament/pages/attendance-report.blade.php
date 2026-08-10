@@ -24,11 +24,12 @@
         @endphp
 
         @if (!empty($data) && count($data['students']) > 0)
-            <x-filament::section>
+            <div style="margin-top: 1.75rem;">
+                <x-filament::section>
                 <!-- Kop Laporan -->
                 <div style="border-bottom: 2px solid #374151; padding-bottom: 1rem; margin-bottom: 1.5rem; text-align: center;">
                     <h1 style="font-size: 1.5rem; font-weight: 700; text-transform: uppercase;">
-                        SCHOOL CLASS PROGRESS (SCP)
+                        SCHOOL CLASS PROGRESS
                     </h1>
                     <p style="font-size: 0.875rem; font-weight: 500; opacity: 0.8;">
                         LAPORAN REKAPITULASI KEHADIRAN SISWA
@@ -74,13 +75,16 @@
                         </tbody>
                     </table>
                 </div>
-            </x-filament::section>
+                </x-filament::section>
+            </div>
         @else
-            <x-filament::section>
-                <div style="text-align: center; padding: 2rem; opacity: 0.7;">
-                    Tidak ada data presensi yang ditemukan untuk kriteria filter ini.
-                </div>
-            </x-filament::section>
+            <div style="margin-top: 1.75rem;">
+                <x-filament::section>
+                    <div style="text-align: center; padding: 2rem; opacity: 0.7;">
+                        Tidak ada data presensi yang ditemukan untuk kriteria filter ini.
+                    </div>
+                </x-filament::section>
+            </div>
         @endif
     </div>
 </x-filament-panels::page>
