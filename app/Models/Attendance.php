@@ -18,13 +18,13 @@ class Attendance extends Model
     protected $casts = [
         'date' => 'date',
     ];
-    
-    public function journal() : BelongsTo
+
+    public function journal(): BelongsTo
     {
         return $this->belongsTo(Journal::class);
     }
 
-    public function student() : BelongsTo
+    public function student(): BelongsTo
     {
         return $this->belongsTo(User::class, 'student_id');
     }
