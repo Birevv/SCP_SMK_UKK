@@ -25,7 +25,7 @@ Proyek ini dibangun khusus untuk memenuhi kualifikasi nilai tertinggi pada **Uji
 
 ---
 
-## 👥 AKUN HAK AKSES DEFAULT (RBAC 6 ROLES)
+## 👥 AKUN HAK AKSES DEFAULT (RBAC 5 ROLES)
 
 Seluruh akun default telah diseed dan dapat digunakan langsung untuk pengujian:
 
@@ -35,8 +35,7 @@ Seluruh akun default telah diseed dan dapat digunakan langsung untuk pengujian:
 | **Guru** | `guru1` | `password` | Input Jadwal Mandiri, Input Jurnal + Foto Realtime, Alert Reminder |
 | **Wali Kelas** | `walikelas1` | `password` | Verifikasi/Approve Surat Izin, Laporan Rekap Presensi Siswa |
 | **Guru BK** | `gurubk` | `password` | Verifikasi/Approve Surat Izin, Laporan Rekap Presensi Siswa |
-| **Siswa** | `siswa1` | `password` | Pengajuan Surat Izin (+Upload Bukti), Widget Kehadiran Siswa |
-| **Orang Tua** | `ortu1` | `password` | Pengajuan Surat Izin Anak (+Upload Bukti), Widget Kehadiran Anak |
+| **Siswa & Orang Tua** | `siswa1` | `password` | Pengajuan Surat Izin (+Upload Bukti), Widget Kehadiran Siswa |
 
 ---
 

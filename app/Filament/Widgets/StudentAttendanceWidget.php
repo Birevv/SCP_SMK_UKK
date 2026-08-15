@@ -3,7 +3,6 @@
 namespace App\Filament\Widgets;
 
 use App\Models\Attendance;
-use App\Models\User;
 use Filament\Widgets\Widget;
 use Illuminate\Support\Facades\Auth;
 
@@ -17,33 +16,18 @@ class StudentAttendanceWidget extends Widget
     {
         $role = Auth::user()?->role?->name;
 
-        return in_array($role, ['Siswa', 'Orang Tua']);
+        return $role === 'Siswa';
     }
 
     protected function getViewData(): array
     {
         $user = Auth::user();
-        if (! $user) {
+        if (! $user || $user->role?->name !== 'Siswa') {
             return ['stats' => null];
         }
 
-        $studentId = null;
-        $studentName = '';
-
-        if ($user->role?->name === 'Siswa') {
-            $studentId = $user->id;
-            $studentName = $user->full_name;
-        } elseif ($user->role?->name === 'Orang Tua') {
-            $child = User::where('parent_id', $user->id)->first() ?? User::find($user->parent_id);
-            if ($child) {
-                $studentId = $child->id;
-                $studentName = $child->full_name;
-            }
-        }
-
-        if (! $studentId) {
-            return ['stats' => null];
-        }
+        $studentId = $user->id;
+        $studentName = $user->full_name;
 
         $attendances = Attendance::with(['journal.schedule'])
             ->where('student_id', $studentId)

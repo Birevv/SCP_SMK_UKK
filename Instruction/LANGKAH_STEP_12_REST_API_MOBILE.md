@@ -80,7 +80,7 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens; // 1. Import Trait Sanctum
 
-#[Fillable(['role_id', 'classroom_id', 'parent_id', 'full_name', 'username', 'email', 'password'])]
+#[Fillable(['role_id', 'classroom_id', 'full_name', 'username', 'email', 'password'])]
 #[Hidden(['password', 'remember_token'])]
 class User extends Authenticatable implements HasName
 {
@@ -103,16 +103,6 @@ class User extends Authenticatable implements HasName
     public function classroom(): BelongsTo
     {
         return $this->belongsTo(Classroom::class);
-    }
-
-    public function parent(): BelongsTo
-    {
-        return $this->belongsTo(User::class, 'parent_id');
-    }
-
-    public function children(): HasMany
-    {
-        return $this->hasMany(User::class, 'parent_id');
     }
 
     public function role(): BelongsTo 

@@ -322,31 +322,19 @@ class StudentAttendanceWidget extends Widget
     public static function canView(): bool
     {
         $role = Auth::user()?->role?->name;
-        // Widget ini khusus untuk Siswa dan Orang Tua
-        return in_array($role, ['Siswa', 'Orang Tua']);
+        // Widget ini khusus untuk akun Siswa (Siswa & Orang Tua)
+        return $role === 'Siswa';
     }
 
     protected function getViewData(): array
     {
         $user = Auth::user();
-        $studentId = null;
-        $studentName = '';
-
-        if ($user->role->name === 'Siswa') {
-            $studentId = $user->id;
-            $studentName = $user->full_name;
-        } elseif ($user->role->name === 'Orang Tua') {
-            // Relasi ke anak (siswa)
-            $child = User::find($user->parent_id);
-            if ($child) {
-                $studentId = $child->id;
-                $studentName = $child->full_name;
-            }
-        }
-
-        if (!$studentId) {
+        if (!$user || $user->role?->name !== 'Siswa') {
             return ['stats' => null];
         }
+
+        $studentId = $user->id;
+        $studentName = $user->full_name;
 
         $attendances = Attendance::where('student_id', $studentId)->get();
 

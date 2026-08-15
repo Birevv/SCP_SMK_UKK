@@ -11,10 +11,10 @@ class DatabaseSeeder extends Seeder
         // User::factory(10)->create();
         $this->call([
             RoleSeeder::class,
+            ClassroomSeeder::class,
+            RoomSeeder::class,
             UserSeeder::class,
             SystemConfigurationSeeder::class,
-            RoomSeeder::class,
-            ClassroomSeeder::class,
         ]);
     }
 }

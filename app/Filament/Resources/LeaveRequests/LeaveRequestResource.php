@@ -22,13 +22,13 @@ class LeaveRequestResource extends Resource
     public static function canViewAny(): bool
     {
         $role = Auth::user()?->role?->name;
-        return in_array($role, ['Waka Kurikulum', 'Wali Kelas', 'Guru BK', 'Siswa', 'Orang Tua']);
+        return in_array($role, ['Waka Kurikulum', 'Wali Kelas', 'Guru BK', 'Siswa']);
     }
 
     public static function canCreate(): bool
     {
         $role = Auth::user()?->role?->name;
-        return in_array($role, ['Siswa', 'Orang Tua', 'Wali Kelas', 'Waka Kurikulum']);
+        return in_array($role, ['Siswa', 'Wali Kelas', 'Waka Kurikulum']);
     }
 
     public static function getEloquentQuery(): Builder
@@ -38,8 +38,6 @@ class LeaveRequestResource extends Resource
 
         if ($user && $user->role?->name === 'Siswa') {
             $query->where('student_id', $user->id);
-        } elseif ($user && $user->role?->name === 'Orang Tua') {
-            $query->where('submitted_by', $user->id);
         }
 
         return $query;

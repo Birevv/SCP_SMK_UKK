@@ -13,7 +13,7 @@ Dokumen ini membedah setiap langkah pengerjaan secara bertahap (satu per satu) b
     - [x] Model & Migration `users`
     - [x] Widget Statistik Dashboard (`TotalUserWidget`)
 - [x] **Step 1: Modul Hak Akses & Role (`roles`)**
-- [x] **Step 2: Update Tabel `users` (`role_id` & `parent_id`)**
+- [x] **Step 2: Update Tabel `users` (`role_id` & `classroom_id`, eliminasi anomali `parent_id`)**
 - [x] **Step 3: Master Data Ruangan (`rooms`)**
 - [x] **Step 4: Konfigurasi Sistem (`system_configurations`)**
 - [x] **Step 5: Seeder Data Awal (Roles, Default Config, Ruangan, Users)**
@@ -38,16 +38,15 @@ Dokumen ini membedah setiap langkah pengerjaan secara bertahap (satu per satu) b
 - **Apa itu dan Untuk Apa?**
   Tabel dan Model `roles` digunakan untuk menyimpan daftar peran/hak akses pengguna di dalam sistem SCP.
 - **Mengapa Dibutuhkan di Soal UKK?**
-  Soal UKK mewajibkan **Role-Based Access Control (RBAC)** yang membagi pengguna menjadi 6 role utama dengan antarmuka yang disesuaikan:
+  Soal UKK mewajibkan **Role-Based Access Control (RBAC)** yang membagi pengguna menjadi role utama dengan antarmuka yang disesuaikan (Siswa & Orang Tua menggunakan akun/portal yang sama):
     1. `Waka Kurikulum` (Atur siklus blok Putaran 1/2 & Lock Schedule).
     2. `Guru` (Input jadwal mengajar, pengisian jurnal, dan presensi foto realtime).
     3. `Wali Kelas` (Memantau rekap absensi dan verifikasi surat izin).
     4. `Guru BK` (Memantau rekap absensi dan verifikasi surat izin).
-    5. `Siswa` (Mengajukan izin & melihat rekap kehadiran).
-    6. `Orang Tua` (Mengajukan izin anak & melihat rekap kehadiran anak).
+    5. `Siswa` (Akun bersama Siswa & Orang Tua untuk mengajukan izin & melihat rekap kehadiran).
 - **Atribut / Kolom Tabel `roles`:**
     - `id`: Primary key (autoincrement).
-    - `name`: Nama role (contoh: Waka Kurikulum, Guru, Wali Kelas, Guru BK, Siswa, Orang Tua).
+    - `name`: Nama role (contoh: Waka Kurikulum, Guru, Wali Kelas, Guru BK, Siswa).
 - **Status:** 🟢 Migration & Model `roles` sudah dibuat.
 
 ---
@@ -55,13 +54,12 @@ Dokumen ini membedah setiap langkah pengerjaan secara bertahap (satu per satu) b
 #### 📍 Langkah 1.2: Update Migration & Model `users`
 
 - **Apa itu dan Untuk Apa?**
-  Menambahkan kolom `role_id` (foreign key ke `roles`) dan `parent_id` (foreign key ke `users`) di tabel `users`.
+  Menambahkan kolom `role_id` (foreign key ke `roles`) dan `classroom_id` (foreign key ke `classrooms`) di tabel `users`. *(Catatan: Kolom `parent_id` di skema awal soal merupakan anomali data karena Siswa dan Orang Tua disatukan dalam satu akun, sehingga `parent_id` tidak terpakai/dihapus).*
 - **Mengapa Dibutuhkan di Soal UKK?**
     - **`role_id`**: Agar setiap user yang login (di Filament atau Portal) diketahui hak aksesnya, sehingga menu/tombol disesuaikan dengan rolenya.
-    - **`parent_id`**: Menghubungkan akun **Orang Tua** ke akun **Siswa** (anaknya). Di soal UKK, Orang Tua dan Siswa menggunakan portal login yang sama, namun Orang Tua mengajukan izin atas nama anaknya (`parent_id` merujuk ke ID siswa).
+    - **`classroom_id`**: Menghubungkan akun Siswa dan Wali Kelas ke kelasnya masing-masing.
 - **Kolom Tambahan di `users`:**
     - `role_id`: Foreign key merujuk ke `roles.id`.
-    - `parent_id`: Foreign key (nullable) merujuk ke `users.id` (untuk relasi Ortu -> Siswa).
     - `classroom_id`: Foreign key (nullable) merujuk ke `classrooms.id` (untuk Siswa & Wali Kelas).
 
 ---

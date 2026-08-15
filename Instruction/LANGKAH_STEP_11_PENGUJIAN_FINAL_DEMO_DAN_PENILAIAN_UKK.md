@@ -112,9 +112,9 @@ graph TD
 
 ---
 
-#### 🎭 TAHAP 3: PORTAL SISWA & ORANG TUA (`username: siswa1` / `ortu1` | `password: password`)
+#### 🎭 TAHAP 3: PORTAL SISWA & ORANG TUA (`username: siswa1` | `password: password`)
 
-1. **Login Siswa/Ortu:** Login menggunakan akun `siswa1` atau `ortu1`.
+1. **Login Siswa/Ortu:** Login menggunakan akun bersama `siswa1`.
 2. **Demonstrasi Widget Overview Kehadiran (Mobile-First UI):**
    - Tunjukkan widget visual persentase kehadiran, status Hadir/Sakit/Izin/Alpa, dan kartu riwayat presensi.
 3. **Pengajuan Surat Izin / Sakit:**

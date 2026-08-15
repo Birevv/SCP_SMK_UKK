@@ -15,7 +15,6 @@ return new class extends Migration
             $table->id();
             $table->foreignId('role_id')->nullable();
             $table->foreignId('classroom_id')->nullable();
-            $table->foreignId('parent_id')->nullable();
             $table->string('full_name');
             $table->string('username');
             $table->string('email')->unique();
