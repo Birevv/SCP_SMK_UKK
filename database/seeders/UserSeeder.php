@@ -69,7 +69,7 @@ class UserSeeder extends Seeder
         User::firstOrCreate(
             ['username' => 'siswa1'],
             [
-                'full_name' => 'Ahmad Fauzi (Siswa & Orang Tua)',
+                'full_name' => 'Ahmad Fauzi',
                 'email' => 'siswa1@scp.sch.id',
                 'password' => Hash::make('password'),
                 'role_id' => $siswaRole?->id,
