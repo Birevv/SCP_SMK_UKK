@@ -3,7 +3,7 @@
 > **Sistem:** School Class Progress (SCP) - UKK 2026  
 > **Framework & Runtime:** Laravel 13.x | PHP 8.3+ | Laravel Sanctum 4.x  
 > **Modul:** Mobile RESTful API Architecture, Token Authentication (Sanctum), Form Requests, API Resources, Endpoints Contract, Implementation Controllers, & Postman Collection Guide  
-> **Target Pengguna:** Mobile App Developer (Flutter / React Native / Kotlin / Swift), Backend Developer, Siswa, Guru, Orang Tua, Tim Kesiswaan  
+> **Target Pengguna:** Mobile App Developer (Flutter / React Native / Kotlin / Swift), Backend Developer, Siswa, Guru, Tim Kesiswaan  
 
 ---
 
@@ -403,13 +403,12 @@ class UserResource extends JsonResource
     public function toArray(Request $request): array
     {
         return [
-            'id'          => $this->id,
-            'full_name'   => $this->full_name,
-            'username'    => $this->username,
-            'email'       => $this->email,
-            'role'        => $this->role?->name,
-            'classroom'   => $this->classroom?->name,
-            'parent_name' => $this->parent?->full_name,
+            'id'        => $this->id,
+            'full_name' => $this->full_name,
+            'username'  => $this->username,
+            'email'     => $this->email,
+            'role'      => $this->role?->name,
+            'classroom' => $this->classroom?->name,
         ];
     }
 }
@@ -531,7 +530,7 @@ Spesifikasi lengkap seluruh endpoint REST API v1 School Class Progress (SCP).
 
 ---
 
-#### 📱 2. MODUL SISWA & ORANG TUA (`/api/v1/student/*`)
+#### 📱 2. MODUL SISWA (`/api/v1/student/*`)
 
 ##### A. Ringkasan Presensi Dashboard (`GET /api/v1/student/attendance-summary`)
 - **Headers:** `Authorization: Bearer <TOKEN>`, `Accept: application/json`
@@ -691,7 +690,7 @@ class AuthController extends Controller
 
     public function me(Request $request): JsonResponse
     {
-        $user = $request->user()->load(['role', 'classroom', 'parent']);
+        $user = $request->user()->load(['role', 'classroom']);
 
         return $this->successResponse(new UserResource($user), 'Data profil berhasil diambil');
     }
@@ -730,17 +729,7 @@ class StudentApiController extends Controller
 
     public function attendanceSummary(Request $request): JsonResponse
     {
-        $user = $request->user();
-
-        // Dukungan akses untuk akun Orang Tua (melihat data anak) atau Siswa
-        /** @var User|null $student */
-        $student = $user->role?->name === 'Orang Tua'
-            ? $user->children()->first()
-            : $user;
-
-        if (! $student) {
-            return $this->errorResponse('Data siswa tidak ditemukan', 404);
-        }
+        $student = $request->user();
 
         // Anti N+1 & whereBelongsTo
         $attendances = Attendance::whereBelongsTo($student, 'student')->get();
@@ -784,12 +773,7 @@ class StudentApiController extends Controller
 
     public function leaveRequests(Request $request): JsonResponse
     {
-        $user = $request->user();
-        $student = $user->role?->name === 'Orang Tua' ? $user->children()->first() : $user;
-
-        if (! $student) {
-            return $this->errorResponse('Data siswa tidak ditemukan', 404);
-        }
+        $student = $request->user();
 
         $requests = LeaveRequest::with('verifiedBy')
             ->whereBelongsTo($student, 'student')
@@ -801,13 +785,7 @@ class StudentApiController extends Controller
 
     public function storeLeaveRequest(StoreLeaveRequest $request): JsonResponse
     {
-        $user = $request->user();
-        $student = $user->role?->name === 'Orang Tua' ? $user->children()->first() : $user;
-
-        if (! $student) {
-            return $this->errorResponse('Data siswa tidak ditemukan', 404);
-        }
-
+        $student = $request->user();
         $data = $request->validated();
 
         if ($request->hasFile('attachment_photo')) {
@@ -815,7 +793,7 @@ class StudentApiController extends Controller
         }
 
         $data['student_id']   = $student->id;
-        $data['submitted_by'] = $user->id;
+        $data['submitted_by'] = $student->id;
         $data['status']       = 'Pending';
 
         $leaveRequest = LeaveRequest::create($data);
@@ -970,7 +948,7 @@ Route::middleware('auth:sanctum')->prefix('v1')->group(function () {
     Route::get('/auth/me', [AuthController::class, 'me']);
     Route::post('/auth/logout', [AuthController::class, 'logout']);
 
-    // Student & Parent Routes
+    // Student Routes
     Route::prefix('student')->group(function () {
         Route::get('/attendance-summary', [StudentApiController::class, 'attendanceSummary']);
         Route::get('/leave-requests', [StudentApiController::class, 'leaveRequests']);
