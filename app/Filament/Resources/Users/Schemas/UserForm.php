@@ -22,11 +22,12 @@ class UserForm
                     ->required()
                     ->reactive(),
 
-                Select::make('classroom_id')
+                Select::make('classrooms')
+                    ->relationship('classrooms', 'name')
+                    ->multiple()
                     ->label('Kelas')
-                    ->options(Classroom::pluck('name', 'id'))
                     ->searchable()
-                    ->nullable(),
+                    ->preload(),
 
                 TextInput::make('full_name')
                     ->label('Nama Lengkap')

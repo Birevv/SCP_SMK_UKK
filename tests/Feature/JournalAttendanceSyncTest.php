@@ -22,8 +22,11 @@ class JournalAttendanceSyncTest extends TestCase
         $teacher = User::factory()->create();
         $room = Room::factory()->create();
 
-        $student1 = User::factory()->create(['classroom_id' => $classroom->id]);
-        $student2 = User::factory()->create(['classroom_id' => $classroom->id]);
+        $student1 = User::factory()->create();
+        $student1->classrooms()->attach($classroom->id);
+        
+        $student2 = User::factory()->create();
+        $student2->classrooms()->attach($classroom->id);
 
         LeaveRequest::create([
             'student_id' => $student1->id,

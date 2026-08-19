@@ -22,7 +22,8 @@ class UsersTable
                         ->label('Role Akses')
                         ->searchable()
                         ->sortable(),
-                    Tables\Columns\TextColumn::make('classroom.name')
+                    Tables\Columns\TextColumn::make('classrooms.name')
+                        ->badge()
                         ->label('Kelas')
                         ->searchable(),
                     Tables\Columns\TextColumn::make('full_name')

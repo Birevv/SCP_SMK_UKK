@@ -45,8 +45,8 @@ class AttendanceReport extends Page implements HasForms
         $this->start_date = Carbon::now()->startOfMonth()->toDateString();
         $this->end_date = Carbon::now()->endOfMonth()->toDateString();
 
-        if ($user?->classroom_id) {
-            $this->classroom_id = $user->classroom_id;
+        if ($user && $user->classrooms()->exists()) {
+            $this->classroom_id = $user->classrooms()->first()->id;
         } else {
             $this->classroom_id = Classroom::first()?->id;
         }
@@ -94,7 +94,9 @@ class AttendanceReport extends Page implements HasForms
             return [];
         }
 
-        $students = User::where('classroom_id', $this->classroom_id)->get();
+        $students = User::whereHas('classrooms', function ($q) {
+            $q->where('classrooms.id', $this->classroom_id);
+        })->get();
         $selectedClassroom = Classroom::find($this->classroom_id);
 
         $report = [];

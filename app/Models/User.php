@@ -15,7 +15,9 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
 
-#[Fillable(['role_id', 'classroom_id', 'full_name', 'username', 'email', 'password'])]
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+
+#[Fillable(['role_id', 'full_name', 'username', 'email', 'password'])]
 #[Hidden(['password', 'remember_token'])]
 class User extends Authenticatable implements HasName
 {
@@ -40,9 +42,9 @@ class User extends Authenticatable implements HasName
         ];
     }
 
-    public function classroom(): BelongsTo
+    public function classrooms(): BelongsToMany
     {
-        return $this->belongsTo(Classroom::class);
+        return $this->belongsToMany(Classroom::class, 'user_class');
     }
 
     public function role(): BelongsTo 

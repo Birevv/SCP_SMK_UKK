@@ -32,13 +32,18 @@ class LeaveRequestObserver
     private function syncAttendance(LeaveRequest $leaveRequest): void
     {
         $student = $leaveRequest->student;
-        if (! $student || ! $student->classroom_id) {
+        if (! $student) {
+            return;
+        }
+
+        $classroomIds = $student->classrooms()->pluck('classrooms.id');
+        if ($classroomIds->isEmpty()) {
             return;
         }
 
         // Cari semua jurnal di kelas siswa tersebut pada rentang tanggal izin
-        $journals = Journal::whereHas('schedule', function ($q) use ($student) {
-            $q->where('classroom_id', $student->classroom_id);
+        $journals = Journal::whereHas('schedule', function ($q) use ($classroomIds) {
+            $q->whereIn('classroom_id', $classroomIds);
         })
         ->whereBetween('date', [$leaveRequest->start_date, $leaveRequest->end_date])
         ->get();

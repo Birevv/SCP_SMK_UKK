@@ -3,6 +3,7 @@
 namespace App\Filament\Resources\Classrooms\Pages;
 
 use App\Filament\Resources\Classrooms\ClassroomResource;
+use App\Filament\Resources\Classrooms\RelationManagers\UsersRelationManager;
 use Filament\Actions\DeleteAction;
 use Filament\Resources\Pages\EditRecord;
 
@@ -19,8 +20,15 @@ class EditClassroom extends EditRecord
         ];
     }
 
-     protected function getRedirectUrl(): string
+    protected function getRedirectUrl(): string
     {
         return $this->getResource()::getUrl('index');
+    }
+
+    public function getRelationManagers(): array
+    {
+        return [
+            UsersRelationManager::class,
+        ];
     }
 }
