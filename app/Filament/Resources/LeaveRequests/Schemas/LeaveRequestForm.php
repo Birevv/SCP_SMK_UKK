@@ -2,11 +2,15 @@
 
 namespace App\Filament\Resources\LeaveRequests\Schemas;
 
+use App\Enums\ReasonTypeEnum;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\Hidden;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
+use Filament\Forms\Components\TimePicker;
+use Filament\Schemas\Components\Utilities\Get;
+use Filament\Schemas\Components\Utilities\Set;
 use Filament\Schemas\Schema;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\Auth;
@@ -29,28 +33,77 @@ class LeaveRequestForm
                     ->preload()
                     ->label('Nama Siswa')
                     ->default(fn () => $role === 'Siswa' ? $user?->id : null)
-                    ->disabled(fn () => $role === 'Siswa'),
+                    ->disabled(fn () => $role === 'Siswa')
+                    ->dehydrated(),
 
                 Hidden::make('submitted_by')
-                    ->default(Auth::id()),
+                    ->default(fn () => Auth::id()),
+
+                Select::make('reason_type')
+                    ->options(ReasonTypeEnum::class)
+                    ->required()
+                    ->native(false)
+                    ->label('Alasan')
+                    ->live()
+                    ->afterStateUpdated(function (Set $set, Get $get) {
+                        $type = $get('reason_type');
+
+                        if ($type == ReasonTypeEnum::PULANG_CEPAT || $type == ReasonTypeEnum::KEGIATAN_LUAR) {
+                            $set('start_date', now());
+                            $set('end_date', now());
+                        }
+                    }),
 
                 DatePicker::make('start_date')
                     ->required()
+                    ->live()
+                    ->readOnly(function (Get $get) {
+                        $type = $get('reason_type');
+
+                        return $type == ReasonTypeEnum::PULANG_CEPAT || $type == ReasonTypeEnum::KEGIATAN_LUAR;
+                    })
+                    ->visible(function (Get $get) {
+                        $type = $get('reason_type');
+
+                        if ($type == ReasonTypeEnum::SAKIT || $type == ReasonTypeEnum::IZIN || $type == ReasonTypeEnum::PULANG_CEPAT || $type == ReasonTypeEnum::KEGIATAN_LUAR) {
+                            return true;
+                        }
+
+                        return false;
+                    })
                     ->label('Tanggal Mulai'),
 
                 DatePicker::make('end_date')
                     ->required()
+                    ->live()
+                    ->visible(function (Get $get) {
+                        $type = $get('reason_type');
+
+                        if ($type == ReasonTypeEnum::SAKIT || $type == ReasonTypeEnum::IZIN) {
+                            return true;
+                        }
+
+                        return false;
+                    })
                     ->afterOrEqual('start_date')
                     ->label('Tanggal Selesai'),
 
-                Select::make('reason_type')
-                    ->options([
-                        'Sakit' => 'Sakit',
-                        'Izin' => 'Izin',
-                    ])
-                    ->required()
-                    ->label('Alasan'),
                 
+                TimePicker::make('leave_time')
+                    ->required()
+                    ->live()
+                    ->seconds(false)
+                    ->visible(function (Get $get) {
+                        $type = $get('reason_type');
+
+                        if ($type == ReasonTypeEnum::PULANG_CEPAT || $type == ReasonTypeEnum::KEGIATAN_LUAR) {
+                            return true;
+                        }
+
+                        return false;
+                    })
+                    ->label('Jam Pergi'),
+
                 Textarea::make('description')
                     ->required()
                     ->columnSpanFull()
