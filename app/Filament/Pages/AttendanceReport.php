@@ -10,7 +10,7 @@ use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Concerns\InteractsWithForms;
 use Filament\Forms\Contracts\HasForms;
-use Filament\Forms\Form;
+use Filament\Schemas\Schema;
 use Filament\Pages\Page;
 use Illuminate\Support\Facades\Auth;
 use BackedEnum;
@@ -40,6 +40,7 @@ class AttendanceReport extends Page implements HasForms
 
     public function mount(): void
     {
+        /** @var \App\Models\User|null $user */
         $user = Auth::user();
 
         $this->start_date = Carbon::now()->startOfMonth()->toDateString();
@@ -65,7 +66,7 @@ class AttendanceReport extends Page implements HasForms
         return in_array($role, ['Waka Kurikulum', 'Guru', 'Wali Kelas', 'Guru BK']);
     }
 
-    public function form(Form $form): Form  
+    public function form(Schema $form): Schema  
     {
         return $form
             ->schema([
