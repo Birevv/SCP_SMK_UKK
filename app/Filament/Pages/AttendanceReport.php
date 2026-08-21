@@ -10,7 +10,7 @@ use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Concerns\InteractsWithForms;
 use Filament\Forms\Contracts\HasForms;
-use Filament\Schemas\Schema;
+use Filament\Forms\Form;
 use Filament\Pages\Page;
 use Illuminate\Support\Facades\Auth;
 use BackedEnum;
@@ -65,7 +65,7 @@ class AttendanceReport extends Page implements HasForms
         return in_array($role, ['Waka Kurikulum', 'Guru', 'Wali Kelas', 'Guru BK']);
     }
 
-    public function form(Schema $form): Schema  
+    public function form(Form $form): Form  
     {
         return $form
             ->schema([
