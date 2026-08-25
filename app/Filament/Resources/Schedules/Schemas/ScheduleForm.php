@@ -41,10 +41,15 @@ class ScheduleForm
                     ->preload()
                     ->label('Ruangan'),
 
-                TextInput::make('subject_name')
-                    ->required()
-                    ->maxLength(255)
+                Select::make('academic_year_id')
+                    ->label('Tahun Ajaran')
+                    ->relationship('academicYear', 'name')
+                    ->required(),
+
+                Select::make('subject_id')
                     ->label('Mata Pelajaran')
+                    ->relationship('subject', 'name')
+                    ->required()
                     ->rules([
                         fn (Get $get, ?Schedule $record): NoScheduleConflict => new NoScheduleConflict(
                             dayOfWeek: (string) $get('day_of_week'),

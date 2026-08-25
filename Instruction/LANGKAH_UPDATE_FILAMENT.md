@@ -165,7 +165,10 @@ Forms\Components\Select::make('academic_year_id')
 Forms\Components\Select::make('subject_id')
     ->label('Mata Pelajaran')
     ->relationship('subject', 'name')
-    ->required(),
+    ->required()
+    ->rules([
+        // ... paste aturan NoScheduleConflict bawaan form Anda sebelumnya di sini
+    ]),
 ```
 
 **Pada Table Columns:**

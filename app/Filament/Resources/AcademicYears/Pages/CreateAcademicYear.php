@@ -8,4 +8,11 @@ use Filament\Resources\Pages\CreateRecord;
 class CreateAcademicYear extends CreateRecord
 {
     protected static string $resource = AcademicYearResource::class;
+
+    protected static ?string $title = "Tambah Tahun Ajaran";
+
+    protected function getRedirectUrl(): string
+    {
+        return $this->getResource()::getUrl('index');
+    }
 }

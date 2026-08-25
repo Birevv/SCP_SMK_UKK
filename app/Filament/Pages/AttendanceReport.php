@@ -95,9 +95,11 @@ class AttendanceReport extends Page implements HasForms
             return [];
         }
 
-        $students = User::whereHas('classrooms', function ($q) {
-            $q->where('classrooms.id', $this->classroom_id);
-        })->get();
+        $students = User::where('status', 'Aktif')
+            ->whereHas('classrooms', function ($q) {
+                $q->where('classrooms.id', $this->classroom_id)
+                  ->where('user_class.status', 'Aktif');
+            })->get();
         $selectedClassroom = Classroom::find($this->classroom_id);
 
         $report = [];

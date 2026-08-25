@@ -16,10 +16,15 @@ class SchedulesTable
     {
         return $table
             ->columns([
-                TextColumn::make('subject_name')
-                    ->searchable()
+                TextColumn::make('academicYear.name')
+                    ->label('Tahun Ajaran')
                     ->sortable()
-                    ->label('Mata Pelajaran'),
+                    ->searchable(),
+                
+                TextColumn::make('subject.name')
+                    ->label('Mata Pelajaran')
+                    ->sortable()
+                    ->searchable(),
 
                 TextColumn::make('teacher.full_name')
                     ->searchable()
