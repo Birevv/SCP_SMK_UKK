@@ -32,7 +32,7 @@ class RoomResource extends Resource
 
     protected static ?string $pluralLabel = "Data Ruangan";
 
-    protected static ?int $navigationSort = 3;
+    protected static ?int $navigationSort = 5;
 
     public static function form(Schema $schema): Schema
     {

@@ -9,6 +9,7 @@ use App\Filament\Resources\Subjects\Schemas\SubjectForm;
 use App\Filament\Resources\Subjects\Tables\SubjectsTable;
 use App\Models\Subject;
 use BackedEnum;
+use UnitEnum;
 use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
@@ -18,7 +19,15 @@ class SubjectResource extends Resource
 {
     protected static ?string $model = Subject::class;
 
-    protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedRectangleStack;
+    protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedBookOpen;
+
+    protected static string|UnitEnum|null $navigationGroup = "Data Master";
+
+    protected static ?string $navigationLabel = "Mata Pelajaran";
+
+    protected static ?string $pluralLabel = "Data Mata Pelajaran";
+
+    protected static ?int $navigationSort = 4;
 
     public static function form(Schema $schema): Schema
     {

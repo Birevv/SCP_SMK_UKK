@@ -11,7 +11,7 @@
                 @foreach ($unfilledSchedules as $schedule)
                     <div class="flex justify-between items-center bg-white dark:bg-gray-900 p-3 rounded-lg border shadow-sm">
                         <div>
-                            <span class="font-semibold text-gray-900 dark:text-white">{{ $schedule->subject_name }}</span>
+                            <span class="font-semibold text-gray-900 dark:text-white">{{ $schedule->subject?->name ?? $schedule->subject_name }}</span>
                             <span class="text-sm text-gray-500">({{ $schedule->classroom?->name }} - {{ $schedule->room?->name }})</span>
                         </div>
                         <div class="text-sm text-danger-600 font-medium">

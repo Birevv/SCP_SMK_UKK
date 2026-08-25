@@ -21,9 +21,9 @@
                         <span style="font-size: 0.75rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; opacity: 0.7;">
                             Kehadiran Bulan Ini
                         </span>
-                        <span style="font-size: 0.75rem; font-weight: 600; padding: 2px 10px; border-radius: 9999px; {{ $stats['percentage'] >= 75 ? 'background-color: rgba(22, 163, 74, 0.15); color: #16a34a; border: 1px solid rgba(22, 163, 74, 0.3);' : 'background-color: rgba(220, 38, 38, 0.15); color: #dc2626; border: 1px solid rgba(220, 38, 38, 0.3);' }}">
+                        <x-filament::badge :color="$stats['percentage'] >= 75 ? 'success' : 'danger'" size="sm">
                             {{ $stats['percentage'] >= 75 ? 'Sangat Baik' : 'Perlu Perhatian' }}
-                        </span>
+                        </x-filament::badge>
                     </div>
 
                     <div style="margin-bottom: 1.5rem; display: flex; align-items: baseline; gap: 0.75rem;">
@@ -38,7 +38,13 @@
                     <!-- Progress Bar Sederhana -->
                     <div style="display: flex; flex-direction: column; gap: 6px;">
                         <div style="width: 100%; background-color: rgba(156, 163, 175, 0.2); border-radius: 9999px; height: 8px; overflow: hidden;">
-                            <div style="background-color: #10b981; height: 100%; border-radius: 9999px; transition: width 0.5s ease; width: {{ min(100, max(0, $stats['percentage'])) }}%;"></div>
+                            <div @style([
+                                'background-color: #10b981',
+                                'height: 100%',
+                                'border-radius: 9999px',
+                                'transition: width 0.5s ease',
+                                'width: ' . min(100, max(0, $stats['percentage'])) . '%',
+                            ])></div>
                         </div>
                         <div style="display: flex; justify-content: space-between; font-size: 0.75rem; opacity: 0.6;">
                             <span>0%</span>
@@ -122,7 +128,7 @@
                                             {{ $carbonDate ? $carbonDate->locale('id')->isoFormat('dddd') : '-' }}
                                         </td>
                                         <td style="padding: 12px; font-weight: 500;">
-                                            {{ $item->journal?->schedule?->subject_name ?? '-' }}
+                                            {{ $item->journal?->schedule?->subject?->name ?? $item->journal?->schedule?->subject_name ?? '-' }}
                                         </td>
                                         <td style="padding: 12px;">
                                             @if ($item->status === 'Hadir')

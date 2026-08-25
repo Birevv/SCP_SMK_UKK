@@ -51,6 +51,11 @@ class Schedule extends Model
         return $this->belongsTo(Subject::class);
     }
 
+    public function getSubjectNameAttribute(): ?string
+    {
+        return $this->subject?->name;
+    }
+
     public function scopeForActiveCycle($query)
     {
         $active_cycle = SystemConfiguration::current()->active_cycle;

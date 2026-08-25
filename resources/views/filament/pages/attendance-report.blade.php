@@ -67,7 +67,13 @@
                                     <td style="padding: 8px; border: 1px solid #6b7280; text-align: center; color: #2563eb; font-weight: 600;">{{ $student['izin'] }}</td>
                                     <td style="padding: 8px; border: 1px solid #6b7280; text-align: center; color: #dc2626; font-weight: 600;">{{ $student['alpa'] }}</td>
                                     <td style="padding: 8px; border: 1px solid #6b7280; text-align: center; font-weight: 700;">{{ $student['total'] }}</td>
-                                    <td style="padding: 8px; border: 1px solid #6b7280; text-align: center; font-weight: 700; color: {{ $student['percentage'] < 75 ? '#dc2626' : '#16a34a' }};">
+                                    <td @style([
+                                        'padding: 8px',
+                                        'border: 1px solid #6b7280',
+                                        'text-align: center',
+                                        'font-weight: 700',
+                                        'color: ' . ($student['percentage'] < 75 ? '#dc2626' : '#16a34a'),
+                                    ])>
                                         {{ $student['percentage'] }}%
                                     </td>
                                 </tr>

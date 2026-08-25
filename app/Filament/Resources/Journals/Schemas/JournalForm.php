@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\Journals\Schemas;
 
+use App\Models\Schedule;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\Hidden;
@@ -18,13 +19,18 @@ class JournalForm
         return $schema
             ->components([
                 Select::make('schedule_id')
-                    ->relationship('schedule', 'subject_name', function (Builder $query) {  
-                        $user = Auth::user();
-                        if ($user && $user->role?->name === 'Guru') {
-                            $query->where('teacher_id', $user->id);
+                    ->relationship(
+                        name: 'schedule',
+                        titleAttribute: 'id',
+                        modifyQueryUsing: function (Builder $query) {  
+                            $user = Auth::user();
+                            if ($user && $user->role?->name === 'Guru') {
+                                $query->where('teacher_id', $user->id);
+                            }
+                            return $query->forActiveCycle()->with(['subject', 'classroom', 'room']);
                         }
-                        return $query->forActiveCycle();
-                    })
+                    )
+                    ->getOptionLabelFromRecordUsing(fn (Schedule $record) => "{$record->subject?->name} - {$record->classroom?->name} ({$record->day_of_week}, {$record->start_time} - {$record->end_time})")
                     ->required()
                     ->label('Jadwal Mengajar')
                     ->preload()

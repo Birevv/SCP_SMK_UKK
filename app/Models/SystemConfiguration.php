@@ -17,16 +17,26 @@ class SystemConfiguration extends Model
         'is_schedule_locked' => 'boolean',
     ];
 
-    /**
-     * Mendapatkan instance konfigurasi aktif.
-     * Di-cache per-request menggunakan once() untuk menghindari query berulang.
-     */
+    protected static ?self $current = null;
+
     public static function current(): self
     {
-        return once(fn () => static::first() ?? new static([
+        return static::$current ??= (static::first() ?? new static([
             'active_cycle' => 'Putaran 1',
             'is_schedule_locked' => false,
         ]));
+    }
+
+    public static function clearCache(): void
+    {
+        static::$current = null;
+    }
+
+    protected static function booted(): void
+    {
+        static::saved(function () {
+            static::clearCache();
+        });
     }
 
     public function updatedBy(): BelongsTo

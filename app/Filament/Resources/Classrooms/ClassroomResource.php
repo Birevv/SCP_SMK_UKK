@@ -28,7 +28,7 @@ class ClassroomResource extends Resource
     
      protected static ?string $pluralLabel = "Data Kelas";
 
-    protected static ?int $navigationSort = 2;
+    protected static ?int $navigationSort = 3;
     protected static string|UnitEnum|null $navigationGroup = "Data Master";
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::AcademicCap;

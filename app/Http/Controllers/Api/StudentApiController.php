@@ -30,7 +30,7 @@ class StudentApiController extends Controller
 
         $percentage = $total > 0 ? round(($hadir / $total) * 100, 1) : 0;
 
-        $recentHistory = Attendance::with(['journal.schedule.teacher'])
+        $recentHistory = Attendance::with(['journal.schedule.teacher', 'journal.schedule.subject'])
             ->whereBelongsTo($student, 'student')
             ->latest('date')
             ->take(10)
@@ -38,7 +38,7 @@ class StudentApiController extends Controller
             ->map(fn (Attendance $item) => [
                 'id'           => $item->id,
                 'date'         => $item->date ? Carbon::parse($item->date)->format('Y-m-d') : null,
-                'subject_name' => $item->journal?->schedule?->subject_name ?? '-',
+                'subject_name' => $item->journal?->schedule?->subject?->name ?? '-',
                 'teacher_name' => $item->journal?->teacher?->full_name ?? '-',
                 'status'       => $item->status,
                 'notes'        => $item->notes,

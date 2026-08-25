@@ -37,7 +37,7 @@ class UnfilledJournalAlertWidget extends Widget
         $thresholdTime = Carbon::now()->subMinutes(30)->format('H:i:s');
         $activeCycle = SystemConfiguration::current()->active_cycle;
 
-        $query = Schedule::with(['classroom', 'room'])
+        $query = Schedule::with(['classroom', 'room', 'subject'])
             ->where('day_of_week', $todayInIndonesian)
             ->where('cycle_type', $activeCycle)
             ->where('end_time', '<', $thresholdTime)

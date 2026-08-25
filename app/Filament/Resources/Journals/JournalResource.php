@@ -27,7 +27,7 @@ class JournalResource extends Resource
 
     public static function getEloquentQuery(): Builder
     {
-        $query = parent::getEloquentQuery()->with(['teacher', 'schedule.classroom']);
+        $query = parent::getEloquentQuery()->with(['teacher', 'schedule.classroom', 'schedule.subject']);
         $user = Auth::user();
 
         if ($user && $user->role?->name === 'Guru') {

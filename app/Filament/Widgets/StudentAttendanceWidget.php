@@ -29,7 +29,7 @@ class StudentAttendanceWidget extends Widget
         $studentId = $user->id;
         $studentName = $user->full_name;
 
-        $attendances = Attendance::with(['journal.schedule'])
+        $attendances = Attendance::with(['journal.schedule.subject'])
             ->where('student_id', $studentId)
             ->latest('date')
             ->latest('id')

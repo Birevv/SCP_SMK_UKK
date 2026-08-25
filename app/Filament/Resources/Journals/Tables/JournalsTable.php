@@ -28,8 +28,10 @@ class JournalsTable
                 ImageColumn::make('activity_photo')
                     ->label('Bukti Foto'),
 
-                TextColumn::make('schedule.subject_name')
-                    ->label('Mata Pelajaran'),
+                TextColumn::make('schedule.subject.name')
+                    ->label('Mata Pelajaran')
+                    ->searchable()
+                    ->sortable(),
 
                 TextColumn::make('schedule.classroom.name')
                     ->label('Kelas'),
