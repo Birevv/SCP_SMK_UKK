@@ -12,10 +12,11 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 class Schedule extends Model
 {
     protected $fillable = [
+        'academic_year_id',
         'teacher_id',
         'classroom_id',
         'room_id',
-        'subject_name',
+        'subject_id',
         'day_of_week',
         'start_time',
         'end_time',
@@ -40,6 +41,14 @@ class Schedule extends Model
     public function journals(): HasMany
     {
         return $this->hasMany(Journal::class);
+    }
+    
+    public function academicYear() {
+        return $this->belongsTo(AcademicYear::class);
+    }
+
+    public function subject() {
+        return $this->belongsTo(Subject::class);
     }
 
     public function scopeForActiveCycle($query)

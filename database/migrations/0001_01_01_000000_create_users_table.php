@@ -20,6 +20,9 @@ return new class extends Migration
             $table->string('email')->unique();
             $table->timestamp('email_verified_at')->nullable();
             $table->string('password');
+            $table->string('identity_number')->nullable()->unique()->comment('NIP for Teacher, NISN for Student');
+            $table->string('phone')->nullable();
+            $table->enum('status', ['Aktif', 'Lulus', 'Keluar', 'DO'])->default('Aktif');
             $table->rememberToken();
             $table->timestamps();
             $table->softDeletes();

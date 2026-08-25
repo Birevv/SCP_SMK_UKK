@@ -42,6 +42,27 @@ class UserForm
                     ->required()
                     ->email(),
 
+                TextInput::make('phone')
+                    ->label('Nomor Telepon')
+                    ->tel()
+                    ->maxLength(255),
+
+                TextInput::make('identity_number')
+                    ->label('Nomor Identitas (NIP/NISN)')
+                    ->maxLength(255)
+                    ->unique(ignoreRecord: true),
+
+                Select::make('status')
+                    ->label('Status Siswa/Guru')
+                    ->options([
+                        'Aktif' => 'Aktif',
+                        'Lulus' => 'Lulus',
+                        'Keluar' => 'Keluar',
+                        'DO' => 'Drop Out (DO)',
+                    ])
+                    ->default('Aktif')
+                    ->required(),
+
                 TextInput::make('password')
                     ->label('Password')
                     ->password()

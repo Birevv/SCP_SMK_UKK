@@ -17,7 +17,7 @@ use Laravel\Sanctum\HasApiTokens;
 
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
-#[Fillable(['role_id', 'full_name', 'username', 'email', 'password'])]
+#[Fillable(['role_id', 'full_name', 'username', 'email', 'password', 'identity_number', 'phone', 'status'])]
 #[Hidden(['password', 'remember_token'])]
 class User extends Authenticatable implements HasName
 {

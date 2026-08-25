@@ -38,6 +38,24 @@ class UsersTable
                         ->label('Email')
                         ->searchable()
                         ->sortable(),
+                    Tables\Columns\TextColumn::make('phone')
+                        ->label('Nomor Telepon')
+                        ->searchable()
+                        ->sortable(),
+                    Tables\Columns\TextColumn::make('identity_number')
+                        ->label('Nomor Identitas (NIP/NISN)')
+                        ->searchable()
+                        ->sortable(),
+                    Tables\Columns\TextColumn::make('status')
+                        ->label('Status Siswa/Guru')
+                        ->badge()
+                        ->colors([
+                            'success' => 'Aktif',
+                            'primary' => 'Lulus',
+                            'danger' => 'Keluar',
+                            'warning' => 'DO',
+                        ])
+                        ->sortable(),
                     Tables\Columns\TextColumn::make('created_at')
                         ->label('Dibuat Pada')
                         ->dateTime('d F Y H:i')

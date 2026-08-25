@@ -40,7 +40,7 @@ class AttendanceReport extends Page implements HasForms
 
     public function mount(): void
     {
-        /** @var \App\Models\User|null $user */
+        /** @var User|null $user */
         $user = Auth::user();
 
         $this->start_date = Carbon::now()->startOfMonth()->toDateString();
