@@ -20,8 +20,10 @@ class JournalObserver
             return;
         }
 
-        // Ambil semua student IDs sekaligus melalui pivot
-        $studentIds = User::whereHas('classrooms', function ($query) use ($classroomId) {
+        // Ambil semua student IDs (khusus role Siswa) melalui pivot
+        $studentIds = User::whereHas('role', function ($query) {
+            $query->where('name', 'Siswa');
+        })->whereHas('classrooms', function ($query) use ($classroomId) {
             $query->where('classrooms.id', $classroomId);
         })->pluck('id');
         if ($studentIds->isEmpty()) {

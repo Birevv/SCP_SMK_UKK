@@ -21,7 +21,12 @@ class AttendanceReportPrintController extends Controller
         }
 
         $selectedClassroom = Classroom::find($classroomId);
-        $students = User::where('classroom_id', $classroomId)->get();
+        $students = User::where('status', 'Aktif')
+            ->whereHas('role', fn ($q) => $q->where('name', 'Siswa'))
+            ->whereHas('classrooms', function ($q) use ($classroomId) {
+                $q->where('classrooms.id', $classroomId)
+                  ->where('user_class.status', 'Aktif');
+            })->get();
 
         $report = [];
 

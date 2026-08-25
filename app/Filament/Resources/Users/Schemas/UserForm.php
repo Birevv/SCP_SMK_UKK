@@ -27,7 +27,11 @@ class UserForm
                     ->multiple()
                     ->label('Kelas')
                     ->searchable()
-                    ->preload(),
+                    ->preload()
+                    ->pivotData(fn () => [
+                        'academic_year_id' => \App\Models\AcademicYear::where('is_active', true)->first()?->id ?? \App\Models\AcademicYear::first()?->id,
+                        'status' => 'Aktif',
+                    ]),
 
                 TextInput::make('full_name')
                     ->label('Nama Lengkap')

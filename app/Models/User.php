@@ -44,7 +44,9 @@ class User extends Authenticatable implements HasName
 
     public function classrooms(): BelongsToMany
     {
-        return $this->belongsToMany(Classroom::class, 'user_class');
+        return $this->belongsToMany(Classroom::class, 'user_class')
+            ->withPivot(['academic_year_id', 'status'])
+            ->withTimestamps();
     }
 
     public function role(): BelongsTo 

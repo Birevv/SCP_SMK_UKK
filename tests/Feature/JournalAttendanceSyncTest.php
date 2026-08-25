@@ -26,11 +26,17 @@ class JournalAttendanceSyncTest extends TestCase
         $academicYear = AcademicYear::create(['name' => '2025/2026', 'is_active' => true]);
         $subject = Subject::create(['name' => 'Pemrograman Web']);
 
-        $student1 = User::factory()->create();
-        $student1->classrooms()->attach($classroom->id);
+        $siswaRole = \App\Models\Role::create(['name' => 'Siswa']);
+        $waliRole = \App\Models\Role::create(['name' => 'Wali Kelas']);
+
+        $student1 = User::factory()->create(['role_id' => $siswaRole->id]);
+        $student1->classrooms()->attach($classroom->id, ['academic_year_id' => $academicYear->id]);
         
-        $student2 = User::factory()->create();
-        $student2->classrooms()->attach($classroom->id);
+        $student2 = User::factory()->create(['role_id' => $siswaRole->id]);
+        $student2->classrooms()->attach($classroom->id, ['academic_year_id' => $academicYear->id]);
+
+        $waliKelas = User::factory()->create(['role_id' => $waliRole->id]);
+        $waliKelas->classrooms()->attach($classroom->id, ['academic_year_id' => $academicYear->id]);
 
         LeaveRequest::create([
             'student_id' => $student1->id,
@@ -71,6 +77,12 @@ class JournalAttendanceSyncTest extends TestCase
             'journal_id' => $journal->id,
             'student_id' => $student2->id,
             'status' => 'Hadir',
+        ]);
+
+        // Pastikan Wali Kelas yang terdaftar di kelas tidak terinput ke daftar absensi
+        $this->assertDatabaseMissing('attendances', [
+            'journal_id' => $journal->id,
+            'student_id' => $waliKelas->id,
         ]);
     }
 }

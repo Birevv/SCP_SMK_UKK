@@ -1,32 +1,34 @@
-<?php
-
-namespace App\Filament\Resources\Classrooms\RelationManagers;
-
 use Filament\Actions\AttachAction;
 use Filament\Actions\BulkActionGroup;
-use Filament\Actions\CreateAction;
-use Filament\Actions\DeleteAction;
-use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\DetachAction;
 use Filament\Actions\DetachBulkAction;
 use Filament\Actions\EditAction;
+use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Resources\RelationManagers\RelationManager;
 use Filament\Schemas\Schema;
 use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
 
 class UsersRelationManager extends RelationManager
 {
     protected static string $relationship = 'users';
 
+    protected static ?string $title = 'Anggota Kelas (Wali Kelas & Siswa)';
+
     public function form(Schema $schema): Schema
     {
         return $schema
             ->components([
-                TextInput::make('id')
-                    ->required()
-                    ->maxLength(255),
+                Select::make('status')
+                    ->label('Status Keanggotaan di Kelas Ini')
+                    ->options([
+                        'Aktif' => 'Aktif',
+                        'Tinggal Kelas' => 'Tinggal Kelas',
+                        'Mutasi' => 'Mutasi',
+                    ])
+                    ->required(),
             ]);
     }
 
@@ -35,23 +37,77 @@ class UsersRelationManager extends RelationManager
         return $table
             ->recordTitleAttribute('full_name')
             ->columns([
+                TextColumn::make('role.name')
+                    ->label('Role')
+                    ->badge()
+                    ->color(fn (?string $state): string => match ($state) {
+                        'Wali Kelas' => 'warning',
+                        'Siswa' => 'primary',
+                        'Guru' => 'info',
+                        'Guru BK' => 'success',
+                        'Waka Kurikulum' => 'danger',
+                        default => 'gray',
+                    })
+                    ->sortable(),
+
+                TextColumn::make('identity_number')
+                    ->label('NIP / NISN')
+                    ->searchable()
+                    ->sortable(),
+
                 TextColumn::make('full_name')
+                    ->label('Nama Lengkap')
+                    ->searchable()
+                    ->sortable(),
+
+                TextColumn::make('username')
+                    ->label('Username')
                     ->searchable(),
+
+                TextColumn::make('pivot.status')
+                    ->label('Status Kelas')
+                    ->badge()
+                    ->color(fn (?string $state): string => match ($state) {
+                        'Aktif' => 'success',
+                        'Tinggal Kelas' => 'danger',
+                        'Mutasi' => 'warning',
+                        default => 'gray',
+                    }),
+
+                TextColumn::make('status')
+                    ->label('Status Akun')
+                    ->badge()
+                    ->color(fn (?string $state): string => match ($state) {
+                        'Aktif' => 'success',
+                        'Lulus' => 'primary',
+                        'Keluar' => 'danger',
+                        'DO' => 'warning',
+                        default => 'gray',
+                    }),
             ])
             ->filters([
-                //
+                SelectFilter::make('role_id')
+                    ->label('Filter Role')
+                    ->relationship('role', 'name')
+                    ->preload(),
             ])
             ->headerActions([
                 AttachAction::make()
-                    ->preloadRecordSelect(),
+                    ->label('Tambah / Lampirkan Anggota')
+                    ->preloadRecordSelect()
+                    ->mutateFormDataUsing(function (array $data): array {
+                        $data['academic_year_id'] = \App\Models\AcademicYear::where('is_active', true)->first()?->id ?? \App\Models\AcademicYear::first()?->id;
+                        $data['status'] = 'Aktif';
+                        return $data;
+                    }),
             ])
             ->recordActions([
-                DetachAction::make(),
+                EditAction::make()->label('Ubah Status'),
+                DetachAction::make()->label('Keluarkan dari Kelas'),
             ])
             ->toolbarActions([
                 BulkActionGroup::make([
-                    DetachBulkAction::make(),
-
+                    DetachBulkAction::make()->label('Keluarkan Terpilih'),
                 ]),
             ]);
     }

@@ -96,6 +96,7 @@ class AttendanceReport extends Page implements HasForms
         }
 
         $students = User::where('status', 'Aktif')
+            ->whereHas('role', fn ($q) => $q->where('name', 'Siswa'))
             ->whereHas('classrooms', function ($q) {
                 $q->where('classrooms.id', $this->classroom_id)
                   ->where('user_class.status', 'Aktif');
