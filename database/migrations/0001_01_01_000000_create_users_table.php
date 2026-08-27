@@ -17,7 +17,7 @@ return new class extends Migration
             $table->foreignId('classroom_id')->nullable();
             $table->string('full_name');
             $table->string('username');
-            $table->string('email')->unique();
+            $table->string('email')->nullable()->unique();
             $table->timestamp('email_verified_at')->nullable();
             $table->string('password');
             $table->string('identity_number')->nullable()->unique()->comment('NIP for Teacher, NISN for Student');

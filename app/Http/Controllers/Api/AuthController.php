@@ -18,9 +18,13 @@ class AuthController extends Controller
     public function login(LoginRequest $request): JsonResponse
     {
         $credentials = $request->validated();
-        
-        $user = User::with(['role', 'classroom'])
-            ->where('username', $credentials['username'])
+        $loginIdentifier = trim($credentials['nisn'] ?? $credentials['identity_number'] ?? $credentials['login'] ?? $credentials['username'] ?? '');
+
+        $user = User::with(['role', 'classrooms'])
+            ->where(function ($query) use ($loginIdentifier) {
+                $query->where('identity_number', $loginIdentifier)
+                      ->orWhere('username', $loginIdentifier);
+            })
             ->first();
 
         if (! $user || ! Hash::check($credentials['password'], $user->password)) {
@@ -38,10 +42,9 @@ class AuthController extends Controller
 
     public function me(Request $request): JsonResponse 
     {
-        $user = $request->user()->load(['role', 'classroom']);
+        $user = $request->user()->load(['role', 'classrooms']);
         
         return $this->successResponse(new UserResource($user), 'Data Profile Berhasil Diambil');    
-
     }
 
     public function logout(Request $request): JsonResponse

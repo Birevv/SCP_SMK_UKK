@@ -25,6 +25,7 @@ class UserSeeder extends Seeder
             ['username' => 'waka'],
             [
                 'full_name' => 'Waka Kurikulum Admin',
+                'identity_number' => '197501012000031001',
                 'email' => 'waka@scp.sch.id',
                 'password' => Hash::make('password'),
                 'role_id' => $wakaRole?->id,
@@ -36,6 +37,7 @@ class UserSeeder extends Seeder
             ['username' => 'guru1'],
             [
                 'full_name' => 'Budi Santoso, S.Kom',
+                'identity_number' => '198002022005011002',
                 'email' => 'guru1@scp.sch.id',
                 'password' => Hash::make('password'),
                 'role_id' => $guruRole?->id,
@@ -47,6 +49,7 @@ class UserSeeder extends Seeder
             ['username' => 'walikelas1'],
             [
                 'full_name' => 'Siti Aminah, M.Pd',
+                'identity_number' => '198503032010012003',
                 'email' => 'walikelas1@scp.sch.id',
                 'password' => Hash::make('password'),
                 'role_id' => $waliRole?->id,
@@ -59,6 +62,7 @@ class UserSeeder extends Seeder
             ['username' => 'gurubk'],
             [
                 'full_name' => 'Drs. Hendra Gunawan',
+                'identity_number' => '197804042003121004',
                 'email' => 'gurubk@scp.sch.id',
                 'password' => Hash::make('password'),
                 'role_id' => $bkRole?->id,
@@ -70,6 +74,7 @@ class UserSeeder extends Seeder
             ['username' => 'siswa1'],
             [
                 'full_name' => 'Ahmad Fauzi',
+                'identity_number' => '0061234567',
                 'email' => 'siswa1@scp.sch.id',
                 'password' => Hash::make('password'),
                 'role_id' => $siswaRole?->id,

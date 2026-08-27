@@ -37,24 +37,28 @@ class UserForm
                     ->label('Nama Lengkap')
                     ->required(),
 
+                TextInput::make('identity_number')
+                    ->label('NISN / NIP (Nomor Identitas)')
+                    ->helperText('NISN untuk Siswa, NIP untuk Guru/Staf. Digunakan untuk login.')
+                    ->maxLength(255)
+                    ->unique(ignoreRecord: true),
+
                 TextInput::make('username')
                     ->label('Username')
-                    ->required(),
+                    ->required()
+                    ->unique(ignoreRecord: true),
 
                 TextInput::make('email')
-                    ->label('Email')
-                    ->required()
-                    ->email(),
+                    ->label('Email (Untuk Reset Password)')
+                    ->helperText('Opsional. Digunakan apabila ingin melakukan reset password melalui email.')
+                    ->nullable()
+                    ->email()
+                    ->unique(ignoreRecord: true),
 
                 TextInput::make('phone')
                     ->label('Nomor Telepon')
                     ->tel()
                     ->maxLength(255),
-
-                TextInput::make('identity_number')
-                    ->label('Nomor Identitas (NIP/NISN)')
-                    ->maxLength(255)
-                    ->unique(ignoreRecord: true),
 
                 Select::make('status')
                     ->label('Status Siswa/Guru')

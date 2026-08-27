@@ -40,22 +40,27 @@ class UsersTable
                     ->label('Nama Lengkap')
                     ->searchable()
                     ->sortable(),
+                Tables\Columns\TextColumn::make('identity_number')
+                    ->label('NISN / NIP')
+                    ->placeholder('-')
+                    ->searchable()
+                    ->sortable(),
                 Tables\Columns\TextColumn::make('username')
                     ->label('Username')
                     ->searchable()
                     ->sortable(),
                 Tables\Columns\TextColumn::make('email')
                     ->label('Email')
+                    ->placeholder('-')
                     ->searchable()
-                    ->sortable(),
+                    ->sortable()
+                    ->toggleable(isToggledHiddenByDefault: false),
                 Tables\Columns\TextColumn::make('phone')
                     ->label('Nomor Telepon')
+                    ->placeholder('-')
                     ->searchable()
-                    ->sortable(),
-                Tables\Columns\TextColumn::make('identity_number')
-                    ->label('Nomor Identitas (NIP/NISN)')
-                    ->searchable()
-                    ->sortable(),
+                    ->sortable()
+                    ->toggleable(isToggledHiddenByDefault: true),
                 Tables\Columns\TextColumn::make('status')
                     ->label('Status')
                     ->badge()

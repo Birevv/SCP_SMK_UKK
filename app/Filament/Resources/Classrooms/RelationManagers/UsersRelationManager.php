@@ -1,3 +1,7 @@
+<?php
+
+namespace App\Filament\Resources\Classrooms\RelationManagers;
+
 use Filament\Actions\AttachAction;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DetachAction;
@@ -64,24 +68,14 @@ class UsersRelationManager extends RelationManager
                     ->label('Username')
                     ->searchable(),
 
-                TextColumn::make('pivot.status')
+                TextColumn::make('class_status')
                     ->label('Status Kelas')
+                    ->state(fn ($record): string => (string) ($record->pivot?->status ?? 'Aktif'))
                     ->badge()
                     ->color(fn (?string $state): string => match ($state) {
                         'Aktif' => 'success',
                         'Tinggal Kelas' => 'danger',
                         'Mutasi' => 'warning',
-                        default => 'gray',
-                    }),
-
-                TextColumn::make('status')
-                    ->label('Status Akun')
-                    ->badge()
-                    ->color(fn (?string $state): string => match ($state) {
-                        'Aktif' => 'success',
-                        'Lulus' => 'primary',
-                        'Keluar' => 'danger',
-                        'DO' => 'warning',
                         default => 'gray',
                     }),
             ])

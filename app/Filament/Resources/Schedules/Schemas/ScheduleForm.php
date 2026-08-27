@@ -9,6 +9,7 @@ use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\TimePicker;
 use Filament\Schemas\Components\Utilities\Get;
 use Filament\Schemas\Schema;
+use Illuminate\Support\Facades\Auth;
 
 class ScheduleForm
 {
@@ -22,6 +23,9 @@ class ScheduleForm
                         titleAttribute: 'full_name',
                         modifyQueryUsing: fn ($query) => $query->whereHas('role', fn ($q) => $q->where('name', 'Guru'))
                     )
+                    ->default(fn () => Auth::user()?->role?->name === 'Guru' ? Auth::id() : null)
+                    ->disabled(fn () => Auth::user()?->role?->name === 'Guru')
+                    ->dehydrated()
                     ->required()
                     ->searchable()
                     ->preload()
@@ -79,6 +83,7 @@ class ScheduleForm
                     ->label('Jam Mulai'),
 
                 TimePicker::make('end_time')
+                    ->after('start_time')
                     ->required()
                     ->seconds(false)
                     ->label('Jam Selesai'),

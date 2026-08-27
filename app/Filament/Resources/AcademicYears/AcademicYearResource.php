@@ -13,6 +13,8 @@ use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Table;
+use Illuminate\Support\Facades\Auth;
+use Override;
 use UnitEnum;
 
 class AcademicYearResource extends Resource
@@ -53,5 +55,11 @@ class AcademicYearResource extends Resource
             'create' => CreateAcademicYear::route('/create'),
             'edit' => EditAcademicYear::route('/{record}/edit'),
         ];
+    }
+
+    #[Override]
+    public static function canViewAny(): bool
+    {
+        return Auth::user()?->role?->name === 'Waka Kurikulum';
     }
 }
