@@ -43,17 +43,17 @@ Berikut adalah tahapan langkah demi langkah yang direkomendasikan untuk diekseku
 Meskipun logika utama sudah berjalan, ada beberapa penyesuaian otorisasi menu agar data master terlindungi dari role non-Waka:
 
 1. **Batasi Akses Resource Data Master:**
-   - [ ] Buka `app/Filament/Resources/AcademicYears/AcademicYearResource.php` dan tambahkan:
+   - [x] Buka `app/Filament/Resources/AcademicYears/AcademicYearResource.php` dan tambahkan:
      ```php
      public static function canViewAny(): bool
      {
          return Auth::user()?->role?->name === 'Waka Kurikulum';
      }
      ```
-   - [ ] Buka `app/Filament/Resources/Subjects/SubjectResource.php` dan tambahkan hal serupa agar hanya Waka Kurikulum yang bisa mengelola Mata Pelajaran.
+   - [x] Buka `app/Filament/Resources/Subjects/SubjectResource.php` dan tambahkan hal serupa agar hanya Waka Kurikulum yang bisa mengelola Mata Pelajaran.
 
 2. **Kunci Guru Pengajar pada Form Jadwal:**
-   - [ ] Pada `app/Filament/Resources/Schedules/Schemas/ScheduleForm.php`, ubah field `teacher_id`:
+   - [x] Pada `app/Filament/Resources/Schedules/Schemas/ScheduleForm.php`, ubah field `teacher_id`:
      - Jika user yang login adalah `Guru`, kunci field `teacher_id` ke ID user yang login secara otomatis dan nonaktifkan perubahan dropdown:
        ```php
        Select::make('teacher_id')
@@ -61,7 +61,7 @@ Meskipun logika utama sudah berjalan, ada beberapa penyesuaian otorisasi menu ag
            ->disabled(fn () => Auth::user()?->role?->name === 'Guru')
            ->dehydrated()
        ```
-   - [ ] Tambahkan validasi `->after('start_time')` pada field `end_time` agar jam selesai tidak boleh lebih awal dari jam mulai.
+   - [x] Tambahkan validasi `->after('start_time')` pada field `end_time` agar jam selesai tidak boleh lebih awal dari jam mulai.
 
 ---
 
@@ -70,10 +70,10 @@ Meskipun logika utama sudah berjalan, ada beberapa penyesuaian otorisasi menu ag
 Agar saat pengujian di depan Penguji sistem langsung memiliki data siap uji tanpa perlu input manual yang memakan waktu:
 
 1. **Buat Seeder Master Data Tambahan:**
-   - [ ] Buat `AcademicYearSeeder.php` dengan data tahun ajaran aktif:
+   - [x] Buat `AcademicYearSeeder.php` dengan data tahun ajaran aktif:
      * `2025/2026 - Ganjil` (`is_active = true`)
      * `2025/2026 - Genap` (`is_active = false`)
-   - [ ] Buat `SubjectSeeder.php` dengan mata pelajaran kejuruan RPL:
+   - [x] Buat `SubjectSeeder.php` dengan mata pelajaran kejuruan RPL:
      * *Pemrograman Web dan Perangkat Bergerak (PWPB)*
      * *Basis Data*
      * *Pemodelan Perangkat Lunak (PPL)*
@@ -81,7 +81,7 @@ Agar saat pengujian di depan Penguji sistem langsung memiliki data siap uji tanp
      * *Projek Kreatif dan Kewirausahaan (PKK)*
 
 2. **Perbaiki Relasi Siswa & Kelas pada `UserSeeder.php`:**
-   - [ ] Karena tabel relasi siswa menggunakan pivot `user_class`, pastikan seeder meng-attach siswa ke kelas:
+   - [x] Karena tabel relasi siswa menggunakan pivot `user_class`, pastikan seeder meng-attach siswa ke kelas:
      ```php
      $siswa = User::firstOrCreate([...]);
      $siswa->classrooms()->syncWithoutDetaching([
@@ -91,7 +91,7 @@ Agar saat pengujian di depan Penguji sistem langsung memiliki data siap uji tanp
          ]
      ]);
      ```
-   - [ ] Tambahkan minimal 5 - 10 akun siswa dummy pada kelas `XII RPL 1` dan `XII RPL 2` agar saat Guru membuat Jurnal, tabel absensi terisi daftar siswa yang lengkap.
+   - [x] Tambahkan minimal 5 - 10 akun siswa dummy pada kelas `XII RPL 1` dan `XII RPL 2` agar saat Guru membuat Jurnal, tabel absensi terisi daftar siswa yang lengkap.
 
 3. **Tambahkan Sample Jadwal & Surat Izin:**
    - [ ] Buat jadwal contoh untuk Putaran 1 dan Putaran 2.

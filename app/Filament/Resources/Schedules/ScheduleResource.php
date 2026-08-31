@@ -14,6 +14,7 @@ use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Support\Facades\Auth;
 
 class ScheduleResource extends Resource
 {
@@ -36,9 +37,17 @@ class ScheduleResource extends Resource
 
     public static function getEloquentQuery(): Builder
     {
-        return parent::getEloquentQuery()
-            ->with(['teacher', 'classroom', 'room'])
+        $query = parent::getEloquentQuery()
+            ->with(['teacher', 'classroom', 'room', 'subject', 'academicYear'])
             ->forActiveCycle();
+
+        $user = Auth::user();
+
+        if ($user && $user->role?->name === 'Guru') {
+            $query->where('teacher_id', $user->id);
+        }
+
+        return $query;
     }
 
     public static function getRelations(): array

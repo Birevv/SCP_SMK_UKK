@@ -44,9 +44,11 @@ class SchedulesTable
                     ->label('Hari'),
 
                 TextColumn::make('start_time')
+                    ->time('H:i')
                     ->label('Waktu Mulai'),
 
                 TextColumn::make('end_time')
+                    ->time('H:i')
                     ->label('Waktu Selesai'),
 
                 TextColumn::make('cycle_type')

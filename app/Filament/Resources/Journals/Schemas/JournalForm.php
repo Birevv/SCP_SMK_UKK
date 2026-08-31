@@ -30,7 +30,7 @@ class JournalForm
                             return $query->forActiveCycle()->with(['subject', 'classroom', 'room']);
                         }
                     )
-                    ->getOptionLabelFromRecordUsing(fn (Schedule $record) => "{$record->subject?->name} - {$record->classroom?->name} ({$record->day_of_week}, {$record->start_time} - {$record->end_time})")
+                    ->getOptionLabelFromRecordUsing(fn (Schedule $record) => "{$record->subject?->name} - {$record->classroom?->name} ({$record->day_of_week}, " . substr($record->start_time, 0, 5) . " - " . substr($record->end_time, 0, 5) . ")")
                     ->required()
                     ->label('Jadwal Mengajar')
                     ->preload()
@@ -56,6 +56,7 @@ class JournalForm
                 FileUpload::make('activity_photo')
                     ->image()
                     ->directory('journal-photos')
+                    ->maxSize(2048)
                     ->label('Bukti Foto Kegiatan (Realtime)'),
             ]);
     }

@@ -6,8 +6,8 @@ use App\Models\Schedule;
 use App\Rules\NoScheduleConflict;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
-use Filament\Forms\Components\TimePicker;
 use Filament\Schemas\Components\Utilities\Get;
+use Filament\Schemas\Components\Utilities\Set;
 use Filament\Schemas\Schema;
 use Illuminate\Support\Facades\Auth;
 
@@ -29,21 +29,54 @@ class ScheduleForm
                     ->required()
                     ->searchable()
                     ->preload()
-                    ->label('Guru Pengajar'),
+                    ->label('Guru Pengajar')
+                    ->rules([
+                        fn (Get $get, ?Schedule $record): NoScheduleConflict => new NoScheduleConflict(
+                            dayOfWeek: (string) $get('day_of_week'),
+                            startTime: (string) $get('start_time'),
+                            endTime: (string) $get('end_time'),
+                            cycleType: (string) $get('cycle_type'),
+                            teacherId: $get('teacher_id') ? (int) $get('teacher_id') : (Auth::user()?->role?->name === 'Guru' ? Auth::id() : null),
+                            ignoreId: $record?->id,
+                            type: 'teacher',
+                        ),
+                    ]),
 
                 Select::make('classroom_id')
                     ->relationship('classroom', 'name')
                     ->required()
                     ->searchable()
                     ->preload()
-                    ->label('Kelas'),
+                    ->label('Kelas')
+                    ->rules([
+                        fn (Get $get, ?Schedule $record): NoScheduleConflict => new NoScheduleConflict(
+                            dayOfWeek: (string) $get('day_of_week'),
+                            startTime: (string) $get('start_time'),
+                            endTime: (string) $get('end_time'),
+                            cycleType: (string) $get('cycle_type'),
+                            classroomId: $get('classroom_id') ? (int) $get('classroom_id') : null,
+                            ignoreId: $record?->id,
+                            type: 'classroom',
+                        ),
+                    ]),
 
                 Select::make('room_id')
                     ->relationship('room', 'name')
                     ->required()
                     ->searchable()
                     ->preload()
-                    ->label('Ruangan'),
+                    ->label('Ruangan')
+                    ->rules([
+                        fn (Get $get, ?Schedule $record): NoScheduleConflict => new NoScheduleConflict(
+                            dayOfWeek: (string) $get('day_of_week'),
+                            startTime: (string) $get('start_time'),
+                            endTime: (string) $get('end_time'),
+                            cycleType: (string) $get('cycle_type'),
+                            roomId: $get('room_id') ? (int) $get('room_id') : null,
+                            ignoreId: $record?->id,
+                            type: 'room',
+                        ),
+                    ]),
 
                 Select::make('academic_year_id')
                     ->label('Tahun Ajaran')
@@ -53,19 +86,7 @@ class ScheduleForm
                 Select::make('subject_id')
                     ->label('Mata Pelajaran')
                     ->relationship('subject', 'name')
-                    ->required()
-                    ->rules([
-                        fn (Get $get, ?Schedule $record): NoScheduleConflict => new NoScheduleConflict(
-                            dayOfWeek: (string) $get('day_of_week'),
-                            startTime: (string) $get('start_time'),
-                            endTime: (string) $get('end_time'),
-                            cycleType: (string) $get ('cycle_type'),
-                            classroomId: $get('classroom_id') ? (int) $get('classroom_id') : null,
-                            roomId: $get('room_id') ? (int) $get('room_id') : null,
-                            teacherId: $get('teacher_id') ? (int) $get('teacher_id') : null,
-                            ignoreId: $record?->id
-                        ),
-                    ]),
+                    ->required(),
                 Select::make('day_of_week')
                     ->options([
                         'Senin' => 'Senin',
@@ -77,16 +98,48 @@ class ScheduleForm
                     ->required()
                     ->label('Hari'),
                 
-                TimePicker::make('start_time')
-                    ->required()
-                    ->seconds(false)
-                    ->label('Jam Mulai'),
+                Select::make('start_time')
+                    ->label('Jam Mulai')
+                    ->prefixIcon('heroicon-o-clock')
+                    ->options(fn () => self::getTimeOptions())
+                    ->searchable()
+                    ->live()
+                    ->afterStateUpdated(function ($state, Set $set, Get $get) {
+                        if (!$state) {
+                            return;
+                        }
+                        $currentEnd = $get('end_time');
+                        if (!$currentEnd || $currentEnd <= $state) {
+                            $suggestedEnd = date('H:i', strtotime('+2 hours', strtotime("2000-01-01 {$state}")));
+                            if ($suggestedEnd <= '18:00') {
+                                $set('end_time', $suggestedEnd);
+                            }
+                        }
+                    })
+                    ->formatStateUsing(fn ($state) => $state ? substr((string) $state, 0, 5) : null)
+                    ->required(),
 
-                TimePicker::make('end_time')
+                Select::make('end_time')
+                    ->label('Jam Selesai')
+                    ->prefixIcon('heroicon-o-clock')
+                    ->options(fn (Get $get) => self::getTimeOptions($get('start_time')))
+                    ->searchable()
+                    ->live()
+                    ->helperText(function (Get $get) {
+                        $start = $get('start_time');
+                        $end = $get('end_time');
+                        if ($start && $end && $end > $start) {
+                            $diffMinutes = (strtotime("2000-01-01 {$end}") - strtotime("2000-01-01 {$start}")) / 60;
+                            $hours = floor($diffMinutes / 60);
+                            $mins = $diffMinutes % 60;
+                            $durStr = ($hours > 0 ? "{$hours} Jam " : '') . ($mins > 0 ? "{$mins} Menit" : '');
+                            return '⏱️ Durasi Belajar: ' . trim($durStr) . " ({$diffMinutes} menit)";
+                        }
+                        return null;
+                    })
                     ->after('start_time')
-                    ->required()
-                    ->seconds(false)
-                    ->label('Jam Selesai'),
+                    ->formatStateUsing(fn ($state) => $state ? substr((string) $state, 0, 5) : null)
+                    ->required(),
                 
                 Select::make('cycle_type')
                     ->options([
@@ -97,5 +150,36 @@ class ScheduleForm
                     ->required()
                     ->label('Putaran Siklus'), 
             ]);
+    }
+
+    public static function getTimeOptions(?string $minTime = null): array
+    {
+        $options = [];
+        $start = strtotime('06:30');
+        $end = strtotime('18:00');
+
+        while ($start <= $end) {
+            $time24 = date('H:i', $start);
+
+            if ($minTime && $time24 <= $minTime) {
+                $start = strtotime('+15 minutes', $start);
+                continue;
+            }
+
+            $h = (int) date('H', $start);
+            $m = date('i', $start);
+            $lh = ($h > 12) ? ($h - 12) : ($h === 0 ? 12 : $h);
+            $period = match (true) {
+                $h < 11 => 'Pagi',
+                $h < 15 => 'Siang',
+                default => 'Sore',
+            };
+            $ms = $m !== '00' ? ".{$m}" : '';
+            $options[$time24] = "{$time24}  —  Jam {$lh}{$ms} {$period}";
+
+            $start = strtotime('+15 minutes', $start);
+        }
+
+        return $options;
     }
 }

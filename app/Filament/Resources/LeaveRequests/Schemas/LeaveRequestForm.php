@@ -93,6 +93,9 @@ class LeaveRequestForm
                     ->required()
                     ->live()
                     ->seconds(false)
+                    ->displayFormat('H:i')
+                    ->format('H:i')
+                    ->native(false)
                     ->visible(function (Get $get) {
                         $type = $get('reason_type');
 

@@ -26,7 +26,11 @@ class SchedulePolicy
 
     public function view(User $user, Schedule $schedule): bool
     {
-        return in_array($user->role?->name, ['Waka Kurikulum', 'Guru']);
+        if ($user->role?->name === 'Waka Kurikulum') {
+            return true;
+        }
+
+        return $user->role?->name === 'Guru' && $schedule->teacher->id === $user->id;
     }
 
     /**
@@ -48,7 +52,9 @@ class SchedulePolicy
             return true;
         }
 
-        return $user->role?->name === 'Guru' && !$this->isLocked();
+        return $user->role?->name === 'Guru' 
+            && $schedule->teacher->id === $user->id
+            && !$this->isLocked();
     }
 
     public function delete(User $user, Schedule $schedule): bool
@@ -57,6 +63,8 @@ class SchedulePolicy
             return true;
         }
 
-        return $user->role?->name === 'Guru' && !$this->isLocked();
+        return $user->role?->name === 'Guru' 
+            && $schedule->teacher->id === $user->id 
+            && !$this->isLocked();
     }
 }
