@@ -6,7 +6,6 @@ use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Http\Exceptions\HttpResponseException;
-use Override;
 
 class UpdateProfileRequest extends FormRequest
 {
@@ -15,7 +14,7 @@ class UpdateProfileRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        return false;
+        return true;
     }
 
     /**
@@ -32,7 +31,6 @@ class UpdateProfileRequest extends FormRequest
         ];
     }
 
-    #[Override]
     protected function failedValidation(Validator $validator) : void
     {
         throw new HttpResponseException(response()->json([
