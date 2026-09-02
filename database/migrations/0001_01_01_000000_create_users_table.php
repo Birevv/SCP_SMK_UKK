@@ -22,6 +22,7 @@ return new class extends Migration
             $table->string('password');
             $table->string('identity_number')->nullable()->unique()->comment('NIP for Teacher, NISN for Student');
             $table->string('phone')->nullable();
+            $table->string('profile_photo')->nullable();
             $table->enum('status', ['Aktif', 'Lulus', 'Keluar', 'DO'])->default('Aktif');
             $table->rememberToken();
             $table->timestamps();

@@ -16,8 +16,9 @@ use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
 
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Support\Facades\Storage;
 
-#[Fillable(['role_id', 'full_name', 'username', 'email', 'password', 'identity_number', 'phone', 'status'])]
+#[Fillable(['role_id', 'full_name', 'username', 'email', 'password', 'identity_number', 'phone', 'profile_photo', 'status'])]
 #[Hidden(['password', 'remember_token'])]
 class User extends Authenticatable implements HasName
 {
@@ -40,6 +41,18 @@ class User extends Authenticatable implements HasName
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
         ];
+    }
+
+    public function getProfilePhotoUrlAttribute(): ?string 
+    {
+        return $this->profile_photo
+            ? Storage::url($this->profile_photo)
+            : null;
+    }
+
+    public function getClassroomAttribute()
+    {
+        return $this->classrooms->first();
     }
 
     public function classrooms(): BelongsToMany
