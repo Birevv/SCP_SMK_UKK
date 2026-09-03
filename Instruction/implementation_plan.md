@@ -316,7 +316,7 @@ class VerifyLeaveRequest extends FormRequest
             'errors' => $validator->errors(),
         ], 422));
     }
-}
+}   
 ```
 
 ---
@@ -380,7 +380,7 @@ class AttendanceHistoryResource extends JsonResource
             'status' => $this->status,
             'notes' => $this->notes,
             'subject_name' => $this->journal?->schedule?->subject?->name,
-            'teacher_name' => $this->journal?->teacher?->full_name,
+            'teacher_name' => $this->journal?->schedule?->teacher?->full_name,
             'classroom_name' => $this->journal?->schedule?->classroom?->name,
             'start_time' => $this->journal?->schedule?->start_time,
             'end_time' => $this->journal?->schedule?->end_time,
