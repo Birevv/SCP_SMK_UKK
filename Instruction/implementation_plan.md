@@ -461,7 +461,6 @@ public function dashboard(Request $request): JsonResponse
     // Kelas siswa
     $classroomIds = $student->classrooms()->pluck('classrooms.id');
     $classroomName = $student->classrooms->pluck('name')->join(', ');
-
     // Ringkasan presensi bulan ini
     $attendances = Attendance::whereBelongsTo($student, 'student')
         ->whereMonth('date', $today->month)
