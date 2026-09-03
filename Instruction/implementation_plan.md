@@ -430,7 +430,7 @@ public function changePassword(ChangePasswordRequest $request): JsonResponse
     $user->update([
         'password' => $request->validated('new_password'),
     ]);
-
+ 
     return $this->successResponse(null, 'Password berhasil diubah');
 }
 ```

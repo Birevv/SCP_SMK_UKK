@@ -3,13 +3,16 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Api\ChangePasswordRequest;
 use App\Http\Requests\Api\LoginRequest;
+use App\Http\Requests\Api\UpdateProfileRequest;
 use App\Http\Resources\Api\UserResource;
 use App\Models\User;
 use App\Traits\ApiResponser;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Storage;
 
 class AuthController extends Controller
 {
@@ -52,5 +55,33 @@ class AuthController extends Controller
         $request->user()->currentAccessToken()->delete();
 
         return $this->successResponse(null, 'Logout Berhasil, Token Telah Dicabut');
+    }
+
+    public function updateProfile(UpdateProfileRequest $request): JsonResponse
+    {
+        $user = $request->user();
+        $data = $request->validated();
+
+        if ($request->hasFile('profile_photo')) {
+            if ($user->profile_photo) {
+                Storage::disk('public')->delete($user->profile_photo);
+            }
+            $data['profile_photo'] = $request->file('profile_photo')->store('profile_photos', 'public');
+        }
+
+        $user->update($data);
+        $user->load(['role', 'classrooms']);
+
+        return $this->successResponse(new UserResource($user), 'Profile berhasil diperbarui');
+    }
+
+    public function changePassword(ChangePasswordRequest $request): JsonResponse
+    {
+        $user = $request->user();
+        $user->update([
+            'password' => $request->validated('new_password'),
+        ]);
+
+        return $this->successResponse(null, 'Password berhasil diubah');
     }
 }
