@@ -580,7 +580,7 @@ use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
-class TeacherApiController extends Controller
+class TeacherApiController extends Controller   
 {
     use ApiResponser;
 
@@ -670,7 +670,7 @@ class TeacherApiController extends Controller
 
         return $this->successResponse([
             'is_locked' => $config->is_schedule_locked,
-            'active_cycle' => $config->active_cycle,
+         'active_cycle' => $config->active_cycle,
             'schedules' => $grouped,
         ], 'Jadwal mengajar berhasil diambil');
     }
@@ -703,28 +703,28 @@ class TeacherApiController extends Controller
         if ($conflict) {
             $detail = 'Bentrok dengan: ';
             if ($conflict->teacher_id === $teacher->id) {
-                $detail .= 'Jadwal Anda sendiri';
+                $detail .= 'Jadwal Anda Sendiri';
             } elseif ($conflict->classroom_id == $data['classroom_id']) {
                 $detail .= 'Kelas ' . $conflict->classroom?->name;
             } else {
                 $detail .= 'Ruang ' . $conflict->room?->name;
             }
 
-            return $this->errorResponse('Jadwal bentrok terdeteksi', 422, [
-                'conflict_type' => 'schedule',
-                'detail' => $detail,
-                'conflicting_schedule' => new ScheduleResource($conflict),
-            ]);
+                return $this->errorResponse('Jadwal bentrok terdeteksi', 422, [
+                    'conflict_type' => 'schedule',
+                    'detail' => $detail,
+                    'conflicting_schedule' => new ScheduleResource($conflict),
+                ]);
         }
 
-        $data['teacher_id'] = $teacher->id;
-        $data['academic_year_id'] = Schedule::where('teacher_id', $teacher->id)->latest()->value('academic_year_id')
-            ?? \App\Models\AcademicYear::latest()->value('id');
+            $data['teacher_id'] = $teacher->id;
+            $data['academic_year_id'] = Schedule::where('teacher_id', $teacher->id)->latest()->value('academic_year_id')
+                ?? \App\Models\AcademicYear::latest()->value('id');
 
-        $schedule = Schedule::create($data);
-        $schedule->load(['subject', 'classroom', 'room']);
+            $schedule = Schedule::create($data);
+            $schedule->load(['subject', 'classroom', 'room']);
 
-        return $this->successResponse(new ScheduleResource($schedule), 'Jadwal berhasil ditambahkan', 201);
+            return $this->successResponse(new ScheduleResource($schedule), 'Jadwal berhasil ditambahkan', 201);
     }
 
     public function getStudents(Schedule $schedule, Request $request): JsonResponse
@@ -797,7 +797,7 @@ class TeacherApiController extends Controller
 
         // Override attendance sesuai input guru
         foreach ($attendancesData as $att) {
-            Attendance::updateOrCreate(
+            Attendance::updateOrCrea    te(
                 [
                     'journal_id' => $journal->id,
                     'student_id' => $att['student_id'],
