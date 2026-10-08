@@ -10,6 +10,7 @@ use App\Models\User;
 use App\Traits\ApiResponser;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 
 class LeaveRequestController extends Controller
 {
@@ -89,7 +90,40 @@ class LeaveRequestController extends Controller
         ], 'Detail Pengajuan Izin Berhasil Diambil');
     }
 
-    public function verify(VerifyLeaveRequest $request, LeaveRequest $leaveRequest): JsonResponse {
-        
+    public function verify(VerifyLeaveRequest $request, LeaveRequest $leaveRequest): JsonResponse 
+    {
+        $teacher = $request->user();
+        $classroom = $this->getHomeroomClassroom($teacher);
+
+        if (!$classroom) {
+            return $this->errorResponse('Anda Belum Ditugaskan Sebagai Wali Kelas', 403);
+        }
+
+        $studentIds = $this->getStudentIds($classroom->id);
+        if (!$studentIds->contains($leaveRequest->student_id)) {
+            return $this->errorResponse('Pengajuan Izin Ini Bukan Milik Siswa Di Kelas Anda', 403);
+        }
+
+        if (!$leaveRequest->status !== 'Pending') {
+            return $this->errorResponse('Pengajuan Izin Ini Sudah Diverifikasi Sebelumnya', 403);
+        }
+
+        $data = $request->validated();
+        $leaveRequest->update([
+            'status' => $data['status'],
+            'verified_by' => $teacher->id,
+        ]);
+
+        $statusText = $data['status'] === 'Approved' ? 'Disetujui' : 'Ditolak';
+
+        return $this->successResponse(
+            new LeaveRequestResource($leaveRequest->fresh()->load('verifiedBy')),
+            "Pengajuan Izin Berhasil {$statusText}"
+        );
+    }
+
+    public function leaveRequests(Request $request): JsonResponse 
+    {
+        return $this->index($request);
     }
 }
