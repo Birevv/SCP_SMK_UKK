@@ -555,43 +555,44 @@ public function attendanceHistory(Request $request): JsonResponse
 
 ---
 
-### LANGKAH 8: Buat `TeacherApiController.php` (Baru)
+### LANGKAH 8: Buat Controller Guru Berdasarkan Resource (`app/Http/Controllers/Api/Teacher/`) (Baru)
 
-**Buat file baru**: `app/Http/Controllers/Api/TeacherApiController.php`
+Untuk menjaga prinsip **Single Responsibility Principle (SRP)** dan menghindari file controller yang terlalu besar (*fat controller*), fungsionalitas Guru dibagi ke dalam sub-namespace `App\Http\Controllers\Api\Teacher\` dengan 3 controller terpisah:
+
+1. `DashboardController.php` — Menangani ringkasan dashboard, jadwal hari ini, & peringatan jurnal.
+2. `ScheduleController.php` — Menangani jadwal mengajar guru (`index`, `store`) dan data siswa per jadwal (`students`).
+3. `JournalController.php` — Menangani pencatatan jurnal & presensi (`store`) serta riwayat jurnal (`index`).
+
+#### 8a. `app/Http/Controllers/Api/Teacher/DashboardController.php`
 
 ```php
 <?php
 
-namespace App\Http\Controllers\Api;
+namespace App\Http\Controllers\Api\Teacher;
 
 use App\Http\Controllers\Controller;
-use App\Http\Requests\Api\StoreJournalRequest;
-use App\Http\Requests\Api\StoreScheduleRequest;
-use App\Http\Resources\Api\JournalResource;
-use App\Http\Resources\Api\ScheduleResource;
-use App\Models\Attendance;
 use App\Models\Journal;
-use App\Models\LeaveRequest;
 use App\Models\Schedule;
 use App\Models\SystemConfiguration;
-use App\Models\User;
 use App\Traits\ApiResponser;
 use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
-class TeacherApiController extends Controller   
+class DashboardController extends Controller
 {
     use ApiResponser;
 
-    public function dashboard(Request $request): JsonResponse
+    /**
+     * Ambil data dashboard guru (jadwal hari ini, status konfigurasi, & peringatan jurnal).
+     */
+    public function index(Request $request): JsonResponse
     {
         $teacher = $request->user();
         $today = Carbon::today();
         $dayName = $today->locale('id')->isoFormat('dddd');
         $config = SystemConfiguration::current();
 
-        // Jadwal hari ini
         $todaySchedules = Schedule::with(['subject', 'classroom', 'room'])
             ->where('teacher_id', $teacher->id)
             ->where('day_of_week', $dayName)
@@ -614,7 +615,6 @@ class TeacherApiController extends Controller
                 ];
             });
 
-        // Pending journals (jadwal hari ini yang belum diisi jurnalnya)
         $now = Carbon::now();
         $pendingJournals = $todaySchedules->filter(function ($s) use ($now) {
             $endTime = Carbon::parse($s['end_time']);
@@ -630,14 +630,53 @@ class TeacherApiController extends Controller
             'teacher_name' => $teacher->full_name,
             'current_time' => $now->format('H:i'),
             'current_date' => $today->locale('id')->isoFormat('dddd, D MMMM Y'),
-            'active_cycle' => $config->active_cycle,
-            'is_schedule_locked' => $config->is_schedule_locked,
             'today_schedules' => $todaySchedules,
             'pending_journals' => $pendingJournals,
-        ], 'Dashboard guru berhasil diambil');
+            'active_cycle' => $config->active_cycle,
+            'is_schedule_locked' => $config->is_schedule_locked,
+        ], 'Data dashboard guru berhasil diambil');
     }
 
-    public function mySchedules(Request $request): JsonResponse
+    /**
+     * Alias untuk dashboard()
+     */
+    public function dashboard(Request $request): JsonResponse
+    {
+        return $this->index($request);
+    }
+}
+```
+
+---
+
+#### 8b. `app/Http/Controllers/Api/Teacher/ScheduleController.php`
+
+```php
+<?php
+
+namespace App\Http\Controllers\Api\Teacher;
+
+use App\Http\Controllers\Controller;
+use App\Http\Requests\Api\StoreScheduleRequest;
+use App\Http\Resources\Api\ScheduleResource;
+use App\Models\AcademicYear;
+use App\Models\LeaveRequest;
+use App\Models\Schedule;
+use App\Models\SystemConfiguration;
+use App\Models\User;
+use App\Traits\ApiResponser;
+use Carbon\Carbon;
+use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
+
+class ScheduleController extends Controller
+{
+    use ApiResponser;
+
+    /**
+     * Ambil seluruh jadwal mengajar milik guru yang login, dikelompokkan per hari.
+     */
+    public function index(Request $request): JsonResponse
     {
         $teacher = $request->user();
         $config = SystemConfiguration::current();
@@ -645,22 +684,20 @@ class TeacherApiController extends Controller
         $query = Schedule::with(['subject', 'classroom', 'room'])
             ->where('teacher_id', $teacher->id);
 
-        // Filter cycle
         if ($request->filled('cycle_type')) {
             $query->where('cycle_type', $request->cycle_type);
         } else {
             $query->forActiveCycle();
         }
 
-        // Filter kelas
         if ($request->filled('classroom_id')) {
             $query->where('classroom_id', $request->classroom_id);
         }
 
         $schedules = $query->orderBy('start_time')->get();
 
-        // Group by day
         $days = ['Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat'];
+
         $grouped = [];
         foreach ($days as $day) {
             $grouped[$day] = ScheduleResource::collection(
@@ -669,25 +706,26 @@ class TeacherApiController extends Controller
         }
 
         return $this->successResponse([
-            'is_locked' => $config->is_schedule_locked,
-         'active_cycle' => $config->active_cycle,
             'schedules' => $grouped,
-        ], 'Jadwal mengajar berhasil diambil');
+            'active_cycle' => $config->active_cycle,
+            'is_schedule_locked' => $config->is_schedule_locked,
+        ], 'Data jadwal berhasil diambil');
     }
 
-    public function storeSchedule(StoreScheduleRequest $request): JsonResponse
+    /**
+     * Simpan jadwal mengajar baru dengan validasi bentrok waktu & ruang/kelas/guru.
+     */
+    public function store(StoreScheduleRequest $request): JsonResponse
     {
         $teacher = $request->user();
         $config = SystemConfiguration::current();
 
-        // Cek apakah jadwal terkunci
         if ($config->is_schedule_locked) {
             return $this->errorResponse('Jadwal telah dikunci oleh Waka Kurikulum. Tidak dapat menambah jadwal.', 403);
         }
 
         $data = $request->validated();
 
-        // Cek konflik: guru yang sama, hari + waktu yang sama, cycle yang sama
         $conflict = Schedule::where('day_of_week', $data['day_of_week'])
             ->where('cycle_type', $data['cycle_type'])
             ->where('start_time', '<', $data['end_time'])
@@ -702,7 +740,7 @@ class TeacherApiController extends Controller
 
         if ($conflict) {
             $detail = 'Bentrok dengan: ';
-            if ($conflict->teacher_id === $teacher->id) {
+            if ($conflict->teacher_id == $teacher->id) {
                 $detail .= 'Jadwal Anda Sendiri';
             } elseif ($conflict->classroom_id == $data['classroom_id']) {
                 $detail .= 'Kelas ' . $conflict->classroom?->name;
@@ -710,28 +748,30 @@ class TeacherApiController extends Controller
                 $detail .= 'Ruang ' . $conflict->room?->name;
             }
 
-                return $this->errorResponse('Jadwal bentrok terdeteksi', 422, [
-                    'conflict_type' => 'schedule',
-                    'detail' => $detail,
-                    'conflicting_schedule' => new ScheduleResource($conflict),
-                ]);
+            return $this->errorResponse('Jadwal bentrok terdeteksi', 422, [
+                'conflict_type' => 'schedule',
+                'detail' => $detail,
+                'conflicting_schedule' => new ScheduleResource($conflict),
+            ]);
         }
 
-            $data['teacher_id'] = $teacher->id;
-            $data['academic_year_id'] = Schedule::where('teacher_id', $teacher->id)->latest()->value('academic_year_id')
-                ?? \App\Models\AcademicYear::latest()->value('id');
+        $data['teacher_id'] = $teacher->id;
+        $data['academic_year_id'] = Schedule::where('teacher_id', $teacher->id)->latest()->value('academic_year_id')
+            ?? AcademicYear::latest()->value('id');
 
-            $schedule = Schedule::create($data);
-            $schedule->load(['subject', 'classroom', 'room']);
+        $schedule = Schedule::create($data);
+        $schedule->load(['subject', 'classroom', 'room']);
 
-            return $this->successResponse(new ScheduleResource($schedule), 'Jadwal berhasil ditambahkan', 201);
+        return $this->successResponse(new ScheduleResource($schedule), 'Jadwal berhasil ditambahkan', 201);
     }
 
-    public function getStudents(Schedule $schedule, Request $request): JsonResponse
+    /**
+     * Ambil daftar siswa pada jadwal tertentu berserta status izin yang sudah diapprove hari ini.
+     */
+    public function students(Schedule $schedule, Request $request): JsonResponse
     {
         $teacher = $request->user();
 
-        // Pastikan jadwal milik guru yang login
         if ($schedule->teacher_id !== $teacher->id) {
             return $this->errorResponse('Anda tidak memiliki akses ke jadwal ini', 403);
         }
@@ -739,7 +779,6 @@ class TeacherApiController extends Controller
         $classroomId = $schedule->classroom_id;
         $today = Carbon::today();
 
-        // Ambil siswa di kelas ini
         $students = User::whereHas('role', fn ($q) => $q->where('name', 'Siswa'))
             ->whereHas('classrooms', fn ($q) => $q->where('classrooms.id', $classroomId))
             ->orderBy('full_name')
@@ -765,57 +804,59 @@ class TeacherApiController extends Controller
                 'id' => $schedule->id,
                 'subject_name' => $schedule->subject?->name,
                 'classroom_name' => $schedule->classroom?->name,
+                'room_name' => $schedule->room?->name,
                 'start_time' => $schedule->start_time,
                 'end_time' => $schedule->end_time,
             ],
             'students' => $students,
-        ], 'Daftar siswa berhasil diambil');
+        ], 'Data siswa berhasil diambil');
     }
 
-    public function storeJournal(StoreJournalRequest $request): JsonResponse
+    // Method aliases untuk kompatibilitas
+    public function mySchedules(Request $request): JsonResponse
     {
-        $teacher = $request->user();
-        $data = $request->validated();
-
-        // Pastikan jadwal milik guru yang login
-        $schedule = Schedule::findOrFail($data['schedule_id']);
-        if ($schedule->teacher_id !== $teacher->id) {
-            return $this->errorResponse('Anda tidak memiliki akses ke jadwal ini', 403);
-        }
-
-        // Upload foto kegiatan
-        if ($request->hasFile('activity_photo')) {
-            $data['activity_photo'] = $request->file('activity_photo')->store('journal_photos', 'public');
-        }
-
-        $data['teacher_id'] = $teacher->id;
-        $attendancesData = $data['attendances'];
-        unset($data['attendances']);
-
-        // Buat jurnal (JournalObserver akan auto-generate attendance)
-        $journal = Journal::create($data);
-
-        // Override attendance sesuai input guru
-        foreach ($attendancesData as $att) {
-            Attendance::updateOrCrea    te(
-                [
-                    'journal_id' => $journal->id,
-                    'student_id' => $att['student_id'],
-                ],
-                [
-                    'status' => $att['status'],
-                    'date' => $data['date'],
-                    'notes' => $att['notes'] ?? null,
-                ]
-            );
-        }
-
-        $journal->load(['schedule.subject', 'schedule.classroom', 'attendances']);
-
-        return $this->successResponse(new JournalResource($journal), 'Jurnal dan presensi berhasil disimpan', 201);
+        return $this->index($request);
     }
 
-    public function journalHistory(Request $request): JsonResponse
+    public function storeSchedule(StoreScheduleRequest $request): JsonResponse
+    {
+        return $this->store($request);
+    }
+
+    public function getStudents(Schedule $schedule, Request $request): JsonResponse
+    {
+        return $this->students($schedule, $request);
+    }
+}
+```
+
+---
+
+#### 8c. `app/Http/Controllers/Api/Teacher/JournalController.php`
+
+```php
+<?php
+
+namespace App\Http\Controllers\Api\Teacher;
+
+use App\Http\Controllers\Controller;
+use App\Http\Requests\Api\StoreJournalRequest;
+use App\Http\Resources\Api\JournalResource;
+use App\Models\Attendance;
+use App\Models\Journal;
+use App\Models\Schedule;
+use App\Traits\ApiResponser;
+use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
+
+class JournalController extends Controller
+{
+    use ApiResponser;
+
+    /**
+     * Ambil riwayat jurnal mengajar milik guru yang login (dengan filter bulan, tahun, & cycle).
+     */
+    public function index(Request $request): JsonResponse
     {
         $teacher = $request->user();
 
@@ -846,25 +887,82 @@ class TeacherApiController extends Controller
             'Riwayat jurnal berhasil diambil'
         );
     }
+
+    /**
+     * Simpan jurnal pembelajaran dan data presensi siswa.
+     */
+    public function store(StoreJournalRequest $request): JsonResponse
+    {
+        $teacher = $request->user();
+        $data = $request->validated();
+
+        $schedule = Schedule::findOrFail($data['schedule_id']);
+        if ($schedule->teacher_id !== $teacher->id) {
+            return $this->errorResponse('Anda tidak memiliki akses ke jadwal ini', 403);
+        }
+
+        if ($request->hasFile('activity_photo')) {
+            $data['activity_photo'] = $request->file('activity_photo')->store('journal_photos', 'public');
+        }
+
+        $data['teacher_id'] = $teacher->id;
+        $attendancesData = $data['attendances'];
+        unset($data['attendances']);
+
+        $journal = Journal::create($data);
+
+        foreach ($attendancesData as $att) {
+            Attendance::updateOrCreate(
+                [
+                    'journal_id' => $journal->id,
+                    'student_id' => $att['student_id'],
+                ],
+                [
+                    'status' => $att['status'],
+                    'date' => $data['date'],
+                    'notes' => $att['notes'] ?? null,
+                ]
+            );
+        }
+
+        $journal->load(['schedule.subject', 'schedule.classroom', 'attendances']);
+
+        return $this->successResponse(new JournalResource($journal), 'Jurnal dan presensi berhasil disimpan', 201);
+    }
+
+    // Method aliases untuk kompatibilitas
+    public function journalHistory(Request $request): JsonResponse
+    {
+        return $this->index($request);
+    }
+
+    public function storeJournal(StoreJournalRequest $request): JsonResponse
+    {
+        return $this->store($request);
+    }
 }
 ```
 
 ---
+### LANGKAH 9: Buat Controller Wali Kelas Berdasarkan Resource (`app/Http/Controllers/Api/Homeroom/`) (Baru)
 
-### LANGKAH 9: Buat `HomeroomApiController.php` (Baru)
+Sama seperti Controller Guru, untuk menjaga prinsip **Single Responsibility Principle (SRP)** dan kemudahan pemeliharaan kode, fungsionalitas Wali Kelas dibagi ke dalam sub-namespace `App\Http\Controllers\Api\Homeroom\` menjadi 2 controller terpisah:
 
-**Buat file baru**: `app/Http/Controllers/Api/HomeroomApiController.php`
+1. `DashboardController.php` — Menangani ringkasan kehadiran siswa kelas hari ini dan daftar pengajuan izin pending.
+2. `LeaveRequestController.php` — Menangani daftar pengajuan izin siswa (`index`), detail izin (`show`), dan verifikasi persetujuan/penolakan izin (`verify`).
 
 > **Penentuan Wali Kelas**: Guru yang terhubung ke kelas melalui pivot table `user_class` dianggap sebagai wali kelas dari kelas tersebut.
+
+---
+
+#### 9a. `app/Http/Controllers/Api/Homeroom/DashboardController.php`
 
 ```php
 <?php
 
-namespace App\Http\Controllers\Api;
+namespace App\Http\Controllers\Api\Homeroom;
 
 use App\Http\Controllers\Controller;
-use App\Http\Requests\Api\VerifyLeaveRequest;
-use App\Http\Resources\Api\LeaveRequestResource;
 use App\Models\Attendance;
 use App\Models\LeaveRequest;
 use App\Models\User;
@@ -872,16 +970,15 @@ use App\Traits\ApiResponser;
 use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Storage;
 
-class HomeroomApiController extends Controller
+class DashboardController extends Controller
 {
     use ApiResponser;
 
     /**
      * Ambil kelas yang di-wali-kelasi oleh guru yang login.
      */
-    private function getHomeroomClassroom(User $teacher)
+    protected function getHomeroomClassroom(User $teacher)
     {
         return $teacher->classrooms()->first();
     }
@@ -889,14 +986,17 @@ class HomeroomApiController extends Controller
     /**
      * Ambil semua student IDs di kelas wali kelas.
      */
-    private function getStudentIds(int $classroomId)
+    protected function getStudentIds(int $classroomId)
     {
         return User::whereHas('role', fn ($q) => $q->where('name', 'Siswa'))
             ->whereHas('classrooms', fn ($q) => $q->where('classrooms.id', $classroomId))
             ->pluck('id');
     }
 
-    public function dashboard(Request $request): JsonResponse
+    /**
+     * Ambil ringkasan dashboard wali kelas (presensi kelas hari ini & daftar pengajuan izin pending).
+     */
+    public function index(Request $request): JsonResponse
     {
         $teacher = $request->user();
         $classroom = $this->getHomeroomClassroom($teacher);
@@ -957,13 +1057,67 @@ class HomeroomApiController extends Controller
         ], 'Dashboard wali kelas berhasil diambil');
     }
 
-    public function leaveRequests(Request $request): JsonResponse
+    /**
+     * Alias untuk dashboard()
+     */
+    public function dashboard(Request $request): JsonResponse
+    {
+        return $this->index($request);
+    }
+}
+```
+
+---
+
+#### 9b. `app/Http/Controllers/Api/Homeroom/LeaveRequestController.php`
+
+```php
+<?php
+
+namespace App\Http\Controllers\Api\Homeroom;
+
+use App\Http\Controllers\Controller;
+use App\Http\Requests\Api\VerifyLeaveRequest;
+use App\Http\Resources\Api\LeaveRequestResource;
+use App\Models\LeaveRequest;
+use App\Models\User;
+use App\Traits\ApiResponser;
+use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
+
+class LeaveRequestController extends Controller
+{
+    use ApiResponser;
+
+    /**
+     * Ambil kelas yang di-wali-kelasi oleh guru yang login.
+     */
+    protected function getHomeroomClassroom(User $teacher)
+    {
+        return $teacher->classrooms()->first();
+    }
+
+    /**
+     * Ambil semua student IDs di kelas wali kelas.
+     */
+    protected function getStudentIds(int $classroomId)
+    {
+        return User::whereHas('role', fn ($q) => $q->where('name', 'Siswa'))
+            ->whereHas('classrooms', fn ($q) => $q->where('classrooms.id', $classroomId))
+            ->pluck('id');
+    }
+    
+    /**
+     * Ambil seluruh pengajuan izin siswa di kelas wali kelas (dengan filter status & pagination).
+     */
+    public function index(Request $request): JsonResponse
     {
         $teacher = $request->user();
         $classroom = $this->getHomeroomClassroom($teacher);
 
         if (!$classroom) {
-            return $this->errorResponse('Anda belum ditugaskan sebagai wali kelas', 403);
+                return $this->errorResponse('Anda belum ditugaskan sebagai wali kelas', 403);
         }
 
         $studentIds = $this->getStudentIds($classroom->id);
@@ -986,6 +1140,9 @@ class HomeroomApiController extends Controller
         );
     }
 
+    /**
+     * Detail pengajuan izin siswa.
+     */
     public function show(LeaveRequest $leaveRequest, Request $request): JsonResponse
     {
         $teacher = $request->user();
@@ -1025,6 +1182,9 @@ class HomeroomApiController extends Controller
         ], 'Detail pengajuan izin berhasil diambil');
     }
 
+    /**
+     * Verifikasi (Approve/Reject) pengajuan izin siswa.
+     */
     public function verify(VerifyLeaveRequest $request, LeaveRequest $leaveRequest): JsonResponse
     {
         $teacher = $request->user();
@@ -1059,11 +1219,18 @@ class HomeroomApiController extends Controller
             "Pengajuan izin berhasil {$statusText}"
         );
     }
+
+    /**
+     * Alias untuk leaveRequests()
+     */
+    public function leaveRequests(Request $request): JsonResponse
+    {
+        return $this->index($request);
+    }
 }
 ```
 
 ---
-
 ### LANGKAH 10: Buat `ReferenceController.php` (Baru)
 
 **Buat file baru**: `app/Http/Controllers/Api/ReferenceController.php`
@@ -1119,10 +1286,13 @@ Ini adalah langkah paling kritikal — tanpa ini, tidak ada endpoint yang bisa d
 // routes/api.php
 
 use App\Http\Controllers\Api\AuthController;
-use App\Http\Controllers\Api\HomeroomApiController;
+use App\Http\Controllers\Api\Homeroom\DashboardController as HomeroomDashboardController;
+use App\Http\Controllers\Api\Homeroom\LeaveRequestController as HomeroomLeaveRequestController;
 use App\Http\Controllers\Api\ReferenceController;
 use App\Http\Controllers\Api\StudentApiController;
-use App\Http\Controllers\Api\TeacherApiController;
+use App\Http\Controllers\Api\Teacher\DashboardController as TeacherDashboardController;
+use App\Http\Controllers\Api\Teacher\JournalController as TeacherJournalController;
+use App\Http\Controllers\Api\Teacher\ScheduleController as TeacherScheduleController;
 use Illuminate\Support\Facades\Route;
 ```
 
@@ -1196,21 +1366,21 @@ Route::middleware('auth:sanctum')->group(function () {
 
 | Method | Endpoint | Controller | Deskripsi |
 |--------|----------|------------|-----------|
-| GET | `/api/teacher/dashboard` | `TeacherApiController@dashboard` | Dashboard guru |
-| GET | `/api/teacher/schedules` | `TeacherApiController@mySchedules` | Jadwal mengajar saya |
-| POST | `/api/teacher/schedules` | `TeacherApiController@storeSchedule` | Tambah jadwal baru |
-| GET | `/api/teacher/schedules/{id}/students` | `TeacherApiController@getStudents` | Daftar siswa per jadwal |
-| POST | `/api/teacher/journals` | `TeacherApiController@storeJournal` | Submit jurnal & presensi |
-| GET | `/api/teacher/journals` | `TeacherApiController@journalHistory` | Riwayat jurnal |
+| GET | `/api/teacher/dashboard` | `Teacher\DashboardController@index` | Dashboard guru |
+| GET | `/api/teacher/schedules` | `Teacher\ScheduleController@index` | Jadwal mengajar saya |
+| POST | `/api/teacher/schedules` | `Teacher\ScheduleController@store` | Tambah jadwal baru |
+| GET | `/api/teacher/schedules/{schedule}/students` | `Teacher\ScheduleController@students` | Daftar siswa per jadwal |
+| POST | `/api/teacher/journals` | `Teacher\JournalController@store` | Submit jurnal & presensi |
+| GET | `/api/teacher/journals` | `Teacher\JournalController@index` | Riwayat jurnal |
 
 ```php
     Route::prefix('teacher')->group(function () {
-        Route::get('/dashboard', [TeacherApiController::class, 'dashboard']);
-        Route::get('/schedules', [TeacherApiController::class, 'mySchedules']);
-        Route::post('/schedules', [TeacherApiController::class, 'storeSchedule']);
-        Route::get('/schedules/{schedule}/students', [TeacherApiController::class, 'getStudents']);
-        Route::post('/journals', [TeacherApiController::class, 'storeJournal']);
-        Route::get('/journals', [TeacherApiController::class, 'journalHistory']);
+        Route::get('/dashboard', [TeacherDashboardController::class, 'index']);
+        Route::get('/schedules', [TeacherScheduleController::class, 'index']);
+        Route::post('/schedules', [TeacherScheduleController::class, 'store']);
+        Route::get('/schedules/{schedule}/students', [TeacherScheduleController::class, 'students']);
+        Route::post('/journals', [TeacherJournalController::class, 'store']);
+        Route::get('/journals', [TeacherJournalController::class, 'index']);
     });
 ```
 
@@ -1257,19 +1427,22 @@ php artisan route:list --path=api
 
 ## 📁 Ringkasan Semua File
 
-### File Baru yang Perlu Dibuat (9 file)
+### File Baru yang Perlu Dibuat (12 file)
 
 | # | Path | Deskripsi |
 |---|------|-----------|
-| 1 | `app/Http/Controllers/Api/TeacherApiController.php` | Semua API Guru (6 method) |
-| 2 | `app/Http/Controllers/Api/HomeroomApiController.php` | Semua API Wali Kelas (4 method) |
-| 3 | `app/Http/Controllers/Api/ReferenceController.php` | Data reference/dropdown (3 method) |
-| 4 | `app/Http/Requests/Api/UpdateProfileRequest.php` | Validasi update profile |
-| 5 | `app/Http/Requests/Api/ChangePasswordRequest.php` | Validasi ganti password |
-| 6 | `app/Http/Requests/Api/StoreScheduleRequest.php` | Validasi input jadwal + conflict |
-| 7 | `app/Http/Requests/Api/VerifyLeaveRequest.php` | Validasi approve/reject izin |
-| 8 | `app/Http/Resources/Api/JournalResource.php` | Transformer jurnal |
-| 9 | `app/Http/Resources/Api/AttendanceHistoryResource.php` | Transformer riwayat presensi |
+| 1 | `app/Http/Controllers/Api/Teacher/DashboardController.php` | API Dashboard Guru (`index`) |
+| 2 | `app/Http/Controllers/Api/Teacher/ScheduleController.php` | API Jadwal Guru (`index`, `store`, `students`) |
+| 3 | `app/Http/Controllers/Api/Teacher/JournalController.php` | API Jurnal & Presensi Guru (`index`, `store`) |
+| 4 | `app/Http/Controllers/Api/Homeroom/DashboardController.php` | API Dashboard Wali Kelas (`index`) |
+| 5 | `app/Http/Controllers/Api/Homeroom/LeaveRequestController.php` | API Pengajuan Izin Wali Kelas (`index`, `show`, `verify`) |
+| 6 | `app/Http/Controllers/Api/ReferenceController.php` | Data reference/dropdown (3 method) |
+| 7 | `app/Http/Requests/Api/UpdateProfileRequest.php` | Validasi update profile |
+| 8 | `app/Http/Requests/Api/ChangePasswordRequest.php` | Validasi ganti password |
+| 9 | `app/Http/Requests/Api/StoreScheduleRequest.php` | Validasi input jadwal + conflict |
+| 10 | `app/Http/Requests/Api/VerifyLeaveRequest.php` | Validasi approve/reject izin |
+| 11 | `app/Http/Resources/Api/JournalResource.php` | Transformer jurnal |
+| 12 | `app/Http/Resources/Api/AttendanceHistoryResource.php` | Transformer riwayat presensi |
 
 ### File Existing yang Perlu Dimodifikasi (6 file)
 
