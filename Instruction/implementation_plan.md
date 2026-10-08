@@ -1107,7 +1107,7 @@ class LeaveRequestController extends Controller
             ->whereHas('classrooms', fn ($q) => $q->where('classrooms.id', $classroomId))
             ->pluck('id');
     }
-    
+
     /**
      * Ambil seluruh pengajuan izin siswa di kelas wali kelas (dengan filter status & pagination).
      */
@@ -1117,7 +1117,7 @@ class LeaveRequestController extends Controller
         $classroom = $this->getHomeroomClassroom($teacher);
 
         if (!$classroom) {
-                return $this->errorResponse('Anda belum ditugaskan sebagai wali kelas', 403);
+            return $this->errorResponse('Anda belum ditugaskan sebagai wali kelas', 403);
         }
 
         $studentIds = $this->getStudentIds($classroom->id);
