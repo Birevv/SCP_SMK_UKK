@@ -45,7 +45,7 @@ class UserSeeder extends Seeder
         );
 
         // 3. Wali Kelas
-        User::firstOrCreate(
+        $wali = User::firstOrCreate(
             ['username' => 'walikelas1'],
             [
                 'full_name' => 'Siti Aminah, M.Pd',
@@ -53,9 +53,11 @@ class UserSeeder extends Seeder
                 'email' => 'walikelas1@scp.sch.id',
                 'password' => Hash::make('password'),
                 'role_id' => $waliRole?->id,
-                'classroom_id' => $defaultClassroom?->id,
             ]
         );
+        if ($defaultClassroom && ! $wali->classrooms()->where('classrooms.id', $defaultClassroom->id)->exists()) {
+            $wali->classrooms()->attach($defaultClassroom->id, ['status' => 'Aktif']);
+        }
 
         // 4. Guru BK
         User::firstOrCreate(
@@ -70,7 +72,7 @@ class UserSeeder extends Seeder
         );
 
         // 5. Siswa (Portal Siswa & Orang Tua)
-        User::firstOrCreate(
+        $siswa = User::firstOrCreate(
             ['username' => 'siswa1'],
             [
                 'full_name' => 'Ahmad Fauzi',
@@ -78,8 +80,10 @@ class UserSeeder extends Seeder
                 'email' => 'siswa1@scp.sch.id',
                 'password' => Hash::make('password'),
                 'role_id' => $siswaRole?->id,
-                'classroom_id' => $defaultClassroom?->id,
             ]
         );
+        if ($defaultClassroom && ! $siswa->classrooms()->where('classrooms.id', $defaultClassroom->id)->exists()) {
+            $siswa->classrooms()->attach($defaultClassroom->id, ['status' => 'Aktif']);
+        }
     }
 }

@@ -104,7 +104,7 @@ class LeaveRequestController extends Controller
             return $this->errorResponse('Pengajuan Izin Ini Bukan Milik Siswa Di Kelas Anda', 403);
         }
 
-        if (!$leaveRequest->status !== 'Pending') {
+        if ($leaveRequest->status !== 'Pending') {
             return $this->errorResponse('Pengajuan Izin Ini Sudah Diverifikasi Sebelumnya', 403);
         }
 

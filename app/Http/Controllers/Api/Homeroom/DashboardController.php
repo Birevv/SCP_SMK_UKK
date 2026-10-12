@@ -40,7 +40,7 @@ class DashboardController extends Controller
         $today = Carbon::today();
 
         $todayAttendances = Attendance::whereIn('student_id', $studentsIds)
-            ->whereData('date', $today)
+            ->whereDate('date', $today)
             ->get();
 
         $hadir = $todayAttendances->where('status', 'Hadir')->count();
@@ -67,7 +67,7 @@ class DashboardController extends Controller
             ]);
 
         $pendingCount = LeaveRequest::whereIn('student_id', $studentsIds)
-            ->whereIn('status', 'Pending')
+            ->where('status', 'Pending')
             ->count();
 
         return $this->successResponse([

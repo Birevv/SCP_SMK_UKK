@@ -1388,17 +1388,17 @@ Route::middleware('auth:sanctum')->group(function () {
 
 | Method | Endpoint | Controller | Deskripsi |
 |--------|----------|------------|-----------|
-| GET | `/api/homeroom/dashboard` | `HomeroomApiController@dashboard` | Dashboard wali kelas |
-| GET | `/api/homeroom/leave-requests` | `HomeroomApiController@leaveRequests` | Daftar izin siswa |
-| GET | `/api/homeroom/leave-requests/{id}` | `HomeroomApiController@show` | Detail izin siswa |
-| PUT | `/api/homeroom/leave-requests/{id}/verify` | `HomeroomApiController@verify` | Approve/Reject izin |
+| GET | `/api/homeroom/dashboard` | `Homeroom\DashboardController@index` | Dashboard wali kelas |
+| GET | `/api/homeroom/leave-requests` | `Homeroom\LeaveRequestController@index` | Daftar izin siswa |
+| GET | `/api/homeroom/leave-requests/{leaveRequest}` | `Homeroom\LeaveRequestController@show` | Detail izin siswa |
+| PUT | `/api/homeroom/leave-requests/{leaveRequest}/verify` | `Homeroom\LeaveRequestController@verify` | Approve/Reject izin |
 
 ```php
     Route::prefix('homeroom')->group(function () {
-        Route::get('/dashboard', [HomeroomApiController::class, 'dashboard']);
-        Route::get('/leave-requests', [HomeroomApiController::class, 'leaveRequests']);
-        Route::get('/leave-requests/{leaveRequest}', [HomeroomApiController::class, 'show']);
-        Route::put('/leave-requests/{leaveRequest}/verify', [HomeroomApiController::class, 'verify']);
+        Route::get('/dashboard', [HomeroomDashboardController::class, 'index']);
+        Route::get('/leave-requests', [HomeroomLeaveRequestController::class, 'index']);
+        Route::get('/leave-requests/{leaveRequest}', [HomeroomLeaveRequestController::class, 'show']);
+        Route::put('/leave-requests/{leaveRequest}/verify', [HomeroomLeaveRequestController::class, 'verify']);
     });
 
 }); // end auth:sanctum
