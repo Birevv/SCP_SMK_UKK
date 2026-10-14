@@ -65,7 +65,7 @@ class LeaveRequestsTable
                     ]))
                     ->visible(fn (LeaveRequest $record): bool => 
                         $record->status === 'Pending' &&
-                        in_array(Auth::user()?->role?->name, ['Wali Kelas', 'Guru BK', 'Waka Kurikulum']) &&
+                        (in_array(Auth::user()?->role?->name, ['Wali Kelas', 'Guru BK', 'Super Admin']) || Auth::user()?->hasRole('Super Admin')) &&
                         $record->submitted_by !== Auth::id() &&
                         $record->student_id !== Auth::id()
                     ),
@@ -81,7 +81,7 @@ class LeaveRequestsTable
                     ]))
                     ->visible(fn (LeaveRequest $record): bool => 
                         $record->status === 'Pending' &&
-                        in_array(Auth::user()?->role?->name, ['Wali Kelas', 'Guru BK', 'Waka Kurikulum']) &&
+                        (in_array(Auth::user()?->role?->name, ['Wali Kelas', 'Guru BK', 'Super Admin']) || Auth::user()?->hasRole('Super Admin')) &&
                         $record->submitted_by !== Auth::id() &&
                         $record->student_id !== Auth::id()
                     ),

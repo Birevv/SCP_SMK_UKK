@@ -21,8 +21,13 @@ class JournalResource extends Resource
 {
     public static function canViewAny(): bool
     {
-        $role = Auth::user()?->role?->name;
-        return in_array($role, ['Waka Kurikulum', 'Guru', 'Wali Kelas', 'Guru BK']);
+        /** @var \App\Models\User|null $user */
+        $user = Auth::user();
+        if ($user?->hasRole('Super Admin') || $user?->role?->name === 'Super Admin') {
+            return true;
+        }
+        $role = $user?->role?->name;
+        return in_array($role, ['Guru', 'Wali Kelas', 'Guru BK']);
     }
 
     public static function getEloquentQuery(): Builder

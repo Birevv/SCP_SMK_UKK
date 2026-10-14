@@ -12,6 +12,7 @@ class UserSeeder extends Seeder
 {
     public function run(): void
     {
+        $superAdminRole = Role::where('name', 'Super Admin')->first();
         $wakaRole = Role::where('name', 'Waka Kurikulum')->first();
         $guruRole = Role::where('name', 'Guru')->first();
         $waliRole = Role::where('name', 'Wali Kelas')->first();
@@ -20,8 +21,21 @@ class UserSeeder extends Seeder
 
         $defaultClassroom = Classroom::first();
 
+        // 0. Super Admin
+        $superAdmin = User::firstOrCreate(
+            ['username' => 'Muzan'],
+            [
+                'full_name' => 'Kibutsuji Muzan',
+                'identity_number' => '197001011990011001',
+                'email' => 'admin@scp.sch.id',
+                'password' => Hash::make('password'),
+                'role_id' => $superAdminRole?->id,
+            ]
+        );
+        $superAdmin->syncRoles(['Super Admin']);
+
         // 1. Waka Kurikulum
-        User::firstOrCreate(
+        $waka = User::firstOrCreate(
             ['username' => 'waka'],
             [
                 'full_name' => 'Waka Kurikulum Admin',
@@ -31,9 +45,10 @@ class UserSeeder extends Seeder
                 'role_id' => $wakaRole?->id,
             ]
         );
+        $waka->syncRoles(['Waka Kurikulum']);
 
         // 2. Guru
-        User::firstOrCreate(
+        $guru = User::firstOrCreate(
             ['username' => 'guru1'],
             [
                 'full_name' => 'Budi Santoso, S.Kom',
@@ -43,6 +58,7 @@ class UserSeeder extends Seeder
                 'role_id' => $guruRole?->id,
             ]
         );
+        $guru->syncRoles(['Guru']);
 
         // 3. Wali Kelas
         $wali = User::firstOrCreate(
@@ -55,12 +71,13 @@ class UserSeeder extends Seeder
                 'role_id' => $waliRole?->id,
             ]
         );
+        $wali->syncRoles(['Wali Kelas']);
         if ($defaultClassroom && ! $wali->classrooms()->where('classrooms.id', $defaultClassroom->id)->exists()) {
             $wali->classrooms()->attach($defaultClassroom->id, ['status' => 'Aktif']);
         }
 
         // 4. Guru BK
-        User::firstOrCreate(
+        $gurubk = User::firstOrCreate(
             ['username' => 'gurubk'],
             [
                 'full_name' => 'Drs. Hendra Gunawan',
@@ -70,6 +87,7 @@ class UserSeeder extends Seeder
                 'role_id' => $bkRole?->id,
             ]
         );
+        $gurubk->syncRoles(['Guru BK']);
 
         // 5. Siswa (Portal Siswa & Orang Tua)
         $siswa = User::firstOrCreate(
@@ -82,6 +100,7 @@ class UserSeeder extends Seeder
                 'role_id' => $siswaRole?->id,
             ]
         );
+        $siswa->syncRoles(['Siswa']);
         if ($defaultClassroom && ! $siswa->classrooms()->where('classrooms.id', $defaultClassroom->id)->exists()) {
             $siswa->classrooms()->attach($defaultClassroom->id, ['status' => 'Aktif']);
         }

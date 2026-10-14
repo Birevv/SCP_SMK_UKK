@@ -127,7 +127,7 @@ class LeaveRequestForm
                     ])
                     ->default('Pending')
                     ->required()
-                    ->disabled(fn () => !in_array($role, ['Wali Kelas', 'Guru BK', 'Waka Kurikulum']))
+                    ->disabled(fn () => !in_array($role, ['Wali Kelas', 'Guru BK', 'Super Admin']) && !Auth::user()?->hasRole('Super Admin'))
                     ->dehydrated()
                     ->label('Status Verifikasi'),
             ]);

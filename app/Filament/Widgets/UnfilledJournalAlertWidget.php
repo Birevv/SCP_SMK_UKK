@@ -18,8 +18,13 @@ class UnfilledJournalAlertWidget extends Widget
 
     public static function canView(): bool
     {
-        $role = Auth::user()?->role?->name;
-        return in_array($role, ['Guru', 'Waka Kurikulum']);
+        /** @var \App\Models\User|null $user */
+        $user = Auth::user();
+        if ($user?->hasRole('Super Admin') || $user?->role?->name === 'Super Admin') {
+            return true;
+        }
+
+        return $user?->hasRole('Guru') || $user?->role?->name === 'Guru'; 
     }
 
     public function getViewData(): array

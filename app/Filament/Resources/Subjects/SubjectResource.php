@@ -20,7 +20,9 @@ class SubjectResource extends Resource
 {
     public static function canViewAny(): bool
     {
-        return Auth::user()?->role?->name === 'Waka Kurikulum';
+        /** @var \App\Models\User|null $user */
+        $user = Auth::user();
+        return $user?->hasRole('Super Admin') || $user?->role?->name === 'Super Admin';
     }
 
     protected static ?string $model = Subject::class;

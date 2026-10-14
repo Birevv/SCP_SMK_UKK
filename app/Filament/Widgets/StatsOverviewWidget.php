@@ -14,7 +14,9 @@ class StatsOverviewWidget extends BaseWidget
 {
     public static function canView(): bool
     {
-        return Auth::user()?->role?->name === 'Waka Kurikulum';
+        /** @var \App\Models\User|null $user */
+        $user = Auth::user();
+        return $user?->hasRole('Super Admin') || $user?->role?->name === 'Super Admin';
     }
     protected function getStats(): array
     {

@@ -21,14 +21,24 @@ class LeaveRequestResource extends Resource
 {
     public static function canViewAny(): bool
     {
-        $role = Auth::user()?->role?->name;
-        return in_array($role, ['Waka Kurikulum', 'Wali Kelas', 'Guru BK', 'Siswa']);
+        /** @var \App\Models\User|null $user */
+        $user = Auth::user();
+        if ($user?->hasRole('Super Admin') || $user?->role?->name === 'Super Admin') {
+            return true;
+        }
+        $role = $user?->role?->name;
+        return in_array($role, ['Wali Kelas', 'Guru BK', 'Siswa']);
     }
 
     public static function canCreate(): bool
     {
-        $role = Auth::user()?->role?->name;
-        return in_array($role, ['Siswa', 'Wali Kelas', 'Waka Kurikulum']);
+        /** @var \App\Models\User|null $user */
+        $user = Auth::user();
+        if ($user?->hasRole('Super Admin') || $user?->role?->name === 'Super Admin') {
+            return true;
+        }
+        $role = $user?->role?->name;
+        return in_array($role, ['Siswa', 'Wali Kelas']);
     }
 
     public static function getEloquentQuery(): Builder

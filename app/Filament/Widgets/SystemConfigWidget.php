@@ -27,7 +27,12 @@ class SystemConfigWidget extends Widget implements HasActions, HasSchemas
 
     public static function canView(): bool
     {
-        return Auth::user()?->role?->name === 'Waka Kurikulum';
+        /** @var \App\Models\User|null $user */
+        $user = Auth::user();
+        return $user?->hasRole('Waka Kurikulum') 
+            || $user?->role?->name === 'Waka Kurikulum'
+            || $user?->hasRole('Super Admin')
+            || $user?->role?->name === 'Super Admin';
     }
 
     public function getViewData(): array
