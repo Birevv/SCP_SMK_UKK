@@ -29,6 +29,17 @@ class User extends Authenticatable implements FilamentUser, HasName
     /** @use HasFactory<UserFactory> */
     use HasApiTokens, HasFactory, HasRoles, Notifiable, SoftDeletes;
 
+    protected static function booted(): void
+    {
+        static::saved(function (User $user) {
+            if ($user->role_id && $user->role) {
+                if (! $user->hasRole($user->role->name)) {
+                    $user->syncRoles([$user->role->name]);
+                }
+            }
+        });
+    }
+
     public function canAccessPanel(Panel $panel): bool
     {
         return $this->hasAnyRole(['Super Admin', 'Waka Kurikulum', 'Guru', 'Wali Kelas', 'Guru BK', 'Siswa'])

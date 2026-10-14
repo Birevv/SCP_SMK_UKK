@@ -4,9 +4,11 @@ namespace App\Filament\Resources\Users\Schemas;
 
 use App\Models\AcademicYear;
 use App\Models\Role;
+use App\Models\User;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Schemas\Schema;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 
 class UserForm
@@ -17,7 +19,17 @@ class UserForm
             ->components([
                 Select::make('role_id')
                     ->label('Role Akses')
-                    ->options(Role::pluck('name', 'id'))
+                    ->options(function () {
+                        $query = Role::query();
+                        /** @var User|null $user */
+                        $user = Auth::user();
+
+                        if (! $user?->hasRole('Super Admin') && $user?->role?->name !== 'Super Admin') {
+                            $query->where('name', '!=', 'Super Admin');
+                        }
+
+                        return $query->pluck('name', 'id');
+                    })
                     ->searchable()
                     ->required()
                     ->reactive(),

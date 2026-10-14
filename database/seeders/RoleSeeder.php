@@ -45,11 +45,10 @@ class RoleSeeder extends Seeder
 
         // 1. Waka Kurikulum
         $wakaPermissions = $getExisting([
-            // Master Data (Class, Room, User, Role, AcademicYear, Subject, SystemConfig)
+            // Master Data (Class, Room, User, AcademicYear, Subject, SystemConfig)
             'ViewAny:Classroom', 'View:Classroom', 'Create:Classroom', 'Update:Classroom', 'Delete:Classroom', 'DeleteAny:Classroom',
             'ViewAny:Room', 'View:Room', 'Create:Room', 'Update:Room', 'Delete:Room', 'DeleteAny:Room',
             'ViewAny:User', 'View:User', 'Create:User', 'Update:User', 'Delete:User', 'DeleteAny:User',
-            'ViewAny:Role', 'View:Role', 'Create:Role', 'Update:Role', 'Delete:Role', 'DeleteAny:Role',
             'ViewAny:AcademicYear', 'View:AcademicYear', 'Create:AcademicYear', 'Update:AcademicYear', 'Delete:AcademicYear', 'DeleteAny:AcademicYear',
             'ViewAny:Subject', 'View:Subject', 'Create:Subject', 'Update:Subject', 'Delete:Subject', 'DeleteAny:Subject',
             'ViewAny:SystemConfiguration', 'View:SystemConfiguration', 'Update:SystemConfiguration',

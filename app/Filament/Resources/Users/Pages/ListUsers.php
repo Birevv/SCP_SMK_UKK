@@ -4,10 +4,18 @@ namespace App\Filament\Resources\Users\Pages;
 
 use App\Filament\Resources\Users\UserResource;
 use App\Models\User;
+use App\Services\DocumentParserService;
+use App\Services\UserImportService;
+use Filament\Actions\Action;
 use Filament\Actions\CreateAction;
+use Filament\Forms\Components\FileUpload;
+use Filament\Notifications\Notification;
 use Filament\Resources\Pages\ListRecords;
 use Filament\Schemas\Components\Tabs\Tab;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Storage;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class ListUsers extends ListRecords
 {
@@ -17,6 +25,85 @@ class ListUsers extends ListRecords
     {
         return [
             CreateAction::make(),
+            Action::make('import_users')
+                ->label('Import Pengguna (Excel / PDF / CSV)')
+                ->icon('heroicon-o-arrow-up-tray')
+                ->color('success')
+                ->modalHeading('Import Data Pengguna')
+                ->modalDescription('Unggah atau drop file Excel (.xlsx, .csv) atau PDF berisi data Guru, Siswa, Wali Kelas, dll. Sistem akan mendaftarkan user dan menghubungkan kelas secara otomatis.')
+                ->modalSubmitActionLabel('Mulai Import')
+                ->form([
+                    FileUpload::make('file')
+                        ->label('Drop File Excel / PDF / CSV Di Sini')
+                        ->disk('local')
+                        ->directory('imports/users')
+                        ->acceptedFileTypes([
+                            'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+                            'application/vnd.ms-excel',
+                            'text/csv',
+                            'text/plain',
+                            'application/pdf',
+                        ])
+                        ->required()
+                        ->helperText('Format kolom: Nama Lengkap, Username (opsional), Role, NISN/NIP, Email, Telepon, Kelas, Status, Password. Maksimal ukuran file: 2 MB (batas PHP bawaan). Pastikan dokumen berisi data tabel yang sesuai.'),
+                ])
+                ->action(function (array $data, DocumentParserService $parser, UserImportService $importer) {
+                    $filePath = Storage::disk('local')->path($data['file']);
+                    $rows = $parser->parse($filePath);
+
+                    if (empty($rows)) {
+                        Notification::make()
+                            ->title('Gagal Membaca File')
+                            ->body('Tidak ditemukan data pengguna yang valid pada file tersebut.')
+                            ->danger()
+                            ->send();
+
+                        @unlink($filePath);
+
+                        return;
+                    }
+
+                    $result = $importer->import($rows, Auth::user());
+                    @unlink($filePath);
+
+                    $body = "Berhasil memproses: {$result['imported']} user baru ditambahkan, {$result['updated']} user diperbarui.";
+                    if ($result['skipped'] > 0) {
+                        $body .= " {$result['skipped']} baris dilewati.";
+                    }
+
+                    if ($result['imported'] > 0 || $result['updated'] > 0) {
+                        Notification::make()
+                            ->title('Import Pengguna Berhasil')
+                            ->body($body)
+                            ->success()
+                            ->send();
+                    } else {
+                        Notification::make()
+                            ->title('Import Pengguna Belum Berhasil')
+                            ->body($body)
+                            ->warning()
+                            ->send();
+                    }
+
+                    if (! empty($result['errors'])) {
+                        Notification::make()
+                            ->title('Catatan Validasi')
+                            ->body(implode("\n", array_slice($result['errors'], 0, 5)))
+                            ->warning()
+                            ->send();
+                    }
+                }),
+            Action::make('download_user_template')
+                ->label('Template CSV')
+                ->icon('heroicon-o-document-arrow-down')
+                ->color('gray')
+                ->action(function (): StreamedResponse {
+                    return response()->streamDownload(function () {
+                        echo DocumentParserService::getUserCsvTemplate();
+                    }, 'template_import_pengguna.csv', [
+                        'Content-Type' => 'text/csv; charset=UTF-8',
+                    ]);
+                }),
         ];
     }
 
