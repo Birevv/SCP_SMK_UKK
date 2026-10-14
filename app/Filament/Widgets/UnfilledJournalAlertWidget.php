@@ -4,6 +4,7 @@ namespace App\Filament\Widgets;
 
 use App\Models\Schedule;
 use App\Models\SystemConfiguration;
+use App\Models\User;
 use Carbon\Carbon;
 use Filament\Widgets\Widget;
 use Illuminate\Support\Facades\Auth;
@@ -18,13 +19,14 @@ class UnfilledJournalAlertWidget extends Widget
 
     public static function canView(): bool
     {
-        /** @var \App\Models\User|null $user */
+        /** @var User|null $user */
         $user = Auth::user();
-        if ($user?->hasRole('Super Admin') || $user?->role?->name === 'Super Admin') {
+        if ($user?->hasRole('Super Admin') || $user?->role?->name === 'Super Admin'
+            || $user?->hasRole('Waka Kurikulum') || $user?->role?->name === 'Waka Kurikulum') {
             return true;
         }
 
-        return $user?->hasRole('Guru') || $user?->role?->name === 'Guru'; 
+        return $user?->hasRole('Guru') || $user?->role?->name === 'Guru';
     }
 
     public function getViewData(): array
@@ -35,14 +37,19 @@ class UnfilledJournalAlertWidget extends Widget
             3 => 'Rabu',
             4 => 'Kamis',
             5 => 'Jumat',
-            6 => 'Sabtu',
-            7 => 'Minggu',
+            default => null,
         };
+
+        if (! $todayInIndonesian) {
+            return [
+                'unfilledSchedules' => collect(),
+            ];
+        }
 
         $thresholdTime = Carbon::now()->subMinutes(30)->format('H:i:s');
         $activeCycle = SystemConfiguration::current()->active_cycle;
 
-        $query = Schedule::with(['classroom', 'room', 'subject'])
+        $query = Schedule::with(['classroom', 'room', 'subject', 'teacher'])
             ->where('day_of_week', $todayInIndonesian)
             ->where('cycle_type', $activeCycle)
             ->where('end_time', '<', $thresholdTime)
@@ -50,8 +57,13 @@ class UnfilledJournalAlertWidget extends Widget
                 $query->whereDate('date', Carbon::today());
             });
 
+        /** @var User|null $user */
         $user = Auth::user();
-        if ($user?->role?->name === 'Guru') {
+        $isSchoolAdmin = $user?->hasRole('Super Admin')
+            || $user?->hasRole('Waka Kurikulum')
+            || in_array($user?->role?->name, ['Super Admin', 'Waka Kurikulum']);
+
+        if (! $isSchoolAdmin && $user) {
             $query->where('teacher_id', $user->id);
         }
 

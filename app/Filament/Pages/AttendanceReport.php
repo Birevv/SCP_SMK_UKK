@@ -5,15 +5,15 @@ namespace App\Filament\Pages;
 use App\Models\Attendance;
 use App\Models\Classroom;
 use App\Models\User;
+use BackedEnum;
 use Carbon\Carbon;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Concerns\InteractsWithForms;
 use Filament\Forms\Contracts\HasForms;
-use Filament\Schemas\Schema;
 use Filament\Pages\Page;
+use Filament\Schemas\Schema;
 use Illuminate\Support\Facades\Auth;
-use BackedEnum;
 use UnitEnum;
 
 class AttendanceReport extends Page implements HasForms
@@ -61,7 +61,7 @@ class AttendanceReport extends Page implements HasForms
 
     public static function canView(): bool
     {
-        /** @var \App\Models\User|null $user */
+        /** @var User|null $user */
         $user = Auth::user();
         if ($user?->hasRole('Super Admin') || $user?->role?->name === 'Super Admin') {
             return true;
@@ -72,7 +72,7 @@ class AttendanceReport extends Page implements HasForms
         return in_array($role, ['Guru', 'Wali Kelas', 'Guru BK']);
     }
 
-    public function form(Schema $form): Schema  
+    public function form(Schema $form): Schema
     {
         return $form
             ->schema([
@@ -105,7 +105,7 @@ class AttendanceReport extends Page implements HasForms
             ->whereHas('role', fn ($q) => $q->where('name', 'Siswa'))
             ->whereHas('classrooms', function ($q) {
                 $q->where('classrooms.id', $this->classroom_id)
-                  ->where('user_class.status', 'Aktif');
+                    ->where('user_class.status', 'Aktif');
             })->get();
         $selectedClassroom = Classroom::find($this->classroom_id);
 

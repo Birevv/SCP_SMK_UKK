@@ -17,7 +17,7 @@ class CreateJournal extends CreateRecord
 
     protected function mutateFormDataBeforeCreate(array $data): array
     {
-        if (empty($data['teacher_id']) && !empty($data['schedule_id'])) {
+        if (empty($data['teacher_id']) && ! empty($data['schedule_id'])) {
             $schedule = Schedule::find($data['schedule_id']);
             if ($schedule) {
                 $data['teacher_id'] = $schedule->teacher_id;

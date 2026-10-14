@@ -27,11 +27,11 @@ class UpdateProfileRequest extends FormRequest
         return [
             'full_name' => ['sometimes', 'string', 'max:255'],
             'phone' => ['sometimes', 'nullable', 'string', 'max:20'],
-            'profile_photo' => ['sometimes', 'nullable', 'file', 'image', 'mimes:jpg,jpeg,png', 'max:2048']
+            'profile_photo' => ['sometimes', 'nullable', 'file', 'image', 'mimes:jpg,jpeg,png', 'max:2048'],
         ];
     }
 
-    protected function failedValidation(Validator $validator) : void
+    protected function failedValidation(Validator $validator): void
     {
         throw new HttpResponseException(response()->json([
             'success' => false,
@@ -40,9 +40,10 @@ class UpdateProfileRequest extends FormRequest
         ], 422));
     }
 
-    public function messages(): array {
+    public function messages(): array
+    {
         return [
-            
+
         ];
     }
 }

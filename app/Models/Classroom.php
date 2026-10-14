@@ -11,10 +11,10 @@ class Classroom extends Model
     use HasFactory;
 
     protected $fillable = [
-        'name'
+        'name',
     ];
 
-    public function users(): BelongsToMany 
+    public function users(): BelongsToMany
     {
         return $this->belongsToMany(User::class, 'user_class');
     }

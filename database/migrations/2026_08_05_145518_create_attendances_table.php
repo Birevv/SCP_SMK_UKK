@@ -19,7 +19,7 @@ return new class extends Migration
             $table->date('date')->nullable();
             $table->text('notes')->nullable();
             $table->timestamps();
-            
+
             $table->unique(['journal_id', 'student_id']);
         });
     }

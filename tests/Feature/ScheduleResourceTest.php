@@ -4,8 +4,6 @@ namespace Tests\Feature;
 
 use App\Filament\Resources\Schedules\ScheduleResource;
 use App\Models\Schedule;
-use App\Models\SystemConfiguration;
-use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 

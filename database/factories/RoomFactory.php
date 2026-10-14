@@ -15,7 +15,7 @@ class RoomFactory extends Factory
     public function definition(): array
     {
         return [
-            'name' => 'Lab ' . fake()->numberBetween(1, 20) . ' ' . fake()->randomElement(['RPL', 'TKJ', 'MM']),
+            'name' => 'Lab '.fake()->numberBetween(1, 20).' '.fake()->randomElement(['RPL', 'TKJ', 'MM']),
         ];
     }
 }

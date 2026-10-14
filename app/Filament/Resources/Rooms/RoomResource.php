@@ -7,12 +7,13 @@ use App\Filament\Resources\Rooms\Pages\EditRoom;
 use App\Filament\Resources\Rooms\Pages\ListRooms;
 use App\Filament\Resources\Rooms\Schemas\RoomForm;
 use App\Filament\Resources\Rooms\Tables\RoomsTable;
+use App\Models\Room;
+use App\Models\User;
 use BackedEnum;
 use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Table;
-use App\Models\Room;
 use Illuminate\Support\Facades\Auth;
 use UnitEnum;
 
@@ -20,19 +21,21 @@ class RoomResource extends Resource
 {
     public static function canViewAny(): bool
     {
-        /** @var \App\Models\User|null $user */
+        /** @var User|null $user */
         $user = Auth::user();
+
         return $user?->hasRole('Super Admin') || $user?->role?->name === 'Super Admin';
     }
+
     protected static ?string $model = Room::class;
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::BuildingOffice2;
 
-    protected static string|UnitEnum|null $navigationGroup = "Data Master";
-    
-    protected static ?string $navigationLabel = "Ruangan";
+    protected static string|UnitEnum|null $navigationGroup = 'Data Master';
 
-    protected static ?string $pluralLabel = "Data Ruangan";
+    protected static ?string $navigationLabel = 'Ruangan';
+
+    protected static ?string $pluralLabel = 'Data Ruangan';
 
     protected static ?int $navigationSort = 5;
 

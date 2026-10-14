@@ -9,7 +9,7 @@ class CreateAcademicYear extends CreateRecord
 {
     protected static string $resource = AcademicYearResource::class;
 
-    protected static ?string $title = "Tambah Tahun Ajaran";
+    protected static ?string $title = 'Tambah Tahun Ajaran';
 
     protected function getRedirectUrl(): string
     {

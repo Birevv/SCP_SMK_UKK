@@ -8,8 +8,8 @@ use App\Filament\Resources\SystemConfigurations\Pages\ListSystemConfigurations;
 use App\Filament\Resources\SystemConfigurations\Schemas\SystemConfigurationForm;
 use App\Filament\Resources\SystemConfigurations\Tables\SystemConfigurationsTable;
 use App\Models\SystemConfiguration;
+use App\Models\User;
 use BackedEnum;
-use UnitEnum;
 use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
@@ -17,13 +17,15 @@ use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Auth;
+use UnitEnum;
 
 class SystemConfigurationResource extends Resource
 {
     public static function canViewAny(): bool
     {
-        /** @var \App\Models\User|null $user */
+        /** @var User|null $user */
         $user = Auth::user();
+
         return $user?->hasRole('Super Admin') || $user?->role?->name === 'Super Admin';
     }
 
@@ -31,17 +33,18 @@ class SystemConfigurationResource extends Resource
     {
         return parent::getEloquentQuery()->with('updatedBy');
     }
+
     protected static ?string $model = SystemConfiguration::class;
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::Cog6Tooth;
 
-    protected static UnitEnum|string|null $navigationGroup = "Settings";
+    protected static UnitEnum|string|null $navigationGroup = 'Settings';
 
-      protected static ?string $modelLabel = "Konfigurasi Sistem";
+    protected static ?string $modelLabel = 'Konfigurasi Sistem';
 
-    protected static ?string $navigationLabel = "Konfigurasi Sistem";
+    protected static ?string $navigationLabel = 'Konfigurasi Sistem';
 
-    protected static ?string $pluralLabel = "Konfigurasi Sistem";
+    protected static ?string $pluralLabel = 'Konfigurasi Sistem';
 
     protected static ?int $navigationSort = 1;
 
@@ -54,7 +57,6 @@ class SystemConfigurationResource extends Resource
     {
         return false;
     }
-
 
     public static function form(Schema $schema): Schema
     {

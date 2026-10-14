@@ -26,7 +26,7 @@ class AuthController extends Controller
         $user = User::with(['role', 'classrooms'])
             ->where(function ($query) use ($loginIdentifier) {
                 $query->where('identity_number', $loginIdentifier)
-                      ->orWhere('username', $loginIdentifier);
+                    ->orWhere('username', $loginIdentifier);
             })
             ->first();
 
@@ -35,7 +35,7 @@ class AuthController extends Controller
         }
 
         $token = $user->createToken('mobile-app')->plainTextToken;
-        
+
         return $this->successResponse([
             'token' => $token,
             'token_type' => 'Bearer',
@@ -43,11 +43,11 @@ class AuthController extends Controller
         ], 'Login Berhasil');
     }
 
-    public function me(Request $request): JsonResponse 
+    public function me(Request $request): JsonResponse
     {
         $user = $request->user()->load(['role', 'classrooms']);
-        
-        return $this->successResponse(new UserResource($user), 'Data Profile Berhasil Diambil');    
+
+        return $this->successResponse(new UserResource($user), 'Data Profile Berhasil Diambil');
     }
 
     public function logout(Request $request): JsonResponse

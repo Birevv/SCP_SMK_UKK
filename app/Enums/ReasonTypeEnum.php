@@ -1,6 +1,7 @@
 <?php
 
 namespace App\Enums;
+
 use Filament\Support\Contracts\HasLabel;
 
 enum ReasonTypeEnum: string implements HasLabel
@@ -10,8 +11,9 @@ enum ReasonTypeEnum: string implements HasLabel
     case PULANG_CEPAT = 'pulang_cepat';
     case KEGIATAN_LUAR = 'kegiatan_luar';
 
-    public function getLabel(): string {
-        return match($this) {
+    public function getLabel(): string
+    {
+        return match ($this) {
             self::SAKIT => 'Sakit',
             self::IZIN => 'Izin',
             self::PULANG_CEPAT => 'Izin Pulang Cepat',

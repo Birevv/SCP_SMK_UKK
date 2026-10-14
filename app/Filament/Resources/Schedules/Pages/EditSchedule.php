@@ -10,7 +10,7 @@ class EditSchedule extends EditRecord
 {
     protected static string $resource = ScheduleResource::class;
 
-    protected static ?string $title = "Edit Jadwal";
+    protected static ?string $title = 'Edit Jadwal';
 
     protected function getRedirectUrl(): string
     {

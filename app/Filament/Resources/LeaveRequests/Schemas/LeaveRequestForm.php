@@ -25,8 +25,7 @@ class LeaveRequestForm
         return $schema
             ->components([
                 Select::make('student_id')
-                    ->relationship('student', 'full_name', fn (Builder $query) =>
-                        $query->whereHas('role', fn ($q) => $q->where('name', 'Siswa'))
+                    ->relationship('student', 'full_name', fn (Builder $query) => $query->whereHas('role', fn ($q) => $q->where('name', 'Siswa'))
                     )
                     ->required()
                     ->searchable()
@@ -88,7 +87,6 @@ class LeaveRequestForm
                     ->afterOrEqual('start_date')
                     ->label('Tanggal Selesai'),
 
-                
                 TimePicker::make('leave_time')
                     ->required()
                     ->live()
@@ -127,7 +125,7 @@ class LeaveRequestForm
                     ])
                     ->default('Pending')
                     ->required()
-                    ->disabled(fn () => !in_array($role, ['Wali Kelas', 'Guru BK', 'Super Admin']) && !Auth::user()?->hasRole('Super Admin'))
+                    ->disabled(fn () => ! in_array($role, ['Wali Kelas', 'Guru BK', 'Super Admin']) && ! Auth::user()?->hasRole('Super Admin'))
                     ->dehydrated()
                     ->label('Status Verifikasi'),
             ]);

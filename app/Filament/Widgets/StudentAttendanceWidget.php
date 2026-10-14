@@ -3,6 +3,7 @@
 namespace App\Filament\Widgets;
 
 use App\Models\Attendance;
+use App\Models\User;
 use Filament\Widgets\Widget;
 use Illuminate\Support\Facades\Auth;
 
@@ -14,15 +15,17 @@ class StudentAttendanceWidget extends Widget
 
     public static function canView(): bool
     {
-        $role = Auth::user()?->role?->name;
+        /** @var User|null $user */
+        $user = Auth::user();
 
-        return $role === 'Siswa';
+        return $user?->hasRole('Siswa') || $user?->role?->name === 'Siswa';
     }
 
     protected function getViewData(): array
     {
+        /** @var User|null $user */
         $user = Auth::user();
-        if (! $user || $user->role?->name !== 'Siswa') {
+        if (! $user || (! $user->hasRole('Siswa') && $user->role?->name !== 'Siswa')) {
             return ['stats' => null];
         }
 

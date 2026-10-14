@@ -29,7 +29,8 @@ class VerifyLeaveRequest extends FormRequest
             'notes' => ['nullable', 'string', 'max:500'],
         ];
     }
-     protected function failedValidation(Validator $validator): void
+
+    protected function failedValidation(Validator $validator): void
     {
         throw new HttpResponseException(response()->json([
             'success' => false,

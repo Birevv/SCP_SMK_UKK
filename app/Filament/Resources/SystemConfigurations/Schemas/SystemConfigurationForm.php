@@ -2,9 +2,7 @@
 
 namespace App\Filament\Resources\SystemConfigurations\Schemas;
 
-use App\Models\User;
 use Filament\Forms\Components\Select;
-use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
 use Filament\Schemas\Schema;
 use Illuminate\Support\Facades\Auth;
@@ -23,7 +21,7 @@ class SystemConfigurationForm
                     ])
                     ->default('Putaran 1')
                     ->required(),
-                    
+
                 Toggle::make('is_schedule_locked')
                     ->label('Kunci Jadwal Mengajar')
                     ->helperText('Jika diaktifkan, Guru tidak dapat menambah/mengedit jadwal.'),

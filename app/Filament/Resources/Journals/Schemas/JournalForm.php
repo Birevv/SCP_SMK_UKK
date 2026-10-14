@@ -22,15 +22,16 @@ class JournalForm
                     ->relationship(
                         name: 'schedule',
                         titleAttribute: 'id',
-                        modifyQueryUsing: function (Builder $query) {  
+                        modifyQueryUsing: function (Builder $query) {
                             $user = Auth::user();
                             if ($user && $user->role?->name === 'Guru') {
                                 $query->where('teacher_id', $user->id);
                             }
+
                             return $query->forActiveCycle()->with(['subject', 'classroom', 'room']);
                         }
                     )
-                    ->getOptionLabelFromRecordUsing(fn (Schedule $record) => "{$record->subject?->name} - {$record->classroom?->name} ({$record->day_of_week}, " . substr($record->start_time, 0, 5) . " - " . substr($record->end_time, 0, 5) . ")")
+                    ->getOptionLabelFromRecordUsing(fn (Schedule $record) => "{$record->subject?->name} - {$record->classroom?->name} ({$record->day_of_week}, ".substr($record->start_time, 0, 5).' - '.substr($record->end_time, 0, 5).')')
                     ->required()
                     ->label('Jadwal Mengajar')
                     ->preload()
@@ -61,4 +62,3 @@ class JournalForm
             ]);
     }
 }
-

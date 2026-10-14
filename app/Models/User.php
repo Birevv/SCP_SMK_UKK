@@ -11,30 +11,28 @@ use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Hidden;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Support\Facades\Storage;
 use Laravel\Sanctum\HasApiTokens;
 use Spatie\Permission\Traits\HasRoles;
-
-use Illuminate\Database\Eloquent\Relations\BelongsToMany;
-use Illuminate\Support\Facades\Storage;
 
 #[Fillable(['role_id', 'full_name', 'username', 'email', 'password', 'identity_number', 'phone', 'profile_photo', 'status'])]
 #[Hidden(['password', 'remember_token'])]
 /**
- * @mixin \Spatie\Permission\Traits\HasRoles
+ * @mixin HasRoles
  */
-class User extends Authenticatable implements HasName, FilamentUser
+class User extends Authenticatable implements FilamentUser, HasName
 {
     /** @use HasFactory<UserFactory> */
-    use HasApiTokens, HasFactory, Notifiable, SoftDeletes, HasRoles;
+    use HasApiTokens, HasFactory, HasRoles, Notifiable, SoftDeletes;
 
     public function canAccessPanel(Panel $panel): bool
     {
-        return $this->hasAnyRole(['Super Admin', 'Waka Kurikulum', 'Guru', 'Wali Kelas', 'Guru BK'])
-            || in_array($this->role?->name, ['Super Admin', 'Waka Kurikulum', 'Guru', 'Wali Kelas', 'Guru BK']);
+        return $this->hasAnyRole(['Super Admin', 'Waka Kurikulum', 'Guru', 'Wali Kelas', 'Guru BK', 'Siswa'])
+            || in_array($this->role?->name, ['Super Admin', 'Waka Kurikulum', 'Guru', 'Wali Kelas', 'Guru BK', 'Siswa']);
     }
 
     public function getFilamentName(): string
@@ -55,7 +53,7 @@ class User extends Authenticatable implements HasName, FilamentUser
         ];
     }
 
-    public function getProfilePhotoUrlAttribute(): ?string 
+    public function getProfilePhotoUrlAttribute(): ?string
     {
         return $this->profile_photo
             ? Storage::url($this->profile_photo)
@@ -74,8 +72,8 @@ class User extends Authenticatable implements HasName, FilamentUser
             ->withTimestamps();
     }
 
-    public function role(): BelongsTo 
-    {   
+    public function role(): BelongsTo
+    {
         return $this->belongsTo(Role::class, 'role_id');
     }
 }

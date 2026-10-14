@@ -2,9 +2,6 @@
 
 namespace App\Filament\Resources\SystemConfigurations\Tables;
 
-use Filament\Actions\BulkActionGroup;
-use Filament\Actions\DeleteAction;
-use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
 use Filament\Tables\Columns\IconColumn;
 use Filament\Tables\Columns\TextColumn;
@@ -18,10 +15,10 @@ class SystemConfigurationsTable
             ->columns([
                 TextColumn::make('active_cycle')
                     ->label('Putaran Aktif')
-                    ->color(fn (string $state): string => match($state) {
+                    ->color(fn (string $state): string => match ($state) {
                         'Putaran 1' => 'success',
                         'Putaran 2' => 'danger',
-                        default => 'gray',    
+                        default => 'gray',
                     })
                     ->badge(),
                 IconColumn::make('is_schedule_locked')

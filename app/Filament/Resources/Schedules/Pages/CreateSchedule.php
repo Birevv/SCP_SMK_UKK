@@ -9,7 +9,7 @@ class CreateSchedule extends CreateRecord
 {
     protected static string $resource = ScheduleResource::class;
 
-    protected static ?string $title = "Tambah Jadwal";
+    protected static ?string $title = 'Tambah Jadwal';
 
     protected function getRedirectUrl(): string
     {

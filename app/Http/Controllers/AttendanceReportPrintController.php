@@ -25,7 +25,7 @@ class AttendanceReportPrintController extends Controller
             ->whereHas('role', fn ($q) => $q->where('name', 'Siswa'))
             ->whereHas('classrooms', function ($q) use ($classroomId) {
                 $q->where('classrooms.id', $classroomId)
-                  ->where('user_class.status', 'Aktif');
+                    ->where('user_class.status', 'Aktif');
             })->get();
 
         $report = [];

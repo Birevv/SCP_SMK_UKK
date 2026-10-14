@@ -16,22 +16,22 @@ Route::post('/login', [AuthController::class, 'login']);
 // Authenticated Routes (Memerlukan Token Sanctum)
 Route::middleware('auth:sanctum')->group(function () {
 
-    // Auth & Profile
+    // Auth & Profile (Semua role bisa akses)
     Route::post('/logout', [AuthController::class, 'logout']);
     Route::get('/me', [AuthController::class, 'me']);
     Route::get('/user', [AuthController::class, 'me']);
     Route::put('/profile', [AuthController::class, 'updateProfile']);
     Route::put('/profile/password', [AuthController::class, 'changePassword']);
 
-    // Reference Data (Untuk Dropdown Form)
+    // Reference Data (Untuk Dropdown Form - Semua role bisa akses)
     Route::prefix('references')->group(function () {
         Route::get('/classrooms', [ReferenceController::class, 'classrooms']);
         Route::get('/rooms', [ReferenceController::class, 'rooms']);
         Route::get('/subjects', [ReferenceController::class, 'subjects']);
     });
 
-    // Student API
-    Route::prefix('student')->group(function () {
+    // Student API (Hanya Siswa)
+    Route::prefix('student')->middleware('role:Siswa')->group(function () {
         Route::get('/dashboard', [StudentApiController::class, 'dashboard']);
         Route::get('/schedules/today', [StudentApiController::class, 'todaySchedule']);
         Route::get('/attendance-summary', [StudentApiController::class, 'attendanceSummary']);
@@ -40,8 +40,8 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('/leave-requests', [StudentApiController::class, 'storeLeaveRequest']);
     });
 
-    // Teacher API
-    Route::prefix('teacher')->group(function () {
+    // Teacher API (Hanya Guru & Guru BK)
+    Route::prefix('teacher')->middleware('role:Guru|Guru BK')->group(function () {
         Route::get('/dashboard', [TeacherDashboardController::class, 'index']);
         Route::get('/schedules', [TeacherScheduleController::class, 'index']);
         Route::post('/schedules', [TeacherScheduleController::class, 'store']);
@@ -50,8 +50,8 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/journals', [TeacherJournalController::class, 'index']);
     });
 
-    // Homeroom (Wali Kelas) API
-    Route::prefix('homeroom')->group(function () {
+    // Homeroom & Tim Kesiswaan (Wali Kelas & Guru BK) API
+    Route::prefix('homeroom')->middleware('role:Wali Kelas|Guru BK')->group(function () {
         Route::get('/dashboard', [HomeroomDashboardController::class, 'index']);
         Route::get('/leave-requests', [HomeroomLeaveRequestController::class, 'index']);
         Route::get('/leave-requests/{leaveRequest}', [HomeroomLeaveRequestController::class, 'show']);

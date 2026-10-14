@@ -3,10 +3,10 @@
 namespace Tests\Feature;
 
 use App\Models\AcademicYear;
-use App\Models\Attendance;
 use App\Models\Classroom;
 use App\Models\Journal;
 use App\Models\LeaveRequest;
+use App\Models\Role;
 use App\Models\Room;
 use App\Models\Schedule;
 use App\Models\Subject;
@@ -26,12 +26,12 @@ class JournalAttendanceSyncTest extends TestCase
         $academicYear = AcademicYear::create(['name' => '2025/2026', 'is_active' => true]);
         $subject = Subject::create(['name' => 'Pemrograman Web']);
 
-        $siswaRole = \App\Models\Role::create(['name' => 'Siswa']);
-        $waliRole = \App\Models\Role::create(['name' => 'Wali Kelas']);
+        $siswaRole = Role::create(['name' => 'Siswa']);
+        $waliRole = Role::create(['name' => 'Wali Kelas']);
 
         $student1 = User::factory()->create(['role_id' => $siswaRole->id]);
         $student1->classrooms()->attach($classroom->id, ['academic_year_id' => $academicYear->id]);
-        
+
         $student2 = User::factory()->create(['role_id' => $siswaRole->id]);
         $student2->classrooms()->attach($classroom->id, ['academic_year_id' => $academicYear->id]);
 

@@ -21,7 +21,7 @@ class JournalsTable
                     ->date()
                     ->sortable()
                     ->label('Tanggal'),
-                    
+
                 TextColumn::make('teacher.full_name')
                     ->label('Guru'),
 
@@ -38,7 +38,7 @@ class JournalsTable
 
                 TextColumn::make('created_at')
                     ->label('Dibuat Pada'),
-                    
+
             ])
             ->recordActions([
                 EditAction::make(),

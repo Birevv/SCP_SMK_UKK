@@ -11,7 +11,7 @@ class EditClassroom extends EditRecord
 {
     protected static string $resource = ClassroomResource::class;
 
-    protected static ?string $title = "Edit Kelas";
+    protected static ?string $title = 'Edit Kelas';
 
     protected function getHeaderActions(): array
     {

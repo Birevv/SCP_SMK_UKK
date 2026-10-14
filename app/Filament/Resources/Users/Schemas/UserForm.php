@@ -2,7 +2,7 @@
 
 namespace App\Filament\Resources\Users\Schemas;
 
-use App\Models\Classroom;
+use App\Models\AcademicYear;
 use App\Models\Role;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
@@ -29,7 +29,7 @@ class UserForm
                     ->searchable()
                     ->preload()
                     ->pivotData(fn () => [
-                        'academic_year_id' => \App\Models\AcademicYear::where('is_active', true)->first()?->id ?? \App\Models\AcademicYear::first()?->id,
+                        'academic_year_id' => AcademicYear::where('is_active', true)->first()?->id ?? AcademicYear::first()?->id,
                         'status' => 'Aktif',
                     ]),
 
@@ -77,8 +77,7 @@ class UserForm
                     ->required(fn (string $operation): bool => $operation === 'create')
                     ->dehydrated(fn (?string $state): bool => filled($state))
                     ->dehydrateStateUsing(fn (string $state): string => Hash::make($state))
-                    ->helperText(fn (string $operation): string =>
-                        $operation === 'edit' ? 'Kosongkan jika tidak ingin mengubah password' : ''
+                    ->helperText(fn (string $operation): string => $operation === 'edit' ? 'Kosongkan jika tidak ingin mengubah password' : ''
                     ),
             ]);
     }

@@ -8,45 +8,48 @@ use App\Filament\Resources\LeaveRequests\Pages\ListLeaveRequests;
 use App\Filament\Resources\LeaveRequests\Schemas\LeaveRequestForm;
 use App\Filament\Resources\LeaveRequests\Tables\LeaveRequestsTable;
 use App\Models\LeaveRequest;
+use App\Models\User;
 use BackedEnum;
-use UnitEnum;
 use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
 use Filament\Tables\Table;
-
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\Auth;
+use UnitEnum;
 
 class LeaveRequestResource extends Resource
 {
     public static function canViewAny(): bool
     {
-        /** @var \App\Models\User|null $user */
+        /** @var User|null $user */
         $user = Auth::user();
         if ($user?->hasRole('Super Admin') || $user?->role?->name === 'Super Admin') {
             return true;
         }
-        $role = $user?->role?->name;
-        return in_array($role, ['Wali Kelas', 'Guru BK', 'Siswa']);
+
+        return $user?->hasAnyRole(['Wali Kelas', 'Guru BK', 'Siswa'])
+            || in_array($user?->role?->name, ['Wali Kelas', 'Guru BK', 'Siswa']);
     }
 
     public static function canCreate(): bool
     {
-        /** @var \App\Models\User|null $user */
+        /** @var User|null $user */
         $user = Auth::user();
         if ($user?->hasRole('Super Admin') || $user?->role?->name === 'Super Admin') {
             return true;
         }
-        $role = $user?->role?->name;
-        return in_array($role, ['Siswa', 'Wali Kelas']);
+
+        return $user?->hasAnyRole(['Siswa', 'Wali Kelas'])
+            || in_array($user?->role?->name, ['Siswa', 'Wali Kelas']);
     }
 
     public static function getEloquentQuery(): Builder
     {
         $query = parent::getEloquentQuery()->with(['student', 'submittedBy', 'verifiedBy']);
+        /** @var User|null $user */
         $user = Auth::user();
 
-        if ($user && $user->role?->name === 'Siswa') {
+        if ($user && ($user->hasRole('Siswa') || $user->role?->name === 'Siswa')) {
             $query->where('student_id', $user->id);
         }
 

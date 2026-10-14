@@ -3,6 +3,7 @@
 namespace App\Filament\Widgets;
 
 use App\Models\SystemConfiguration;
+use App\Models\User;
 use Filament\Actions\Action;
 use Filament\Actions\Concerns\InteractsWithActions;
 use Filament\Actions\Contracts\HasActions;
@@ -27,9 +28,10 @@ class SystemConfigWidget extends Widget implements HasActions, HasSchemas
 
     public static function canView(): bool
     {
-        /** @var \App\Models\User|null $user */
+        /** @var User|null $user */
         $user = Auth::user();
-        return $user?->hasRole('Waka Kurikulum') 
+
+        return $user?->hasRole('Waka Kurikulum')
             || $user?->role?->name === 'Waka Kurikulum'
             || $user?->hasRole('Super Admin')
             || $user?->role?->name === 'Super Admin';
@@ -48,6 +50,7 @@ class SystemConfigWidget extends Widget implements HasActions, HasSchemas
     public function toggleCycleAction(): Action
     {
         return Action::make('toggleCycle')
+            ->visible(fn () => Auth::user()?->can('toggle_cycle') || Auth::user()?->hasRole('Super Admin') || Auth::user()?->hasRole('Waka Kurikulum'))
             ->label(fn () => SystemConfiguration::current()->active_cycle === 'Putaran 1' ? 'Ganti ke Putaran 2' : 'Ganti ke Putaran 1')
             ->icon('heroicon-o-arrow-path')
             ->color(fn () => SystemConfiguration::current()->active_cycle === 'Putaran 1' ? 'warning' : 'info')
@@ -58,7 +61,7 @@ class SystemConfigWidget extends Widget implements HasActions, HasSchemas
             ->modalSubmitActionLabel('Ya, Ganti Putaran')
             ->modalIcon('heroicon-o-arrow-path')
             ->action(function () {
-                $config = SystemConfiguration::first() ?? new SystemConfiguration();
+                $config = SystemConfiguration::first() ?? new SystemConfiguration;
                 $config->update([
                     'active_cycle' => $config->active_cycle === 'Putaran 1' ? 'Putaran 2' : 'Putaran 1',
                     'updated_by' => Auth::id(),
@@ -70,7 +73,7 @@ class SystemConfigWidget extends Widget implements HasActions, HasSchemas
 
                 Notification::make()
                     ->title('Putaran berhasil diubah!')
-                    ->body('Putaran aktif sekarang: ' . $freshCycle)
+                    ->body('Putaran aktif sekarang: '.$freshCycle)
                     ->success()
                     ->send();
             });
@@ -79,6 +82,7 @@ class SystemConfigWidget extends Widget implements HasActions, HasSchemas
     public function toggleLockAction(): Action
     {
         return Action::make('toggleLock')
+            ->visible(fn () => Auth::user()?->can('lock_schedule') || Auth::user()?->hasRole('Super Admin') || Auth::user()?->hasRole('Waka Kurikulum'))
             ->label(fn () => SystemConfiguration::current()->is_schedule_locked ? 'Buka Kunci Jadwal' : 'Kunci Jadwal')
             ->icon(fn () => SystemConfiguration::current()->is_schedule_locked ? 'heroicon-o-lock-open' : 'heroicon-o-lock-closed')
             ->color(fn () => SystemConfiguration::current()->is_schedule_locked ? 'success' : 'danger')
@@ -91,7 +95,7 @@ class SystemConfigWidget extends Widget implements HasActions, HasSchemas
             ->modalSubmitActionLabel(fn () => SystemConfiguration::current()->is_schedule_locked ? 'Ya, Buka Kunci' : 'Ya, Kunci Jadwal')
             ->modalIcon(fn () => SystemConfiguration::current()->is_schedule_locked ? 'heroicon-o-lock-open' : 'heroicon-o-lock-closed')
             ->action(function () {
-                $config = SystemConfiguration::first() ?? new SystemConfiguration();
+                $config = SystemConfiguration::first() ?? new SystemConfiguration;
                 $config->update([
                     'is_schedule_locked' => ! $config->is_schedule_locked,
                     'updated_by' => Auth::id(),

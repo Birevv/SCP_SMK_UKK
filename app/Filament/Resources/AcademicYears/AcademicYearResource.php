@@ -8,6 +8,7 @@ use App\Filament\Resources\AcademicYears\Pages\ListAcademicYears;
 use App\Filament\Resources\AcademicYears\Schemas\AcademicYearForm;
 use App\Filament\Resources\AcademicYears\Tables\AcademicYearsTable;
 use App\Models\AcademicYear;
+use App\Models\User;
 use BackedEnum;
 use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
@@ -23,11 +24,11 @@ class AcademicYearResource extends Resource
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedCalendar;
 
-    protected static string|UnitEnum|null $navigationGroup = "Data Master";
+    protected static string|UnitEnum|null $navigationGroup = 'Data Master';
 
-    protected static ?string $navigationLabel = "Tahun Ajaran";
+    protected static ?string $navigationLabel = 'Tahun Ajaran';
 
-    protected static ?string $pluralLabel = "Data Tahun Ajaran";
+    protected static ?string $pluralLabel = 'Data Tahun Ajaran';
 
     protected static ?int $navigationSort = 1;
 
@@ -60,8 +61,9 @@ class AcademicYearResource extends Resource
     #[Override]
     public static function canViewAny(): bool
     {
-        /** @var \App\Models\User|null $user */
+        /** @var User|null $user */
         $user = Auth::user();
+
         return $user?->hasRole('Super Admin') || $user?->role?->name === 'Super Admin';
     }
 }

@@ -12,7 +12,7 @@ class SystemConfigurationSeeder extends Seeder
     {
         $wakaUser = User::where('username', 'waka')->first();
 
-        if (SystemConfiguration::count() === 0 ) {
+        if (SystemConfiguration::count() === 0) {
             SystemConfiguration::create([
                 'active_cycle' => 'Putaran 1',
                 'is_schedule_locked' => false,

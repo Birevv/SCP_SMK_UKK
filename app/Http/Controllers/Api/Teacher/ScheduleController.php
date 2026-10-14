@@ -72,8 +72,8 @@ class ScheduleController extends Controller
             ->where('end_time', '>', $data['start_time'])
             ->where(function ($q) use ($teacher, $data) {
                 $q->where('teacher_id', $teacher->id)
-                  ->orWhere('classroom_id', $data['classroom_id'])
-                  ->orWhere('room_id', $data['room_id']);
+                    ->orWhere('classroom_id', $data['classroom_id'])
+                    ->orWhere('room_id', $data['room_id']);
             })
             ->with(['teacher', 'classroom', 'room'])
             ->first();
@@ -83,9 +83,9 @@ class ScheduleController extends Controller
             if ($conflict->teacher_id == $teacher->id) {
                 $detail .= 'Jadwal Anda Sendiri';
             } elseif ($conflict->classroom_id == $data['classroom_id']) {
-                $detail .= 'Kelas ' . $conflict->classroom?->name;
+                $detail .= 'Kelas '.$conflict->classroom?->name;
             } else {
-                $detail .= 'Ruang ' . $conflict->room?->name;
+                $detail .= 'Ruang '.$conflict->room?->name;
             }
 
             return $this->errorResponse('Jadwal bentrok terdeteksi', 422, [

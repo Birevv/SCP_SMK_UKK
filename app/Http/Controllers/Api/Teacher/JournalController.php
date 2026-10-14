@@ -15,7 +15,7 @@ use Illuminate\Http\Request;
 class JournalController extends Controller
 {
     use ApiResponser;
-    
+
     public function index(Request $request): JsonResponse
     {
         $teacher = $request->user();
@@ -47,7 +47,7 @@ class JournalController extends Controller
             'Riwayat jurnal berhasil diambil'
         );
     }
-    
+
     public function store(StoreJournalRequest $request): JsonResponse
     {
         $teacher = $request->user();

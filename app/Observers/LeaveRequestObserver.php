@@ -45,8 +45,8 @@ class LeaveRequestObserver
         $journals = Journal::whereHas('schedule', function ($q) use ($classroomIds) {
             $q->whereIn('classroom_id', $classroomIds);
         })
-        ->whereBetween('date', [$leaveRequest->start_date, $leaveRequest->end_date])
-        ->get();
+            ->whereBetween('date', [$leaveRequest->start_date, $leaveRequest->end_date])
+            ->get();
 
         foreach ($journals as $journal) {
             Attendance::updateOrCreate(

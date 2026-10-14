@@ -9,22 +9,25 @@ use App\Filament\Resources\Schedules\Schemas\ScheduleForm;
 use App\Filament\Resources\Schedules\Tables\SchedulesTable;
 use App\Models\Schedule;
 use BackedEnum;
-use UnitEnum;
 use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\Auth;
+use UnitEnum;
 
 class ScheduleResource extends Resource
 {
     protected static ?string $model = Schedule::class;
 
     protected static string|BackedEnum|null $navigationIcon = 'heroicon-o-calendar';
-    protected static UnitEnum|string|null $navigationGroup = "Manajemen Akademik";
-    protected static ?string $navigationLabel = "Jadwal Mengajar";
-    protected static ?string $pluralLabel = "Jadwal Mengajar";
- 
+
+    protected static UnitEnum|string|null $navigationGroup = 'Manajemen Akademik';
+
+    protected static ?string $navigationLabel = 'Jadwal Mengajar';
+
+    protected static ?string $pluralLabel = 'Jadwal Mengajar';
+
     public static function form(Schema $schema): Schema
     {
         return ScheduleForm::configure($schema);
@@ -43,7 +46,7 @@ class ScheduleResource extends Resource
 
         $user = Auth::user();
 
-        if ($user && $user->role?->name === 'Guru') {
+        if ($user && ($user->hasRole('Guru') || $user->role?->name === 'Guru') && ! $user->hasRole('Super Admin')) {
             $query->where('teacher_id', $user->id);
         }
 

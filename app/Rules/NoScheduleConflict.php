@@ -5,7 +5,6 @@ namespace App\Rules;
 use App\Models\Schedule;
 use Closure;
 use Illuminate\Contracts\Validation\ValidationRule;
-use Illuminate\Translation\PotentiallyTranslatedString;
 
 class NoScheduleConflict implements ValidationRule
 {
@@ -31,7 +30,7 @@ class NoScheduleConflict implements ValidationRule
             ->where('cycle_type', $this->cycleType)
             ->where(function ($q) {
                 $q->where('start_time', '<', $this->endTime)
-                  ->where('end_time', '>', $this->startTime);
+                    ->where('end_time', '>', $this->startTime);
             });
 
         if ($this->ignoreId) {
@@ -47,6 +46,7 @@ class NoScheduleConflict implements ValidationRule
                     $fail("Ruangan sudah digunakan oleh mata pelajaran {$subjectName} pada jam tersebut.");
                 }
             }
+
             return;
         }
 
@@ -59,6 +59,7 @@ class NoScheduleConflict implements ValidationRule
                     $fail("Kelas sudah digunakan untuk mata pelajaran {$subjectName} pada jam tersebut.");
                 }
             }
+
             return;
         }
 
@@ -71,6 +72,7 @@ class NoScheduleConflict implements ValidationRule
                     $fail("Guru tersebut sudah mengajar mata pelajaran {$subjectName} di kelas lain pada jam tersebut.");
                 }
             }
+
             return;
         }
 

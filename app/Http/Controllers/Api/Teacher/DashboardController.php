@@ -47,7 +47,8 @@ class DashboardController extends Controller
         $now = Carbon::now();
         $pendingJournals = $todaySchedules->filter(function ($s) use ($now) {
             $endTime = Carbon::parse($s['end_time']);
-            return !$s['has_journal'] && $now->greaterThan($endTime->addMinutes(30));
+
+            return ! $s['has_journal'] && $now->greaterThan($endTime->addMinutes(30));
         })->values()->map(fn ($s) => [
             'schedule_id' => $s['id'],
             'subject_name' => $s['subject_name'],

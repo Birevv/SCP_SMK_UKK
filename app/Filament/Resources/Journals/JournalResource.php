@@ -9,33 +9,36 @@ use App\Filament\Resources\Journals\RelationManagers\AttendancesRelationManager;
 use App\Filament\Resources\Journals\Schemas\JournalForm;
 use App\Filament\Resources\Journals\Tables\JournalsTable;
 use App\Models\Journal;
+use App\Models\User;
 use BackedEnum;
-use UnitEnum;
 use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
 use Filament\Tables\Table;
-use Illuminate\Support\Facades\Auth;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Support\Facades\Auth;
+use UnitEnum;
 
 class JournalResource extends Resource
 {
     public static function canViewAny(): bool
     {
-        /** @var \App\Models\User|null $user */
+        /** @var User|null $user */
         $user = Auth::user();
         if ($user?->hasRole('Super Admin') || $user?->role?->name === 'Super Admin') {
             return true;
         }
-        $role = $user?->role?->name;
-        return in_array($role, ['Guru', 'Wali Kelas', 'Guru BK']);
+
+        return $user?->hasAnyRole(['Guru', 'Wali Kelas', 'Guru BK'])
+            || in_array($user?->role?->name, ['Guru', 'Wali Kelas', 'Guru BK']);
     }
 
     public static function getEloquentQuery(): Builder
     {
         $query = parent::getEloquentQuery()->with(['teacher', 'schedule.classroom', 'schedule.subject']);
+        /** @var User|null $user */
         $user = Auth::user();
 
-        if ($user && $user->role?->name === 'Guru') {
+        if ($user && ($user->hasRole('Guru') || $user->role?->name === 'Guru') && ! $user->hasRole('Super Admin')) {
             $query->where('teacher_id', $user->id);
         }
 
@@ -47,7 +50,7 @@ class JournalResource extends Resource
     protected static string|BackedEnum|null $navigationIcon = 'heroicon-o-document-text';
 
     protected static UnitEnum|string|null $navigationGroup = 'Manajemen Akademik';
-    
+
     protected static ?string $navigationLabel = 'Jurnal Mengajar';
 
     protected static ?string $pluralLabel = 'Jurnal Mengajar';

@@ -7,7 +7,6 @@ use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Http\Exceptions\HttpResponseException;
 use Override;
-use PhpParser\Node\Expr\Cast\Void_;
 
 class StoreLeaveRequest extends FormRequest
 {
@@ -30,7 +29,7 @@ class StoreLeaveRequest extends FormRequest
             'start_date' => ['required', 'date'],
             'end_date' => ['required', 'date', 'after_or_equal:start_date'],
             'reason_type' => ['required', 'in:Sakit,Izin'],
-            'description'=> ['required', 'string', 'max:500'],
+            'description' => ['required', 'string', 'max:500'],
             'attachment_photo' => ['nullable', 'file', 'mimes:jpg,jpeg,png,pdf', 'max:2048'],
         ];
     }

@@ -21,6 +21,4 @@ class EditSystemConfiguration extends EditRecord
             DeleteAction::make(),
         ];
     }
-
-    
 }

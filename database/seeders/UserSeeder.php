@@ -88,6 +88,9 @@ class UserSeeder extends Seeder
             ]
         );
         $gurubk->syncRoles(['Guru BK']);
+        if ($defaultClassroom && ! $gurubk->classrooms()->where('classrooms.id', $defaultClassroom->id)->exists()) {
+            $gurubk->classrooms()->attach($defaultClassroom->id, ['status' => 'Aktif']);
+        }
 
         // 5. Siswa (Portal Siswa & Orang Tua)
         $siswa = User::firstOrCreate(

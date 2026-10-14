@@ -27,7 +27,7 @@ class StudentApiController extends Controller
             ->whereMonth('date', $today->month)
             ->whereYear('date', $today->year)
             ->get();
-        
+
         $dayName = $today->locale('id')->isoFormat('dddd');
 
         $classroomIds = $student->classrooms()->pluck('classrooms_id');
@@ -35,8 +35,8 @@ class StudentApiController extends Controller
 
         $hadir = $attendances->where('status', 'Hadir')->count();
         $sakit = $attendances->where('status', 'Sakit')->count();
-        $izin  = $attendances->where('status', 'Izin')->count();
-        $alpa  = $attendances->where('status', 'Alpa')->count();
+        $izin = $attendances->where('status', 'Izin')->count();
+        $alpa = $attendances->where('status', 'Alpa')->count();
         $total = $attendances->count();
 
         $percentage = $total > 0 ? round(($hadir / $total) * 100, 1) : 0;
@@ -47,23 +47,23 @@ class StudentApiController extends Controller
             ->take(10)
             ->get()
             ->map(fn (Attendance $item) => [
-                'id'           => $item->id,
-                'date'         => $item->date ? Carbon::parse($item->date)->format('Y-m-d') : null,
+                'id' => $item->id,
+                'date' => $item->date ? Carbon::parse($item->date)->format('Y-m-d') : null,
                 'subject_name' => $item->journal?->schedule?->subject?->name ?? '-',
                 'teacher_name' => $item->journal?->teacher?->full_name ?? '-',
-                'status'       => $item->status,
-                'notes'        => $item->notes,
+                'status' => $item->status,
+                'notes' => $item->notes,
             ]);
 
         return $this->successResponse([
             'student_name' => $student->full_name,
-            'classroom'    => $student->classroom?->name,
-            'statistics'   => [
-                'hadir'      => $hadir,
-                'sakit'      => $sakit,
-                'izin'       => $izin,
-                'alpa'       => $alpa,
-                'total'      => $total,
+            'classroom' => $student->classroom?->name,
+            'statistics' => [
+                'hadir' => $hadir,
+                'sakit' => $sakit,
+                'izin' => $izin,
+                'alpa' => $alpa,
+                'total' => $total,
                 'percentage' => $percentage,
             ],
             'recent_history' => $recentHistory,
@@ -116,8 +116,8 @@ class StudentApiController extends Controller
 
         $hadir = $attendances->where('status', 'Hadir')->count();
         $sakit = $attendances->where('status', 'Sakit')->count();
-        $izin  = $attendances->where('status', 'Izin')->count();
-        $alpa  = $attendances->where('status', 'Alpa')->count();
+        $izin = $attendances->where('status', 'Izin')->count();
+        $alpa = $attendances->where('status', 'Alpa')->count();
         $total = $attendances->count();
         $percentage = $total > 0 ? round(($hadir / $total) * 100, 1) : 0;
 
@@ -195,4 +195,3 @@ class StudentApiController extends Controller
         );
     }
 }
-

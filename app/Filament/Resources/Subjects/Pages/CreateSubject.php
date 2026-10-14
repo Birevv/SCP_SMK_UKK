@@ -9,7 +9,7 @@ class CreateSubject extends CreateRecord
 {
     protected static string $resource = SubjectResource::class;
 
-    protected static ?string $title = "Tambah Mata Pelajaran";
+    protected static ?string $title = 'Tambah Mata Pelajaran';
 
     protected function getRedirectUrl(): string
     {

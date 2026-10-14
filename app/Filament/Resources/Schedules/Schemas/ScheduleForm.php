@@ -5,7 +5,6 @@ namespace App\Filament\Resources\Schedules\Schemas;
 use App\Models\Schedule;
 use App\Rules\NoScheduleConflict;
 use Filament\Forms\Components\Select;
-use Filament\Forms\Components\TextInput;
 use Filament\Schemas\Components\Utilities\Get;
 use Filament\Schemas\Components\Utilities\Set;
 use Filament\Schemas\Schema;
@@ -97,7 +96,7 @@ class ScheduleForm
                     ])
                     ->required()
                     ->label('Hari'),
-                
+
                 Select::make('start_time')
                     ->label('Jam Mulai')
                     ->prefixIcon('heroicon-o-clock')
@@ -105,11 +104,11 @@ class ScheduleForm
                     ->searchable()
                     ->live()
                     ->afterStateUpdated(function ($state, Set $set, Get $get) {
-                        if (!$state) {
+                        if (! $state) {
                             return;
                         }
                         $currentEnd = $get('end_time');
-                        if (!$currentEnd || $currentEnd <= $state) {
+                        if (! $currentEnd || $currentEnd <= $state) {
                             $suggestedEnd = date('H:i', strtotime('+2 hours', strtotime("2000-01-01 {$state}")));
                             if ($suggestedEnd <= '18:00') {
                                 $set('end_time', $suggestedEnd);
@@ -132,15 +131,17 @@ class ScheduleForm
                             $diffMinutes = (strtotime("2000-01-01 {$end}") - strtotime("2000-01-01 {$start}")) / 60;
                             $hours = floor($diffMinutes / 60);
                             $mins = $diffMinutes % 60;
-                            $durStr = ($hours > 0 ? "{$hours} Jam " : '') . ($mins > 0 ? "{$mins} Menit" : '');
-                            return '⏱️ Durasi Belajar: ' . trim($durStr) . " ({$diffMinutes} menit)";
+                            $durStr = ($hours > 0 ? "{$hours} Jam " : '').($mins > 0 ? "{$mins} Menit" : '');
+
+                            return 'Durasi Belajar: '.trim($durStr)." ({$diffMinutes} menit)";
                         }
+
                         return null;
                     })
                     ->after('start_time')
                     ->formatStateUsing(fn ($state) => $state ? substr((string) $state, 0, 5) : null)
                     ->required(),
-                
+
                 Select::make('cycle_type')
                     ->options([
                         'Putaran 1' => 'Putaran 1',
@@ -148,7 +149,7 @@ class ScheduleForm
                     ])
                     ->default('Putaran 1')
                     ->required()
-                    ->label('Putaran Siklus'), 
+                    ->label('Putaran Siklus'),
             ]);
     }
 
@@ -163,6 +164,7 @@ class ScheduleForm
 
             if ($minTime && $time24 <= $minTime) {
                 $start = strtotime('+15 minutes', $start);
+
                 continue;
             }
 

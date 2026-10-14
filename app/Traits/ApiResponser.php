@@ -7,7 +7,7 @@ use Illuminate\Http\JsonResponse;
 trait ApiResponser
 {
     // Response Sukses
-    protected  function successResponse(mixed $data = null, string $message = 'Success', int $code = 200) : JsonResponse
+    protected function successResponse(mixed $data = null, string $message = 'Success', int $code = 200): JsonResponse
     {
         return response()->json([
             'success' => true,
@@ -24,11 +24,10 @@ trait ApiResponser
             'message' => $message,
         ];
 
-        if($errors !== null) {
+        if ($errors !== null) {
             $payload['errors'] = $errors;
         }
+
         return response()->json($payload, $code);
     }
-
-    
 }

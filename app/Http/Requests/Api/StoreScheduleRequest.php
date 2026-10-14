@@ -31,7 +31,7 @@ class StoreScheduleRequest extends FormRequest
             'classroom_id' => ['required', 'integer', 'exists:classroom,id'],
             'room_id' => ['required', 'integer', 'exists:rooms,id'],
             'subject_id' => ['required', 'integer', 'exists:subject_id'],
-            'cycle_type' => ['required', 'in:Putaran 1,Putaran 2']
+            'cycle_type' => ['required', 'in:Putaran 1,Putaran 2'],
         ];
     }
 

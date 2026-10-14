@@ -16,7 +16,7 @@ class JournalObserver
     public function created(Journal $journal): void
     {
         $classroomId = $journal->schedule?->classroom_id;
-        if (!$classroomId) {
+        if (! $classroomId) {
             return;
         }
 

@@ -22,8 +22,9 @@ class UserResource extends Resource
 {
     public static function canViewAny(): bool
     {
-        /** @var \App\Models\User|null $user */
+        /** @var User|null $user */
         $user = Auth::user();
+
         return $user?->hasRole('Super Admin') || $user?->role?->name === 'Super Admin';
     }
 
@@ -36,11 +37,11 @@ class UserResource extends Resource
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::Users;
 
-    protected static string|UnitEnum|null $navigationGroup = "Data Master";
+    protected static string|UnitEnum|null $navigationGroup = 'Data Master';
 
-    protected static ?string $navigationLabel = "Pengguna";
+    protected static ?string $navigationLabel = 'Pengguna';
 
-    protected static ?string $pluralLabel = "Data Pengguna";
+    protected static ?string $pluralLabel = 'Data Pengguna';
 
     protected static ?int $navigationSort = 2;
 

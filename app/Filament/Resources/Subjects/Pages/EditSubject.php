@@ -10,7 +10,7 @@ class EditSubject extends EditRecord
 {
     protected static string $resource = SubjectResource::class;
 
-    protected static ?string $title = "Edit Mata Pelajaran";
+    protected static ?string $title = 'Edit Mata Pelajaran';
 
     protected function getRedirectUrl(): string
     {

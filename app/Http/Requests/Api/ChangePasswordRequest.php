@@ -6,7 +6,6 @@ use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Http\Exceptions\HttpResponseException;
-use Override;
 
 class ChangePasswordRequest extends FormRequest
 {
@@ -27,10 +26,10 @@ class ChangePasswordRequest extends FormRequest
     {
         return [
             'current_password' => ['required', 'string', 'current_password'],
-            'new_password' => ['required', 'string', 'min:8', 'confirmed']
+            'new_password' => ['required', 'string', 'min:8', 'confirmed'],
         ];
     }
-     
+
     protected function failedValidation(Validator $validator): void
     {
         throw new HttpResponseException(response()->json([

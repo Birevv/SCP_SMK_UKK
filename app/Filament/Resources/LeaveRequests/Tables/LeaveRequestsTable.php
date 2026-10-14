@@ -24,7 +24,7 @@ class LeaveRequestsTable
                 TextColumn::make('start_date')
                     ->date()
                     ->label('Mulai'),
-                
+
                 TextColumn::make('end_date')
                     ->date()
                     ->label('Selesai'),
@@ -63,9 +63,8 @@ class LeaveRequestsTable
                         'status' => 'Approved',
                         'verified_by' => Auth::id(),
                     ]))
-                    ->visible(fn (LeaveRequest $record): bool => 
-                        $record->status === 'Pending' &&
-                        (in_array(Auth::user()?->role?->name, ['Wali Kelas', 'Guru BK', 'Super Admin']) || Auth::user()?->hasRole('Super Admin')) &&
+                    ->visible(fn (LeaveRequest $record): bool => $record->status === 'Pending' &&
+                        (Auth::user()?->can('approve_leave_request') || Auth::user()?->hasAnyRole(['Wali Kelas', 'Guru BK', 'Super Admin']) || in_array(Auth::user()?->role?->name, ['Wali Kelas', 'Guru BK', 'Super Admin'])) &&
                         $record->submitted_by !== Auth::id() &&
                         $record->student_id !== Auth::id()
                     ),
@@ -79,9 +78,8 @@ class LeaveRequestsTable
                         'status' => 'Rejected',
                         'verified_by' => Auth::id(),
                     ]))
-                    ->visible(fn (LeaveRequest $record): bool => 
-                        $record->status === 'Pending' &&
-                        (in_array(Auth::user()?->role?->name, ['Wali Kelas', 'Guru BK', 'Super Admin']) || Auth::user()?->hasRole('Super Admin')) &&
+                    ->visible(fn (LeaveRequest $record): bool => $record->status === 'Pending' &&
+                        (Auth::user()?->can('approve_leave_request') || Auth::user()?->hasAnyRole(['Wali Kelas', 'Guru BK', 'Super Admin']) || in_array(Auth::user()?->role?->name, ['Wali Kelas', 'Guru BK', 'Super Admin'])) &&
                         $record->submitted_by !== Auth::id() &&
                         $record->student_id !== Auth::id()
                     ),

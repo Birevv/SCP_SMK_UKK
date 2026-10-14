@@ -22,17 +22,17 @@ class DashboardController extends Controller
 
     protected function getStudentIds(int $classroomId)
     {
-        return User::whereHas('role', fn($q) => $q->where('name', 'siswa'))
-            ->whereHas('classrooms', fn($q) => $q->where('classrooms.id', $classroomId))
+        return User::whereHas('role', fn ($q) => $q->where('name', 'siswa'))
+            ->whereHas('classrooms', fn ($q) => $q->where('classrooms.id', $classroomId))
             ->pluck('id');
     }
 
-    public function index(Request $request):JsonResponse
+    public function index(Request $request): JsonResponse
     {
         $teacher = $request->user();
         $classroom = $this->getHomeroomClassroom($teacher);
 
-        if (!$classroom) {
+        if (! $classroom) {
             return $this->errorResponse('Anda Belum Ditugaskan Sebagai Wali Kelas', 403);
         }
 
@@ -48,7 +48,7 @@ class DashboardController extends Controller
         $sakit = $todayAttendances->where('status', 'Sakit')->count();
         $alpa = $todayAttendances->where('status', 'Alpa')->count();
         $totalStudents = $studentsIds->count();
-        $percentage = $totalStudents > 0 ? round(($hadir / $totalStudents) * 100, 1): 0;
+        $percentage = $totalStudents > 0 ? round(($hadir / $totalStudents) * 100, 1) : 0;
 
         $pendingLeaves = LeaveRequest::with('student')
             ->whereIn('student_id', $studentsIds)
@@ -79,10 +79,10 @@ class DashboardController extends Controller
                 'sakit' => $sakit,
                 'alpa' => $alpa,
                 'total_students' => $totalStudents,
-                'precentage' => $percentage, 
+                'precentage' => $percentage,
             ],
             'pending_leave_requests' => $pendingLeaves,
-            'pending_count' => $pendingCount, 
+            'pending_count' => $pendingCount,
         ], 'Dashboard Wali Kelas Berhasil Diambil');
     }
 

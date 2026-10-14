@@ -1,80 +1,74 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Policies;
 
 use App\Models\Schedule;
-use App\Models\SystemConfiguration;
-use App\Models\User;
+use Illuminate\Auth\Access\HandlesAuthorization;
+use Illuminate\Foundation\Auth\User as AuthUser;
 
 class SchedulePolicy
 {
-    /**
-     * Cek apakah jadwal sedang dikunci.
-     */
-    private function isLocked(): bool
+    use HandlesAuthorization;
+
+    public function viewAny(AuthUser $authUser): bool
     {
-        return SystemConfiguration::current()->is_schedule_locked;
+        return $authUser->can('ViewAny:Schedule');
     }
 
-    private function isSuperAdmin(User $user): bool
+    public function view(AuthUser $authUser, Schedule $schedule): bool
     {
-        return $user->hasRole('Super Admin') || $user->role?->name === 'Super Admin';
+        return $authUser->can('View:Schedule');
     }
 
-    private function isGuru(User $user): bool
+    public function create(AuthUser $authUser): bool
     {
-        return $user->hasRole('Guru') || $user->role?->name === 'Guru';
+        return $authUser->can('Create:Schedule');
     }
 
-    /**
-     * Hanya Guru dan Super Admin yang bisa melihat jadwal. Waka tidak mengelola jadwal.
-     */
-    public function viewAny(User $user): bool
+    public function update(AuthUser $authUser, Schedule $schedule): bool
     {
-        return $this->isSuperAdmin($user) || $this->isGuru($user);
+        return $authUser->can('Update:Schedule');
     }
 
-    public function view(User $user, Schedule $schedule): bool
+    public function delete(AuthUser $authUser, Schedule $schedule): bool
     {
-        if ($this->isSuperAdmin($user)) {
-            return true;
-        }
-
-        return $this->isGuru($user) && $schedule->teacher_id === $user->id;
+        return $authUser->can('Delete:Schedule');
     }
 
-    /**
-     * Guru tidak bisa membuat jadwal jika locked.
-     * Super Admin selalu bisa membuat jadwal.
-     */
-    public function create(User $user): bool
+    public function deleteAny(AuthUser $authUser): bool
     {
-        if ($this->isSuperAdmin($user)) {
-            return true;
-        }
-
-        return $this->isGuru($user) && !$this->isLocked();
+        return $authUser->can('DeleteAny:Schedule');
     }
 
-    public function update(User $user, Schedule $schedule): bool
+    public function restore(AuthUser $authUser, Schedule $schedule): bool
     {
-        if ($this->isSuperAdmin($user)) {
-            return true;
-        }
-
-        return $this->isGuru($user) 
-            && $schedule->teacher_id === $user->id
-            && !$this->isLocked();
+        return $authUser->can('Restore:Schedule');
     }
 
-    public function delete(User $user, Schedule $schedule): bool
+    public function forceDelete(AuthUser $authUser, Schedule $schedule): bool
     {
-        if ($this->isSuperAdmin($user)) {
-            return true;
-        }
+        return $authUser->can('ForceDelete:Schedule');
+    }
 
-        return $this->isGuru($user) 
-            && $schedule->teacher_id === $user->id 
-            && !$this->isLocked();
+    public function forceDeleteAny(AuthUser $authUser): bool
+    {
+        return $authUser->can('ForceDeleteAny:Schedule');
+    }
+
+    public function restoreAny(AuthUser $authUser): bool
+    {
+        return $authUser->can('RestoreAny:Schedule');
+    }
+
+    public function replicate(AuthUser $authUser, Schedule $schedule): bool
+    {
+        return $authUser->can('Replicate:Schedule');
+    }
+
+    public function reorder(AuthUser $authUser): bool
+    {
+        return $authUser->can('Reorder:Schedule');
     }
 }

@@ -40,6 +40,11 @@
                                 <x-filament::badge color="gray" size="sm">
                                     {{ $schedule->room?->name ?? 'Ruang' }}
                                 </x-filament::badge>
+                                @if ($schedule->teacher)
+                                    <x-filament::badge color="warning" size="sm">
+                                        {{ $schedule->teacher->full_name }}
+                                    </x-filament::badge>
+                                @endif
                             </div>
                             <div style="font-size: 0.8rem; color: #6b7280;">
                                 Jam Pembelajaran: <strong>{{ substr($schedule->start_time, 0, 5) }} - {{ substr($schedule->end_time, 0, 5) }}</strong> ({{ $schedule->day_of_week }}, {{ $schedule->cycle_type }})

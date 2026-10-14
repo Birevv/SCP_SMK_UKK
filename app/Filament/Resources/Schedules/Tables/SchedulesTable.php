@@ -20,7 +20,7 @@ class SchedulesTable
                     ->label('Tahun Ajaran')
                     ->sortable()
                     ->searchable(),
-                
+
                 TextColumn::make('subject.name')
                     ->label('Mata Pelajaran')
                     ->sortable()
@@ -29,7 +29,7 @@ class SchedulesTable
                 TextColumn::make('teacher.full_name')
                     ->searchable()
                     ->label('Guru'),
-                
+
                 TextColumn::make('classroom.name')
                     ->sortable()
                     ->label('Kelas'),
@@ -70,7 +70,7 @@ class SchedulesTable
                         'Kamis' => 'Kamis',
                         'Jumat' => 'Jumat',
                     ]),
-                
+
                 SelectFilter::make('cycle_type')
                     ->options([
                         'Putaran 1' => 'Putaran 1',

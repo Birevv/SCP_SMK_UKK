@@ -2,13 +2,13 @@
 
 namespace App\Filament\Resources\Classrooms\RelationManagers;
 
+use App\Models\AcademicYear;
 use Filament\Actions\AttachAction;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DetachAction;
 use Filament\Actions\DetachBulkAction;
 use Filament\Actions\EditAction;
 use Filament\Forms\Components\Select;
-use Filament\Forms\Components\TextInput;
 use Filament\Resources\RelationManagers\RelationManager;
 use Filament\Schemas\Schema;
 use Filament\Tables\Columns\TextColumn;
@@ -90,8 +90,9 @@ class UsersRelationManager extends RelationManager
                     ->label('Tambah / Lampirkan Anggota')
                     ->preloadRecordSelect()
                     ->mutateFormDataUsing(function (array $data): array {
-                        $data['academic_year_id'] = \App\Models\AcademicYear::where('is_active', true)->first()?->id ?? \App\Models\AcademicYear::first()?->id;
+                        $data['academic_year_id'] = AcademicYear::where('is_active', true)->first()?->id ?? AcademicYear::first()?->id;
                         $data['status'] = 'Aktif';
+
                         return $data;
                     }),
             ])
