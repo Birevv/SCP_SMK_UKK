@@ -59,7 +59,7 @@ class AttendanceReport extends Page implements HasForms
         ]);
     }
 
-    public static function canView(): bool
+    public static function canAccess(): bool
     {
         /** @var User|null $user */
         $user = Auth::user();
@@ -67,9 +67,12 @@ class AttendanceReport extends Page implements HasForms
             return true;
         }
 
-        $role = $user?->role?->name;
+        if ($user?->hasRole('Siswa') || $user?->role?->name === 'Siswa') {
+            return false;
+        }
 
-        return in_array($role, ['Guru', 'Wali Kelas', 'Guru BK']);
+        return $user?->hasAnyRole(['Waka Kurikulum', 'Guru', 'Wali Kelas', 'Guru BK'])
+            || in_array($user?->role?->name, ['Waka Kurikulum', 'Guru', 'Wali Kelas', 'Guru BK']);
     }
 
     public function form(Schema $form): Schema

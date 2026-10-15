@@ -4,11 +4,13 @@ namespace Tests\Feature;
 
 use App\Filament\Resources\AcademicYears\AcademicYearResource;
 use App\Filament\Resources\Classrooms\ClassroomResource;
+use App\Filament\Resources\Journals\JournalResource;
 use App\Filament\Resources\Rooms\RoomResource;
 use App\Filament\Resources\Subjects\SubjectResource;
 use App\Filament\Resources\SystemConfigurations\SystemConfigurationResource;
 use App\Filament\Resources\Users\UserResource;
 use App\Filament\Widgets\SystemConfigWidget;
+use App\Models\Journal;
 use App\Models\Role;
 use App\Models\Schedule;
 use App\Models\User;
@@ -79,7 +81,10 @@ class RolePermissionTest extends TestCase
         $this->assertFalse(RoomResource::canViewAny());
         $this->assertFalse(ClassroomResource::canViewAny());
         $this->assertFalse(SystemConfigurationResource::canViewAny());
-        $this->assertFalse(Gate::forUser($waka)->allows('viewAny', Schedule::class));
+
+        // Waka BISA melihat dan menginput jadwal mengajar
+        $this->assertTrue(Gate::forUser($waka)->allows('viewAny', Schedule::class));
+        $this->assertTrue(Gate::forUser($waka)->allows('create', Schedule::class));
 
         // 3. Super Admin BISA mengakses seluruh master data
         $this->actingAs($superAdmin);
@@ -136,5 +141,62 @@ class RolePermissionTest extends TestCase
         $this->assertFalse(Gate::forUser($waka)->allows('delete', $superAdmin));
         $this->assertFalse(UserResource::canEdit($superAdmin));
         $this->assertFalse(UserResource::canDelete($superAdmin));
+    }
+
+    public function test_walikelas_and_bk_cannot_view_or_input_journal(): void
+    {
+        $superAdminRole = Role::firstOrCreate(['name' => 'Super Admin', 'guard_name' => 'web']);
+        $guruRole = Role::firstOrCreate(['name' => 'Guru', 'guard_name' => 'web']);
+        $waliRole = Role::firstOrCreate(['name' => 'Wali Kelas', 'guard_name' => 'web']);
+        $bkRole = Role::firstOrCreate(['name' => 'Guru BK', 'guard_name' => 'web']);
+
+        $wali = User::factory()->create(['role_id' => $waliRole->id]);
+        $wali->assignRole('Wali Kelas');
+
+        $bk = User::factory()->create(['role_id' => $bkRole->id]);
+        $bk->assignRole('Guru BK');
+
+        $guru = User::factory()->create(['role_id' => $guruRole->id]);
+        $guru->assignRole('Guru');
+
+        $superAdmin = User::factory()->create(['role_id' => $superAdminRole->id]);
+        $superAdmin->assignRole('Super Admin');
+
+        // Wali Kelas TIDAK BISA melihat maupun menginput jurnal di Filament & Gate
+        $this->actingAs($wali);
+        $this->assertFalse(JournalResource::canViewAny());
+        $this->assertFalse(JournalResource::canCreate());
+        $this->assertFalse(Gate::forUser($wali)->allows('viewAny', Journal::class));
+        $this->assertFalse(Gate::forUser($wali)->allows('create', Journal::class));
+
+        // Guru BK TIDAK BISA melihat maupun menginput jurnal di Filament & Gate
+        $this->actingAs($bk);
+        $this->assertFalse(JournalResource::canViewAny());
+        $this->assertFalse(JournalResource::canCreate());
+        $this->assertFalse(Gate::forUser($bk)->allows('viewAny', Journal::class));
+        $this->assertFalse(Gate::forUser($bk)->allows('create', Journal::class));
+
+        // Wali Kelas & Guru BK juga tidak bisa akses API teacher journals
+        $this->actingAs($wali, 'sanctum');
+        $responseWali = $this->getJson('/api/teacher/journals');
+        $responseWali->assertForbidden();
+
+        $this->actingAs($bk, 'sanctum');
+        $responseBk = $this->getJson('/api/teacher/journals');
+        $responseBk->assertForbidden();
+
+        // Guru BISA melihat dan menginput jurnal
+        $this->actingAs($guru);
+        $this->assertTrue(JournalResource::canViewAny());
+        $this->assertTrue(JournalResource::canCreate());
+        $this->assertTrue(Gate::forUser($guru)->allows('viewAny', Journal::class));
+        $this->assertTrue(Gate::forUser($guru)->allows('create', Journal::class));
+
+        // Super Admin BISA melihat dan menginput jurnal
+        $this->actingAs($superAdmin);
+        $this->assertTrue(JournalResource::canViewAny());
+        $this->assertTrue(JournalResource::canCreate());
+        $this->assertTrue(Gate::forUser($superAdmin)->allows('viewAny', Journal::class));
+        $this->assertTrue(Gate::forUser($superAdmin)->allows('create', Journal::class));
     }
 }

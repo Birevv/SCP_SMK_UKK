@@ -20,6 +20,10 @@ class JournalController extends Controller
     {
         $teacher = $request->user();
 
+        if ($teacher && ($teacher->hasAnyRole(['Wali Kelas', 'Guru BK']) || in_array($teacher->role?->name, ['Wali Kelas', 'Guru BK'], true)) && ! $teacher->hasRole('Super Admin')) {
+            return $this->errorResponse('Wali Kelas dan Guru BK tidak diizinkan melihat jurnal mengajar', 403);
+        }
+
         $query = Journal::with(['schedule.subject', 'schedule.classroom', 'attendances'])
             ->where('teacher_id', $teacher->id)
             ->latest('date');
@@ -51,6 +55,11 @@ class JournalController extends Controller
     public function store(StoreJournalRequest $request): JsonResponse
     {
         $teacher = $request->user();
+
+        if ($teacher && ($teacher->hasAnyRole(['Wali Kelas', 'Guru BK']) || in_array($teacher->role?->name, ['Wali Kelas', 'Guru BK'], true)) && ! $teacher->hasRole('Super Admin')) {
+            return $this->errorResponse('Wali Kelas dan Guru BK tidak diizinkan menginput jurnal mengajar', 403);
+        }
+
         $data = $request->validated();
 
         $schedule = Schedule::findOrFail($data['schedule_id']);

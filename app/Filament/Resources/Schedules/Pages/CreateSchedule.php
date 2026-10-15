@@ -3,6 +3,7 @@
 namespace App\Filament\Resources\Schedules\Pages;
 
 use App\Filament\Resources\Schedules\ScheduleResource;
+use App\Models\Schedule;
 use App\Services\DocumentParserService;
 use App\Services\ScheduleImportService;
 use Filament\Actions\Action;
@@ -26,6 +27,7 @@ class CreateSchedule extends CreateRecord
                 ->label('Import dari File (Excel / PDF / CSV)')
                 ->icon('heroicon-o-arrow-up-tray')
                 ->color('success')
+                ->visible(fn () => Auth::user()?->can('create', Schedule::class) ?? false)
                 ->modalHeading('Import Jadwal Pelajaran')
                 ->modalDescription('Unggah atau drop file Excel (.xlsx, .csv) atau PDF berisi jadwal mengajar. Sistem akan otomatis mendaftarkan guru (jika belum ada) dan menginputkan jadwal mengajar.')
                 ->modalSubmitActionLabel('Mulai Import')
@@ -99,6 +101,7 @@ class CreateSchedule extends CreateRecord
                 ->label('Template CSV')
                 ->icon('heroicon-o-document-arrow-down')
                 ->color('gray')
+                ->visible(fn () => Auth::user()?->can('create', Schedule::class) ?? false)
                 ->action(function (): StreamedResponse {
                     return response()->streamDownload(function () {
                         echo DocumentParserService::getScheduleCsvTemplate();

@@ -24,12 +24,103 @@ class JournalResource extends Resource
     {
         /** @var User|null $user */
         $user = Auth::user();
-        if ($user?->hasRole('Super Admin') || $user?->role?->name === 'Super Admin') {
+        if (! $user) {
+            return false;
+        }
+
+        if ($user->hasRole('Super Admin') || $user->role?->name === 'Super Admin') {
             return true;
         }
 
-        return $user?->hasAnyRole(['Guru', 'Wali Kelas', 'Guru BK'])
-            || in_array($user?->role?->name, ['Guru', 'Wali Kelas', 'Guru BK']);
+        if ($user->hasAnyRole(['Wali Kelas', 'Guru BK']) || in_array($user->role?->name, ['Wali Kelas', 'Guru BK'], true)) {
+            return false;
+        }
+
+        return $user->can('ViewAny:Journal')
+            || $user->hasRole('Guru')
+            || $user->role?->name === 'Guru';
+    }
+
+    public static function canCreate(): bool
+    {
+        /** @var User|null $user */
+        $user = Auth::user();
+        if (! $user) {
+            return false;
+        }
+
+        if ($user->hasRole('Super Admin') || $user->role?->name === 'Super Admin') {
+            return true;
+        }
+
+        if ($user->hasAnyRole(['Wali Kelas', 'Guru BK']) || in_array($user->role?->name, ['Wali Kelas', 'Guru BK'], true)) {
+            return false;
+        }
+
+        return $user->can('Create:Journal')
+            || $user->hasRole('Guru')
+            || $user->role?->name === 'Guru';
+    }
+
+    public static function canEdit($record): bool
+    {
+        /** @var User|null $user */
+        $user = Auth::user();
+        if (! $user) {
+            return false;
+        }
+
+        if ($user->hasRole('Super Admin') || $user->role?->name === 'Super Admin') {
+            return true;
+        }
+
+        if ($user->hasAnyRole(['Wali Kelas', 'Guru BK']) || in_array($user->role?->name, ['Wali Kelas', 'Guru BK'], true)) {
+            return false;
+        }
+
+        return $user->can('Update:Journal')
+            || $user->hasRole('Guru')
+            || $user->role?->name === 'Guru';
+    }
+
+    public static function canDelete($record): bool
+    {
+        /** @var User|null $user */
+        $user = Auth::user();
+        if (! $user) {
+            return false;
+        }
+
+        if ($user->hasRole('Super Admin') || $user->role?->name === 'Super Admin') {
+            return true;
+        }
+
+        if ($user->hasAnyRole(['Wali Kelas', 'Guru BK']) || in_array($user->role?->name, ['Wali Kelas', 'Guru BK'], true)) {
+            return false;
+        }
+
+        return $user->can('Delete:Journal');
+    }
+
+    public static function canView($record): bool
+    {
+        /** @var User|null $user */
+        $user = Auth::user();
+        if (! $user) {
+            return false;
+        }
+
+        if ($user->hasRole('Super Admin') || $user->role?->name === 'Super Admin') {
+            return true;
+        }
+
+        if ($user->hasAnyRole(['Wali Kelas', 'Guru BK']) || in_array($user->role?->name, ['Wali Kelas', 'Guru BK'], true)) {
+            return false;
+        }
+
+        return $user->can('View:Journal')
+            || $user->hasRole('Guru')
+            || $user->role?->name === 'Guru';
     }
 
     public static function getEloquentQuery(): Builder

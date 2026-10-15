@@ -8,6 +8,7 @@ use App\Filament\Resources\Schedules\Pages\ListSchedules;
 use App\Filament\Resources\Schedules\Schemas\ScheduleForm;
 use App\Filament\Resources\Schedules\Tables\SchedulesTable;
 use App\Models\Schedule;
+use App\Models\User;
 use BackedEnum;
 use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
@@ -18,6 +19,62 @@ use UnitEnum;
 
 class ScheduleResource extends Resource
 {
+    public static function canViewAny(): bool
+    {
+        /** @var User|null $user */
+        $user = Auth::user();
+
+        if ($user?->hasRole('Siswa') || $user?->role?->name === 'Siswa') {
+            return false;
+        }
+
+        return $user?->can('ViewAny:Schedule')
+            || $user?->hasAnyRole(['Super Admin', 'Waka Kurikulum', 'Guru'])
+            || in_array($user?->role?->name, ['Super Admin', 'Waka Kurikulum', 'Guru']);
+    }
+
+    public static function canCreate(): bool
+    {
+        /** @var User|null $user */
+        $user = Auth::user();
+
+        if ($user?->hasRole('Siswa') || $user?->role?->name === 'Siswa') {
+            return false;
+        }
+
+        return $user?->can('Create:Schedule')
+            || $user?->hasAnyRole(['Super Admin', 'Waka Kurikulum', 'Guru'])
+            || in_array($user?->role?->name, ['Super Admin', 'Waka Kurikulum', 'Guru']);
+    }
+
+    public static function canEdit($record): bool
+    {
+        /** @var User|null $user */
+        $user = Auth::user();
+
+        if ($user?->hasRole('Siswa') || $user?->role?->name === 'Siswa') {
+            return false;
+        }
+
+        return $user?->can('Update:Schedule')
+            || $user?->hasAnyRole(['Super Admin', 'Waka Kurikulum', 'Guru'])
+            || in_array($user?->role?->name, ['Super Admin', 'Waka Kurikulum', 'Guru']);
+    }
+
+    public static function canDelete($record): bool
+    {
+        /** @var User|null $user */
+        $user = Auth::user();
+
+        if ($user?->hasRole('Siswa') || $user?->role?->name === 'Siswa') {
+            return false;
+        }
+
+        return $user?->can('Delete:Schedule')
+            || $user?->hasAnyRole(['Super Admin', 'Waka Kurikulum', 'Guru'])
+            || in_array($user?->role?->name, ['Super Admin', 'Waka Kurikulum', 'Guru']);
+    }
+
     protected static ?string $model = Schedule::class;
 
     protected static string|BackedEnum|null $navigationIcon = 'heroicon-o-calendar';
@@ -41,12 +98,12 @@ class ScheduleResource extends Resource
     public static function getEloquentQuery(): Builder
     {
         $query = parent::getEloquentQuery()
-            ->with(['teacher', 'classroom', 'room', 'subject', 'academicYear'])
-            ->forActiveCycle();
+            ->with(['teacher', 'classroom', 'room', 'subject', 'academicYear']);
 
+        /** @var User|null $user */
         $user = Auth::user();
 
-        if ($user && ($user->hasRole('Guru') || $user->role?->name === 'Guru') && ! $user->hasRole('Super Admin')) {
+        if ($user && ($user->hasRole('Guru') || $user->role?->name === 'Guru') && ! $user->hasRole('Super Admin') && ! $user->hasRole('Waka Kurikulum')) {
             $query->where('teacher_id', $user->id);
         }
 

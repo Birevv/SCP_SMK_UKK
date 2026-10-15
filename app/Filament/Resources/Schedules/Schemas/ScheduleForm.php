@@ -3,6 +3,7 @@
 namespace App\Filament\Resources\Schedules\Schemas;
 
 use App\Models\Schedule;
+use App\Models\SystemConfiguration;
 use App\Rules\NoScheduleConflict;
 use Filament\Forms\Components\Select;
 use Filament\Schemas\Components\Utilities\Get;
@@ -147,7 +148,7 @@ class ScheduleForm
                         'Putaran 1' => 'Putaran 1',
                         'Putaran 2' => 'Putaran 2',
                     ])
-                    ->default('Putaran 1')
+                    ->default(fn () => SystemConfiguration::current()->active_cycle ?? 'Putaran 1')
                     ->required()
                     ->label('Putaran Siklus'),
             ]);

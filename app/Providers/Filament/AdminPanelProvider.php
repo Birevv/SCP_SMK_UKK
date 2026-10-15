@@ -32,7 +32,7 @@ class AdminPanelProvider extends PanelProvider
             ->login(Login::class)
             ->passwordReset()
             ->brandName('School Class Progress')
-            ->profile(EditProfile::class)
+            ->profile(EditProfile::class, isSimple: false)
             ->colors([
                 'primary' => Color::Blue,
             ])

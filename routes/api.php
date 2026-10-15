@@ -40,8 +40,8 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::post('/leave-requests', [StudentApiController::class, 'storeLeaveRequest']);
     });
 
-    // Teacher API (Hanya Guru & Guru BK)
-    Route::prefix('teacher')->middleware('role:Guru|Guru BK')->group(function () {
+    // Teacher API (Hanya Guru)
+    Route::prefix('teacher')->middleware('role:Guru')->group(function () {
         Route::get('/dashboard', [TeacherDashboardController::class, 'index']);
         Route::get('/schedules', [TeacherScheduleController::class, 'index']);
         Route::post('/schedules', [TeacherScheduleController::class, 'store']);

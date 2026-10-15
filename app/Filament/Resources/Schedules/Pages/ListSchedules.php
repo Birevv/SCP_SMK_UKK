@@ -3,6 +3,8 @@
 namespace App\Filament\Resources\Schedules\Pages;
 
 use App\Filament\Resources\Schedules\ScheduleResource;
+use App\Models\Schedule;
+use App\Models\SystemConfiguration;
 use App\Services\DocumentParserService;
 use App\Services\ScheduleImportService;
 use Filament\Actions\Action;
@@ -10,6 +12,8 @@ use Filament\Actions\CreateAction;
 use Filament\Forms\Components\FileUpload;
 use Filament\Notifications\Notification;
 use Filament\Resources\Pages\ListRecords;
+use Filament\Schemas\Components\Tabs\Tab;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
 use Symfony\Component\HttpFoundation\StreamedResponse;
@@ -26,6 +30,7 @@ class ListSchedules extends ListRecords
                 ->label('Import Jadwal (Excel / PDF / CSV)')
                 ->icon('heroicon-o-arrow-up-tray')
                 ->color('success')
+                ->visible(fn () => Auth::user()?->can('create', Schedule::class) ?? false)
                 ->modalHeading('Import Jadwal Pelajaran')
                 ->modalDescription('Unggah atau drop file Excel (.xlsx, .csv) atau PDF berisi jadwal mengajar. Sistem akan otomatis mendaftarkan guru (jika belum ada) dan menginputkan jadwal mengajar.')
                 ->modalSubmitActionLabel('Mulai Import')
@@ -97,6 +102,7 @@ class ListSchedules extends ListRecords
                 ->label('Template CSV')
                 ->icon('heroicon-o-document-arrow-down')
                 ->color('gray')
+                ->visible(fn () => Auth::user()?->can('create', Schedule::class) ?? false)
                 ->action(function (): StreamedResponse {
                     return response()->streamDownload(function () {
                         echo DocumentParserService::getScheduleCsvTemplate();
@@ -105,5 +111,29 @@ class ListSchedules extends ListRecords
                     ]);
                 }),
         ];
+    }
+
+    public function getTabs(): array
+    {
+        $activeCycle = SystemConfiguration::current()->active_cycle ?? 'Putaran 1';
+
+        return [
+            'all' => Tab::make('Semua Putaran')
+                ->badge(fn () => Schedule::count()),
+            'active_cycle' => Tab::make("Siklus Aktif ({$activeCycle})")
+                ->badge(fn () => Schedule::where('cycle_type', $activeCycle)->count())
+                ->modifyQueryUsing(fn (Builder $query) => $query->where('cycle_type', $activeCycle)),
+            'putaran_1' => Tab::make('Putaran 1')
+                ->badge(fn () => Schedule::where('cycle_type', 'Putaran 1')->count())
+                ->modifyQueryUsing(fn (Builder $query) => $query->where('cycle_type', 'Putaran 1')),
+            'putaran_2' => Tab::make('Putaran 2')
+                ->badge(fn () => Schedule::where('cycle_type', 'Putaran 2')->count())
+                ->modifyQueryUsing(fn (Builder $query) => $query->where('cycle_type', 'Putaran 2')),
+        ];
+    }
+
+    public function getDefaultActiveTab(): string|int|null
+    {
+        return 'all';
     }
 }

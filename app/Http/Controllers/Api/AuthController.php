@@ -69,7 +69,8 @@ class AuthController extends Controller
             $data['profile_photo'] = $request->file('profile_photo')->store('profile_photos', 'public');
         }
 
-        $user->update($data);
+        $allowed = array_intersect_key($data, array_flip(['profile_photo', 'full_name', 'email', 'phone']));
+        $user->update($allowed);
         $user->load(['role', 'classrooms']);
 
         return $this->successResponse(new UserResource($user), 'Profile berhasil diperbarui');

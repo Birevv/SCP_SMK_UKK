@@ -14,7 +14,20 @@ class StoreJournalRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        return true;
+        $user = $this->user();
+        if (! $user) {
+            return false;
+        }
+
+        if ($user->hasRole('Super Admin') || $user->role?->name === 'Super Admin') {
+            return true;
+        }
+
+        if ($user->hasAnyRole(['Wali Kelas', 'Guru BK']) || in_array($user->role?->name, ['Wali Kelas', 'Guru BK'], true)) {
+            return false;
+        }
+
+        return $user->can('Create:Journal') || $user->hasRole('Guru') || $user->role?->name === 'Guru';
     }
 
     /**
