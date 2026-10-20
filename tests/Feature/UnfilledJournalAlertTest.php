@@ -23,6 +23,8 @@ class UnfilledJournalAlertTest extends TestCase
 
     public function test_displays_alert_when_schedule_ended_more_than_30_minutes_ago_without_journal(): void
     {
+        Carbon::setTestNow(Carbon::parse('2026-10-21 14:00:00'));
+
         // 1. Setup Master Data
         $wakaRole = Role::create(['name' => 'Waka Kurikulum']);
         $guruRole = Role::create(['name' => 'Guru']);
@@ -83,5 +85,7 @@ class UnfilledJournalAlertTest extends TestCase
 
         Livewire::test(UnfilledJournalAlertWidget::class)
             ->assertDontSee('Peringatan: Jurnal Mengajar Belum Diisi!');
+
+        Carbon::setTestNow();
     }
 }
