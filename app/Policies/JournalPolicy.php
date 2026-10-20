@@ -14,50 +14,32 @@ class JournalPolicy
 
     public function before(AuthUser $authUser, string $ability): ?bool
     {
-        if ($authUser->hasRole('Super Admin') || $authUser->role?->name === 'Super Admin') {
-            return true;
-        }
-
-        if ($authUser->hasAnyRole(['Wali Kelas', 'Guru BK']) || in_array($authUser->role?->name, ['Wali Kelas', 'Guru BK'], true)) {
-            return false;
-        }
-
         return null;
     }
 
     public function viewAny(AuthUser $authUser): bool
     {
-        return $authUser->can('ViewAny:Journal')
-            || $authUser->hasAnyRole(['Super Admin', 'Waka Kurikulum', 'Guru'])
-            || in_array($authUser->role?->name, ['Super Admin', 'Waka Kurikulum', 'Guru']);
+        return $authUser->can('ViewAny:Journal');
     }
 
     public function view(AuthUser $authUser, Journal $journal): bool
     {
-        return $authUser->can('View:Journal')
-            || $authUser->hasAnyRole(['Super Admin', 'Waka Kurikulum', 'Guru'])
-            || in_array($authUser->role?->name, ['Super Admin', 'Waka Kurikulum', 'Guru']);
+        return $authUser->can('View:Journal');
     }
 
     public function create(AuthUser $authUser): bool
     {
-        return $authUser->can('Create:Journal')
-            || $authUser->hasAnyRole(['Super Admin', 'Guru'])
-            || in_array($authUser->role?->name, ['Super Admin', 'Guru']);
+        return $authUser->can('Create:Journal');
     }
 
     public function update(AuthUser $authUser, Journal $journal): bool
     {
-        return $authUser->can('Update:Journal')
-            || $authUser->hasAnyRole(['Super Admin', 'Guru'])
-            || in_array($authUser->role?->name, ['Super Admin', 'Guru']);
+        return $authUser->can('Update:Journal');
     }
 
     public function delete(AuthUser $authUser, Journal $journal): bool
     {
-        return $authUser->can('Delete:Journal')
-            || $authUser->hasRole('Super Admin')
-            || $authUser->role?->name === 'Super Admin';
+        return $authUser->can('Delete:Journal');
     }
 
     public function deleteAny(AuthUser $authUser): bool

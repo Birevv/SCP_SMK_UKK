@@ -100,6 +100,19 @@ class StudentApiController extends Controller
         return $this->successResponse(new LeaveRequestResource($leaveRequest), 'Surat perizinan berhasil diajukan', 201);
     }
 
+    public function destroyLeaveRequest(Request $request, LeaveRequest $leaveRequest): JsonResponse
+    {
+        $student = $request->user();
+
+        if ($leaveRequest->student_id !== $student->id && $leaveRequest->submitted_by !== $student->id) {
+            return $this->errorResponse('Anda hanya dapat menghapus perizinan yang dibuat sendiri', 403);
+        }
+
+        $leaveRequest->delete();
+
+        return $this->successResponse(null, 'Surat perizinan berhasil dihapus');
+    }
+
     public function dashboard(Request $request): JsonResponse
     {
         $student = $request->user();

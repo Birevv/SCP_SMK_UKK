@@ -34,7 +34,8 @@ class SystemConfigWidget extends Widget implements HasActions, HasSchemas
         return $user?->hasRole('Waka Kurikulum')
             || $user?->role?->name === 'Waka Kurikulum'
             || $user?->hasRole('Super Admin')
-            || $user?->role?->name === 'Super Admin';
+            || $user?->role?->name === 'Super Admin'
+            || (bool) $user?->can('View:SystemConfigWidget');
     }
 
     public function getViewData(): array
@@ -50,7 +51,7 @@ class SystemConfigWidget extends Widget implements HasActions, HasSchemas
     public function toggleCycleAction(): Action
     {
         return Action::make('toggleCycle')
-            ->visible(fn () => Auth::user()?->can('toggle_cycle') || Auth::user()?->hasRole('Super Admin') || Auth::user()?->hasRole('Waka Kurikulum'))
+            ->visible(fn () => Auth::user()?->can('toggle_cycle') ?? false)
             ->label(fn () => SystemConfiguration::current()->active_cycle === 'Putaran 1' ? 'Ganti ke Putaran 2' : 'Ganti ke Putaran 1')
             ->icon('heroicon-o-arrow-path')
             ->color(fn () => SystemConfiguration::current()->active_cycle === 'Putaran 1' ? 'warning' : 'info')
@@ -82,7 +83,7 @@ class SystemConfigWidget extends Widget implements HasActions, HasSchemas
     public function toggleLockAction(): Action
     {
         return Action::make('toggleLock')
-            ->visible(fn () => Auth::user()?->can('lock_schedule') || Auth::user()?->hasRole('Super Admin') || Auth::user()?->hasRole('Waka Kurikulum'))
+            ->visible(fn () => Auth::user()?->can('lock_schedule') ?? false)
             ->label(fn () => SystemConfiguration::current()->is_schedule_locked ? 'Buka Kunci Jadwal' : 'Kunci Jadwal')
             ->icon(fn () => SystemConfiguration::current()->is_schedule_locked ? 'heroicon-o-lock-open' : 'heroicon-o-lock-closed')
             ->color(fn () => SystemConfiguration::current()->is_schedule_locked ? 'success' : 'danger')

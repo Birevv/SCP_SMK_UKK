@@ -12,23 +12,17 @@ class UserPolicy
 
     public function viewAny(AuthUser $authUser): bool
     {
-        return $authUser->can('ViewAny:User')
-            || $authUser->hasAnyRole(['Super Admin', 'Waka Kurikulum'])
-            || in_array($authUser->role?->name, ['Super Admin', 'Waka Kurikulum']);
+        return $authUser->can('ViewAny:User');
     }
 
     public function view(AuthUser $authUser, ?User $user = null): bool
     {
-        return $authUser->can('View:User')
-            || $authUser->hasAnyRole(['Super Admin', 'Waka Kurikulum'])
-            || in_array($authUser->role?->name, ['Super Admin', 'Waka Kurikulum']);
+        return $authUser->can('View:User');
     }
 
     public function create(AuthUser $authUser): bool
     {
-        return $authUser->can('Create:User')
-            || $authUser->hasAnyRole(['Super Admin', 'Waka Kurikulum'])
-            || in_array($authUser->role?->name, ['Super Admin', 'Waka Kurikulum']);
+        return $authUser->can('Create:User');
     }
 
     public function update(AuthUser $authUser, ?User $user = null): bool
@@ -37,9 +31,7 @@ class UserPolicy
             return $authUser->hasRole('Super Admin') || $authUser->role?->name === 'Super Admin';
         }
 
-        return $authUser->can('Update:User')
-            || $authUser->hasAnyRole(['Super Admin', 'Waka Kurikulum'])
-            || in_array($authUser->role?->name, ['Super Admin', 'Waka Kurikulum']);
+        return $authUser->can('Update:User');
     }
 
     public function delete(AuthUser $authUser, ?User $user = null): bool
@@ -48,16 +40,12 @@ class UserPolicy
             return false;
         }
 
-        return $authUser->can('Delete:User')
-            || $authUser->hasAnyRole(['Super Admin', 'Waka Kurikulum'])
-            || in_array($authUser->role?->name, ['Super Admin', 'Waka Kurikulum']);
+        return $authUser->can('Delete:User');
     }
 
     public function deleteAny(AuthUser $authUser): bool
     {
-        return $authUser->can('DeleteAny:User')
-            || $authUser->hasAnyRole(['Super Admin', 'Waka Kurikulum'])
-            || in_array($authUser->role?->name, ['Super Admin', 'Waka Kurikulum']);
+        return $authUser->can('DeleteAny:User');
     }
 
     public function restore(AuthUser $authUser): bool

@@ -20,6 +20,7 @@ class AcademicYearForm
 
                 Toggle::make('is_active')
                     ->label('Status Aktif')
+                    ->helperText('Jika diaktifkan, tahun ajaran lain otomatis nonaktif dan kolom Tahun Ajaran di tabel Jadwal serta data terkait otomatis disesuaikan.')
                     ->default(false),
             ]);
     }

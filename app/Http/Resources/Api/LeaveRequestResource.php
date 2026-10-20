@@ -23,6 +23,7 @@ class LeaveRequestResource extends JsonResource
             'description' => $this->description,
             'attachment_url' => $this->attachment_photo ? Storage::url($this->attachment_photo) : null,
             'status' => $this->status,
+            'rejection_note' => $this->rejection_note,
             'verified_by' => $this->verifiedBy?->full_name,
             'created_at' => $this->created_at?->format('Y-m-d H:i:s'),
         ];

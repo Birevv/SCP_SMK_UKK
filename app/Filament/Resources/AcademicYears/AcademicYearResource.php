@@ -57,13 +57,4 @@ class AcademicYearResource extends Resource
             'edit' => EditAcademicYear::route('/{record}/edit'),
         ];
     }
-
-    #[Override]
-    public static function canViewAny(): bool
-    {
-        /** @var User|null $user */
-        $user = Auth::user();
-
-        return $user?->hasRole('Super Admin') || $user?->role?->name === 'Super Admin';
-    }
 }

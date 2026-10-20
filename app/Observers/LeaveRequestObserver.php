@@ -5,6 +5,7 @@ namespace App\Observers;
 use App\Models\Attendance;
 use App\Models\Journal;
 use App\Models\LeaveRequest;
+use Illuminate\Support\Facades\Storage;
 
 class LeaveRequestObserver
 {
@@ -26,6 +27,16 @@ class LeaveRequestObserver
     {
         if ($leaveRequest->status === 'Approved') {
             $this->syncAttendance($leaveRequest);
+        }
+    }
+
+    /**
+     * Handle the LeaveRequest "deleting" event.
+     */
+    public function deleting(LeaveRequest $leaveRequest): void
+    {
+        if ($leaveRequest->attachment_photo && Storage::disk('public')->exists($leaveRequest->attachment_photo)) {
+            Storage::disk('public')->delete($leaveRequest->attachment_photo);
         }
     }
 

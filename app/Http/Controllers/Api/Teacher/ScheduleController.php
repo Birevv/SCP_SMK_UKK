@@ -96,8 +96,7 @@ class ScheduleController extends Controller
         }
 
         $data['teacher_id'] = $teacher->id;
-        $data['academic_year_id'] = Schedule::where('teacher_id', $teacher->id)->latest()->value('academic_year_id')
-            ?? AcademicYear::latest()->value('id');
+        $data['academic_year_id'] = $data['academic_year_id'] ?? AcademicYear::getActiveId();
 
         $schedule = Schedule::create($data);
         $schedule->load(['subject', 'classroom', 'room']);

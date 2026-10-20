@@ -38,6 +38,7 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/attendance-history', [StudentApiController::class, 'attendanceHistory']);
         Route::get('/leave-requests', [StudentApiController::class, 'leaveRequests']);
         Route::post('/leave-requests', [StudentApiController::class, 'storeLeaveRequest']);
+        Route::delete('/leave-requests/{leaveRequest}', [StudentApiController::class, 'destroyLeaveRequest']);
     });
 
     // Teacher API (Hanya Guru)

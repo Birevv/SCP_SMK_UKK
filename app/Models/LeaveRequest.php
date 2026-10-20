@@ -19,6 +19,7 @@ class LeaveRequest extends Model
         'reason_type',
         'description',
         'status',
+        'rejection_note',
         'verified_by',
     ];
 

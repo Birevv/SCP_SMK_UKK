@@ -56,8 +56,10 @@ class JournalForm
 
                 FileUpload::make('activity_photo')
                     ->image()
-                    ->directory('journal-photos')
-                    ->maxSize(2048)
+                    ->disk('public')
+                    ->directory('journal_photos')
+                    ->visibility('public')
+                    ->maxSize(5120)
                     ->label('Bukti Foto Kegiatan (Realtime)'),
             ]);
     }

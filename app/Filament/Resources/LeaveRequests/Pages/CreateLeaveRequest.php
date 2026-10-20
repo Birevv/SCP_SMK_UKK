@@ -13,10 +13,15 @@ class CreateLeaveRequest extends CreateRecord
     protected function mutateFormDataBeforeCreate(array $data): array
     {
         $user = Auth::user();
-        if ($user && $user->role?->name === 'Siswa') {
+        if ($user && ($user->hasRole('Siswa') || $user->role?->name === 'Siswa')) {
             $data['student_id'] = $user->id;
+            $data['status'] = 'Pending';
         }
         $data['submitted_by'] = Auth::id();
+
+        if (($data['status'] ?? 'Pending') !== 'Rejected') {
+            $data['rejection_note'] = null;
+        }
 
         return $data;
     }

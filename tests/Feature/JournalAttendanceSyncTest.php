@@ -85,4 +85,58 @@ class JournalAttendanceSyncTest extends TestCase
             'student_id' => $waliKelas->id,
         ]);
     }
+
+    public function test_attendance_status_defaults_to_hadir_and_can_be_updated(): void
+    {
+        $classroom = Classroom::factory()->create();
+        $teacher = User::factory()->create();
+        $room = Room::factory()->create();
+        $academicYear = AcademicYear::create(['name' => '2026/2027 Ganjil', 'is_active' => true]);
+        $subject = Subject::create(['name' => 'Basis Data']);
+
+        $siswaRole = Role::create(['name' => 'Siswa']);
+        $student = User::factory()->create(['role_id' => $siswaRole->id]);
+        $student->classrooms()->attach($classroom->id, ['academic_year_id' => $academicYear->id]);
+
+        $schedule = Schedule::create([
+            'academic_year_id' => $academicYear->id,
+            'teacher_id' => $teacher->id,
+            'classroom_id' => $classroom->id,
+            'room_id' => $room->id,
+            'subject_id' => $subject->id,
+            'day_of_week' => 'Senin',
+            'start_time' => '07:00:00',
+            'end_time' => '09:00:00',
+            'cycle_type' => 'Putaran 1',
+        ]);
+
+        $journal = Journal::create([
+            'schedule_id' => $schedule->id,
+            'teacher_id' => $teacher->id,
+            'date' => now()->toDateString(),
+            'teaching_material' => 'Normalisasi Database',
+        ]);
+
+        $attendance = $journal->attendances()->where('student_id', $student->id)->first();
+        $this->assertNotNull($attendance);
+        // Pastikan default kehadiran adalah Hadir
+        $this->assertEquals('Hadir', $attendance->status);
+
+        // Status kehadiran bisa diubah menjadi Sakit, Izin, atau Alpa
+        $attendance->update([
+            'status' => 'Izin',
+            'notes' => 'Izin keperluan keluarga',
+        ]);
+
+        $this->assertEquals('Izin', $attendance->fresh()->status);
+        $this->assertEquals('Izin keperluan keluarga', $attendance->fresh()->notes);
+
+        // Ubah lagi menjadi Alpa
+        $attendance->update([
+            'status' => 'Alpa',
+            'notes' => 'Tanpa keterangan',
+        ]);
+
+        $this->assertEquals('Alpa', $attendance->fresh()->status);
+    }
 }

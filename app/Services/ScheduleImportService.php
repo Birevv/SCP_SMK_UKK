@@ -55,6 +55,10 @@ class ScheduleImportService
 
         $activeCycle = SystemConfiguration::current()->active_cycle ?? 'Putaran 1';
 
+        if (SystemConfiguration::current()->is_schedule_locked && ! ($currentUser?->hasRole('Super Admin') || $currentUser?->role?->name === 'Super Admin')) {
+            throw new \Exception('Jadwal pelajaran sedang dikunci. Penambahan atau import jadwal tidak diizinkan.');
+        }
+
         $isOnlyTeacher = $currentUser
             && ($currentUser->hasRole('Guru') || $currentUser->role?->name === 'Guru')
             && ! $currentUser->hasRole('Super Admin')

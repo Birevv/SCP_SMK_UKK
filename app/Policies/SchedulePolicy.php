@@ -14,94 +14,116 @@ class SchedulePolicy
 
     public function before(AuthUser $authUser, string $ability): ?bool
     {
-        if ($authUser->hasRole('Siswa') || $authUser->role?->name === 'Siswa') {
-            return false;
-        }
-
         return null;
     }
 
     public function viewAny(AuthUser $authUser): bool
     {
-        return $authUser->can('ViewAny:Schedule')
-            || $authUser->hasAnyRole(['Super Admin', 'Waka Kurikulum', 'Guru'])
-            || in_array($authUser->role?->name, ['Super Admin', 'Waka Kurikulum', 'Guru']);
+        return $authUser->can('ViewAny:Schedule');
     }
 
     public function view(AuthUser $authUser, Schedule $schedule): bool
     {
-        return $authUser->can('View:Schedule')
-            || $authUser->hasAnyRole(['Super Admin', 'Waka Kurikulum', 'Guru'])
-            || in_array($authUser->role?->name, ['Super Admin', 'Waka Kurikulum', 'Guru']);
+        return $authUser->can('View:Schedule');
     }
 
     public function create(AuthUser $authUser): bool
     {
-        return $authUser->can('Create:Schedule')
-            || $authUser->hasAnyRole(['Super Admin', 'Waka Kurikulum', 'Guru'])
-            || in_array($authUser->role?->name, ['Super Admin', 'Waka Kurikulum', 'Guru']);
+        $config = \App\Models\SystemConfiguration::first();
+        if ($config?->is_schedule_locked) {
+            return false;
+        }
+
+        return $authUser->can('Create:Schedule');
     }
 
     public function update(AuthUser $authUser, Schedule $schedule): bool
     {
-        return $authUser->can('Update:Schedule')
-            || $authUser->hasAnyRole(['Super Admin', 'Waka Kurikulum', 'Guru'])
-            || in_array($authUser->role?->name, ['Super Admin', 'Waka Kurikulum', 'Guru']);
+        $config = \App\Models\SystemConfiguration::first();
+        if ($config?->is_schedule_locked) {
+            return false;
+        }
+
+        return $authUser->can('Update:Schedule');
     }
 
     public function delete(AuthUser $authUser, Schedule $schedule): bool
     {
-        return $authUser->can('Delete:Schedule')
-            || $authUser->hasAnyRole(['Super Admin', 'Waka Kurikulum', 'Guru'])
-            || in_array($authUser->role?->name, ['Super Admin', 'Waka Kurikulum', 'Guru']);
+        $config = \App\Models\SystemConfiguration::first();
+        if ($config?->is_schedule_locked) {
+            return false;
+        }
+
+        return $authUser->can('Delete:Schedule');
     }
 
     public function deleteAny(AuthUser $authUser): bool
     {
-        return $authUser->can('DeleteAny:Schedule')
-            || $authUser->hasAnyRole(['Super Admin', 'Waka Kurikulum'])
-            || in_array($authUser->role?->name, ['Super Admin', 'Waka Kurikulum']);
+        $config = \App\Models\SystemConfiguration::first();
+        if ($config?->is_schedule_locked) {
+            return false;
+        }
+
+        return $authUser->can('DeleteAny:Schedule');
     }
 
     public function restore(AuthUser $authUser, Schedule $schedule): bool
     {
-        return $authUser->can('Restore:Schedule')
-            || $authUser->hasAnyRole(['Super Admin', 'Waka Kurikulum'])
-            || in_array($authUser->role?->name, ['Super Admin', 'Waka Kurikulum']);
+        $config = \App\Models\SystemConfiguration::first();
+        if ($config?->is_schedule_locked) {
+            return false;
+        }
+
+        return $authUser->can('Restore:Schedule');
     }
 
     public function forceDelete(AuthUser $authUser, Schedule $schedule): bool
     {
-        return $authUser->can('ForceDelete:Schedule')
-            || $authUser->hasRole('Super Admin')
-            || $authUser->role?->name === 'Super Admin';
+        $config = \App\Models\SystemConfiguration::first();
+        if ($config?->is_schedule_locked) {
+            return false;
+        }
+
+        return $authUser->can('ForceDelete:Schedule');
     }
 
     public function forceDeleteAny(AuthUser $authUser): bool
     {
-        return $authUser->can('ForceDeleteAny:Schedule')
-            || $authUser->hasRole('Super Admin')
-            || $authUser->role?->name === 'Super Admin';
+        $config = \App\Models\SystemConfiguration::first();
+        if ($config?->is_schedule_locked) {
+            return false;
+        }
+
+        return $authUser->can('ForceDeleteAny:Schedule');
     }
 
     public function restoreAny(AuthUser $authUser): bool
     {
-        return $authUser->can('RestoreAny:Schedule')
-            || $authUser->hasAnyRole(['Super Admin', 'Waka Kurikulum'])
-            || in_array($authUser->role?->name, ['Super Admin', 'Waka Kurikulum']);
+        $config = \App\Models\SystemConfiguration::first();
+        if ($config?->is_schedule_locked) {
+            return false;
+        }
+
+        return $authUser->can('RestoreAny:Schedule');
     }
 
     public function replicate(AuthUser $authUser, Schedule $schedule): bool
     {
-        return $authUser->can('Replicate:Schedule')
-            || $authUser->hasAnyRole(['Super Admin', 'Waka Kurikulum', 'Guru'])
-            || in_array($authUser->role?->name, ['Super Admin', 'Waka Kurikulum', 'Guru']);
+        $config = \App\Models\SystemConfiguration::first();
+        if ($config?->is_schedule_locked) {
+            return false;
+        }
+
+        return $authUser->can('Replicate:Schedule');
     }
 
     public function reorder(AuthUser $authUser): bool
     {
-        return $authUser->can('Reorder:Schedule')
-            || $authUser->hasRole('Super Admin')
-            || $authUser->role?->name === 'Super Admin';
+        $config = \App\Models\SystemConfiguration::first();
+        if ($config?->is_schedule_locked) {
+            return false;
+        }
+
+        return $authUser->can('Reorder:Schedule');
     }
 }

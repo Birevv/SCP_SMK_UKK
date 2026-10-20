@@ -19,14 +19,6 @@ use UnitEnum;
 
 class RoomResource extends Resource
 {
-    public static function canViewAny(): bool
-    {
-        /** @var User|null $user */
-        $user = Auth::user();
-
-        return $user?->hasRole('Super Admin') || $user?->role?->name === 'Super Admin';
-    }
-
     protected static ?string $model = Room::class;
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::BuildingOffice2;

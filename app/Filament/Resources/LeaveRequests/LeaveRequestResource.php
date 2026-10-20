@@ -19,30 +19,6 @@ use UnitEnum;
 
 class LeaveRequestResource extends Resource
 {
-    public static function canViewAny(): bool
-    {
-        /** @var User|null $user */
-        $user = Auth::user();
-        if ($user?->hasRole('Super Admin') || $user?->role?->name === 'Super Admin') {
-            return true;
-        }
-
-        return $user?->hasAnyRole(['Wali Kelas', 'Guru BK', 'Siswa'])
-            || in_array($user?->role?->name, ['Wali Kelas', 'Guru BK', 'Siswa']);
-    }
-
-    public static function canCreate(): bool
-    {
-        /** @var User|null $user */
-        $user = Auth::user();
-        if ($user?->hasRole('Super Admin') || $user?->role?->name === 'Super Admin') {
-            return true;
-        }
-
-        return $user?->hasAnyRole(['Siswa', 'Wali Kelas'])
-            || in_array($user?->role?->name, ['Siswa', 'Wali Kelas']);
-    }
-
     public static function getEloquentQuery(): Builder
     {
         $query = parent::getEloquentQuery()->with(['student', 'submittedBy', 'verifiedBy']);

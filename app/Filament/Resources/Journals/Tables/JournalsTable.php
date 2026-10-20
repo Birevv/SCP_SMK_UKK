@@ -26,6 +26,7 @@ class JournalsTable
                     ->label('Guru'),
 
                 ImageColumn::make('activity_photo')
+                    ->disk('public')
                     ->label('Bukti Foto'),
 
                 TextColumn::make('schedule.subject.name')

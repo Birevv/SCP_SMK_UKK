@@ -41,7 +41,7 @@ class UserForm
                     ->searchable()
                     ->preload()
                     ->pivotData(fn () => [
-                        'academic_year_id' => AcademicYear::where('is_active', true)->first()?->id ?? AcademicYear::first()?->id,
+                        'academic_year_id' => AcademicYear::getActiveId(),
                         'status' => 'Aktif',
                     ]),
 

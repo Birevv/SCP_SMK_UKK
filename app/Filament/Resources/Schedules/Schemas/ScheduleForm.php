@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\Schedules\Schemas;
 
+use App\Models\AcademicYear;
 use App\Models\Schedule;
 use App\Models\SystemConfiguration;
 use App\Rules\NoScheduleConflict;
@@ -81,6 +82,8 @@ class ScheduleForm
                 Select::make('academic_year_id')
                     ->label('Tahun Ajaran')
                     ->relationship('academicYear', 'name')
+                    ->default(fn () => AcademicYear::getActiveId())
+                    ->helperText('Otomatis terisi sesuai Tahun Ajaran yang aktif.')
                     ->required(),
 
                 Select::make('subject_id')

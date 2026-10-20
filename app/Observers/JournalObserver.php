@@ -50,7 +50,7 @@ class JournalObserver
                     [
                         'status' => $approvedLeave->reason_type,
                         'date' => $journal->date,
-                        'notes' => 'Otomatis tersinkronisasi dari Pengajuan izin',
+                        'notes' => 'Otomatis tersinkronisasi dari Surat Izin (Approved oleh Wali Kelas)',
                     ]
                 );
             } else {

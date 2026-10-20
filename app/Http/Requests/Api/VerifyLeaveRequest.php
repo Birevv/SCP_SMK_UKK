@@ -17,6 +17,19 @@ class VerifyLeaveRequest extends FormRequest
         return true;
     }
 
+    protected function prepareForValidation(): void
+    {
+        if ($this->has('notes') && ! $this->has('rejection_note')) {
+            $this->merge([
+                'rejection_note' => $this->input('notes'),
+            ]);
+        } elseif ($this->has('rejection_note') && ! $this->has('notes')) {
+            $this->merge([
+                'notes' => $this->input('rejection_note'),
+            ]);
+        }
+    }
+
     /**
      * Get the validation rules that apply to the request.
      *
@@ -26,7 +39,15 @@ class VerifyLeaveRequest extends FormRequest
     {
         return [
             'status' => ['required', 'in:Approved,Rejected'],
+            'rejection_note' => ['required_if:status,Rejected', 'nullable', 'string', 'max:500'],
             'notes' => ['nullable', 'string', 'max:500'],
+        ];
+    }
+
+    public function messages(): array
+    {
+        return [
+            'rejection_note.required_if' => 'Keterangan reject wajib diisi saat menolak pengajuan izin.',
         ];
     }
 

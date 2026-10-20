@@ -3,6 +3,7 @@
 namespace App\Filament\Resources\LeaveRequests\Schemas;
 
 use App\Enums\ReasonTypeEnum;
+use App\Models\LeaveRequest;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\Hidden;
@@ -111,11 +112,14 @@ class LeaveRequestForm
                     ->label('Keterangan Alasan'),
 
                 FileUpload::make('attachment_photo')
-                    ->image()
-                    ->maxSize(2048)
-                    ->acceptedFileTypes(['image/jpeg', 'image/png', 'image/jpg', 'application/pdf'])
+                    ->label('Lampiran / Surat Dokter')
+                    ->disk('public')
                     ->directory('leave_attachments')
-                    ->label('Lampiran / Surat Dokter'),
+                    ->visibility('public')
+                    ->maxSize(10240)
+                    ->acceptedFileTypes(['image/jpeg', 'image/png', 'image/jpg', 'image/webp', 'application/pdf'])
+                    ->openable()
+                    ->downloadable(),
 
                 Select::make('status')
                     ->options([
@@ -125,9 +129,33 @@ class LeaveRequestForm
                     ])
                     ->default('Pending')
                     ->required()
-                    ->disabled(fn () => ! in_array($role, ['Wali Kelas', 'Guru BK', 'Super Admin']) && ! Auth::user()?->hasRole('Super Admin'))
+                    ->live()
+                    ->afterStateUpdated(function (Set $set, $state) {
+                        if ($state !== 'Rejected') {
+                            $set('rejection_note', null);
+                        }
+                    })
+                    ->disabled(fn () => ! (Auth::user()?->can('approve_leave_request') || Auth::user()?->hasAnyRole(['Wali Kelas', 'Guru BK', 'Super Admin']) || in_array(Auth::user()?->role?->name, ['Wali Kelas', 'Guru BK', 'Super Admin'])))
                     ->dehydrated()
                     ->label('Status Verifikasi'),
+
+                Textarea::make('rejection_note')
+                    ->label('Keterangan Penolakan (Reject)')
+                    ->placeholder('Masukkan keterangan/alasan penolakan izin siswa...')
+                    ->rows(3)
+                    ->maxLength(500)
+                    ->columnSpanFull()
+                    ->visible(fn (Get $get, ?LeaveRequest $record) => $get('status') === 'Rejected' || ($record && $record->status === 'Rejected'))
+                    ->required(fn (Get $get) => $get('status') === 'Rejected')
+                    ->disabled(fn () => ! (Auth::user()?->can('approve_leave_request') || Auth::user()?->hasAnyRole(['Wali Kelas', 'Guru BK', 'Super Admin']) || in_array(Auth::user()?->role?->name, ['Wali Kelas', 'Guru BK', 'Super Admin'])))
+                    ->dehydrated(fn (Get $get) => $get('status') === 'Rejected'),
+
+                Select::make('verified_by')
+                    ->relationship('verifiedBy', 'full_name')
+                    ->label('Diverifikasi Oleh')
+                    ->disabled()
+                    ->dehydrated(false)
+                    ->visible(fn (?LeaveRequest $record) => (bool) $record?->verified_by),
             ]);
     }
 }

@@ -19,14 +19,6 @@ use UnitEnum;
 
 class ClassroomResource extends Resource
 {
-    public static function canViewAny(): bool
-    {
-        /** @var User|null $user */
-        $user = Auth::user();
-
-        return $user?->hasRole('Super Admin') || $user?->role?->name === 'Super Admin';
-    }
-
     protected static ?string $model = Classroom::class;
 
     protected static ?string $navigationLabel = 'Kelas';

@@ -20,54 +20,6 @@ use UnitEnum;
 
 class UserResource extends Resource
 {
-    public static function canViewAny(): bool
-    {
-        /** @var User|null $user */
-        $user = Auth::user();
-
-        return $user?->can('ViewAny:User')
-            || $user?->hasAnyRole(['Super Admin', 'Waka Kurikulum'])
-            || in_array($user?->role?->name, ['Super Admin', 'Waka Kurikulum']);
-    }
-
-    public static function canCreate(): bool
-    {
-        /** @var User|null $user */
-        $user = Auth::user();
-
-        return $user?->can('Create:User')
-            || $user?->hasAnyRole(['Super Admin', 'Waka Kurikulum'])
-            || in_array($user?->role?->name, ['Super Admin', 'Waka Kurikulum']);
-    }
-
-    public static function canEdit($record): bool
-    {
-        /** @var User|null $user */
-        $user = Auth::user();
-
-        if ($record && ($record->hasRole('Super Admin') || $record->role?->name === 'Super Admin')) {
-            return $user?->hasRole('Super Admin') || $user?->role?->name === 'Super Admin';
-        }
-
-        return $user?->can('Update:User')
-            || $user?->hasAnyRole(['Super Admin', 'Waka Kurikulum'])
-            || in_array($user?->role?->name, ['Super Admin', 'Waka Kurikulum']);
-    }
-
-    public static function canDelete($record): bool
-    {
-        /** @var User|null $user */
-        $user = Auth::user();
-
-        if ($record && ($record->hasRole('Super Admin') || $record->role?->name === 'Super Admin')) {
-            return false;
-        }
-
-        return $user?->can('Delete:User')
-            || $user?->hasAnyRole(['Super Admin', 'Waka Kurikulum'])
-            || in_array($user?->role?->name, ['Super Admin', 'Waka Kurikulum']);
-    }
-
     public static function getEloquentQuery(): Builder
     {
         return parent::getEloquentQuery()->with(['role', 'classrooms']);

@@ -61,18 +61,7 @@ class AttendanceReport extends Page implements HasForms
 
     public static function canAccess(): bool
     {
-        /** @var User|null $user */
-        $user = Auth::user();
-        if ($user?->hasRole('Super Admin') || $user?->role?->name === 'Super Admin') {
-            return true;
-        }
-
-        if ($user?->hasRole('Siswa') || $user?->role?->name === 'Siswa') {
-            return false;
-        }
-
-        return $user?->hasAnyRole(['Waka Kurikulum', 'Guru', 'Wali Kelas', 'Guru BK'])
-            || in_array($user?->role?->name, ['Waka Kurikulum', 'Guru', 'Wali Kelas', 'Guru BK']);
+        return Auth::user()?->can('View:AttendanceReport') ?? false;
     }
 
     public function form(Schema $form): Schema

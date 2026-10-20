@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Filament\Pages\AttendanceReport;
 use App\Models\Attendance;
 use App\Models\Classroom;
 use App\Models\User;
@@ -12,6 +13,10 @@ class AttendanceReportPrintController extends Controller
 {
     public function print(Request $request)
     {
+        if (! AttendanceReport::canAccess()) {
+            abort(403, 'Akses ditolak. Anda tidak memiliki izin untuk melihat laporan presensi.');
+        }
+
         $classroomId = $request->query('classroom_id');
         $startDate = $request->query('start_date', Carbon::now()->startOfMonth()->toDateString());
         $endDate = $request->query('end_date', Carbon::now()->endOfMonth()->toDateString());

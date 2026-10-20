@@ -34,11 +34,30 @@ class LeaveRequestPolicy
 
     public function delete(AuthUser $authUser, LeaveRequest $leaveRequest): bool
     {
+        /** @var \App\Models\User $authUser */
+        if ($authUser->hasRole('Super Admin') || $authUser->role?->name === 'Super Admin') {
+            return true;
+        }
+
+        // Siswa bisa menghapus ijin yang dibuat sendiri
+        if ($authUser->hasRole('Siswa') || $authUser->role?->name === 'Siswa') {
+            return $leaveRequest->student_id === $authUser->id || $leaveRequest->submitted_by === $authUser->id;
+        }
+
         return $authUser->can('Delete:LeaveRequest');
     }
 
     public function deleteAny(AuthUser $authUser): bool
     {
+        /** @var \App\Models\User $authUser */
+        if ($authUser->hasRole('Super Admin') || $authUser->role?->name === 'Super Admin') {
+            return true;
+        }
+
+        if ($authUser->hasRole('Siswa') || $authUser->role?->name === 'Siswa') {
+            return true;
+        }
+
         return $authUser->can('DeleteAny:LeaveRequest');
     }
 

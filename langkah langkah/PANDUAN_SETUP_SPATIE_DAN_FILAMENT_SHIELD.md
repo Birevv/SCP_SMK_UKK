@@ -318,35 +318,21 @@ Pastikan akun `admin` (Super Admin) dan akun `waka` (Waka Kurikulum) terpisah je
 
 ### 6.1 [database/seeders/RoleSeeder.php](file:///d:/Project%20UKK/Paket%203%20SCP/SCP_SMK/database/seeders/RoleSeeder.php)
 
+Karena seluruh role dan permission sudah dikelola secara otomatis oleh `ShieldSeeder.php`, `RoleSeeder.php` cukup meneruskan pemanggilan ke `ShieldSeeder`:
+
 ```php
 <?php
 
 namespace Database\Seeders;
 
-use App\Models\Role;
 use Illuminate\Database\Seeder;
 
 class RoleSeeder extends Seeder
 {
     public function run(): void
     {
-        app()[\Spatie\Permission\PermissionRegistrar::class]->forgetCachedPermissions();
-
-        $roles = [
-            'Super Admin',      // <-- Khusus Pengelola Role & Shield
-            'Waka Kurikulum',   // <-- Khusus Manajemen Akademik & Jadwal
-            'Guru',
-            'Wali Kelas',
-            'Guru BK',
-            'Siswa',
-        ];
-
-        foreach ($roles as $role) {
-            Role::firstOrCreate([
-                'name' => $role,
-                'guard_name' => 'web',
-            ]);
-        }
+        // Jalankan ShieldSeeder yang menangani seluruh role dan permission
+        $this->call(ShieldSeeder::class);
     }
 }
 ```

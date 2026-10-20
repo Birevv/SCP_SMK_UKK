@@ -90,7 +90,7 @@ class UsersRelationManager extends RelationManager
                     ->label('Tambah / Lampirkan Anggota')
                     ->preloadRecordSelect()
                     ->mutateFormDataUsing(function (array $data): array {
-                        $data['academic_year_id'] = AcademicYear::where('is_active', true)->first()?->id ?? AcademicYear::first()?->id;
+                        $data['academic_year_id'] = AcademicYear::getActiveId();
                         $data['status'] = 'Aktif';
 
                         return $data;

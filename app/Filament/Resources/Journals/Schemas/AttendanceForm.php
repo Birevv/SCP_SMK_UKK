@@ -15,8 +15,7 @@ class AttendanceForm
                 Select::make('student_id')
                     ->relationship('student', 'full_name')
                     ->label('Siswa')
-                    ->disabled()
-                    ->required(),
+                    ->disabled(),
 
                 Select::make('status')
                     ->options([
@@ -25,6 +24,7 @@ class AttendanceForm
                         'Izin' => 'Izin',
                         'Alpa' => 'Alpa',
                     ])
+                    ->default('Hadir')
                     ->required()
                     ->label('Status Kehadiran'),
 

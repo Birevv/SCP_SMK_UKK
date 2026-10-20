@@ -31,17 +31,19 @@ class LeaveRequestController extends Controller
     public function index(Request $request): JsonResponse
     {
         $teacher = $request->user();
+        $isBK = $teacher->hasRole('Guru BK') || $teacher->role?->name === 'Guru BK';
         $classroom = $this->getHomeroomClassroom($teacher);
 
-        if (! $classroom) {
+        if (! $classroom && ! $isBK) {
             return $this->errorResponse('Anda Belum Ditugaskan Sebagai Wali Kelas', 403);
         }
 
-        $studentIds = $this->getStudentIds($classroom->id);
+        $query = LeaveRequest::with(['student', 'verifiedBy'])->latest();
 
-        $query = LeaveRequest::with(['student', 'verifiedBy'])
-            ->whereIn('student_id', $studentIds)
-            ->latest();
+        if ($classroom && ! $isBK) {
+            $studentIds = $this->getStudentIds($classroom->id);
+            $query->whereIn('student_id', $studentIds);
+        }
 
         if ($request->filled('status') && $request->status !== 'All') {
             $query->where('status', $request->status);
@@ -58,25 +60,29 @@ class LeaveRequestController extends Controller
     public function show(LeaveRequest $leaveRequest, Request $request): JsonResponse
     {
         $teacher = $request->user();
+        $isBK = $teacher->hasRole('Guru BK') || $teacher->role?->name === 'Guru BK';
         $classroom = $this->getHomeroomClassroom($teacher);
 
-        if (! $classroom) {
+        if (! $classroom && ! $isBK) {
             return $this->errorResponse('Anda Belum Ditugaskan Sebagai Wali Kelas', 403);
         }
 
-        $studentIds = $this->getStudentIds($classroom->id);
-        if (! $studentIds->contains($leaveRequest->student_id)) {
-            return $this->errorResponse('Pengajuan Izin Ini Bukan Milik Siswa Di Kelas Anda', 403);
+        if ($classroom && ! $isBK) {
+            $studentIds = $this->getStudentIds($classroom->id);
+            if (! $studentIds->contains($leaveRequest->student_id)) {
+                return $this->errorResponse('Pengajuan Izin Ini Bukan Milik Siswa Di Kelas Anda', 403);
+            }
         }
 
-        $leaveRequest->load('student');
+        $leaveRequest->load(['student.classrooms']);
+        $studentClassroomName = $classroom?->name ?? $leaveRequest->student?->classrooms?->first()?->name ?? '-';
 
         return $this->successResponse([
             'id' => $leaveRequest->id,
             'student' => [
                 'full_name' => $leaveRequest->student?->full_name,
                 'identity_number' => $leaveRequest->student?->identity_number,
-                'classroom' => $classroom->name,
+                'classroom' => $studentClassroomName,
             ],
             'leave_info' => [
                 'reason_type' => $leaveRequest->reason_type,
@@ -86,6 +92,7 @@ class LeaveRequestController extends Controller
                 'description' => $leaveRequest->description,
                 'attachment_url' => $leaveRequest->attachment_photo ? Storage::url($leaveRequest->attachment_photo) : null,
                 'status' => $leaveRequest->status,
+                'rejection_note' => $leaveRequest->rejection_note,
             ],
             'submitted_at' => $leaveRequest->created_at?->format('Y-m-d H:i:s'),
         ], 'Detail Pengajuan Izin Berhasil Diambil');
@@ -94,15 +101,18 @@ class LeaveRequestController extends Controller
     public function verify(VerifyLeaveRequest $request, LeaveRequest $leaveRequest): JsonResponse
     {
         $teacher = $request->user();
+        $isBK = $teacher->hasRole('Guru BK') || $teacher->role?->name === 'Guru BK';
         $classroom = $this->getHomeroomClassroom($teacher);
 
-        if (! $classroom) {
+        if (! $classroom && ! $isBK) {
             return $this->errorResponse('Anda Belum Ditugaskan Sebagai Wali Kelas', 403);
         }
 
-        $studentIds = $this->getStudentIds($classroom->id);
-        if (! $studentIds->contains($leaveRequest->student_id)) {
-            return $this->errorResponse('Pengajuan Izin Ini Bukan Milik Siswa Di Kelas Anda', 403);
+        if ($classroom && ! $isBK) {
+            $studentIds = $this->getStudentIds($classroom->id);
+            if (! $studentIds->contains($leaveRequest->student_id)) {
+                return $this->errorResponse('Pengajuan Izin Ini Bukan Milik Siswa Di Kelas Anda', 403);
+            }
         }
 
         if ($leaveRequest->status !== 'Pending') {
@@ -110,8 +120,13 @@ class LeaveRequestController extends Controller
         }
 
         $data = $request->validated();
+        $rejectionNote = $data['status'] === 'Rejected'
+            ? ($data['rejection_note'] ?? $data['notes'] ?? null)
+            : null;
+
         $leaveRequest->update([
             'status' => $data['status'],
+            'rejection_note' => $rejectionNote,
             'verified_by' => $teacher->id,
         ]);
 

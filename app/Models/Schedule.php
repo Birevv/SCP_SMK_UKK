@@ -23,6 +23,15 @@ class Schedule extends Model
         'cycle_type',
     ];
 
+    protected static function booted(): void
+    {
+        static::creating(function (Schedule $schedule) {
+            if (empty($schedule->academic_year_id)) {
+                $schedule->academic_year_id = AcademicYear::getActiveId();
+            }
+        });
+    }
+
     public function teacher(): BelongsTo
     {
         return $this->belongsTo(User::class, 'teacher_id');
