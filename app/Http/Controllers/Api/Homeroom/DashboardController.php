@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api\Homeroom;
 
 use App\Http\Controllers\Controller;
 use App\Models\Attendance;
+use App\Models\Classroom;
 use App\Models\LeaveRequest;
 use App\Models\User;
 use App\Traits\ApiResponser;
@@ -30,7 +31,17 @@ class DashboardController extends Controller
     public function index(Request $request): JsonResponse
     {
         $teacher = $request->user();
-        $classroom = $this->getHomeroomClassroom($teacher);
+
+        if ($request->filled('classroom_id')) {
+            $classroom = Classroom::find($request->classroom_id);
+        } elseif ($request->filled('grade') || $request->filled('class_level')) {
+            $classroom = $teacher->classrooms()->forGrade($request->input('grade', $request->input('class_level')))->first();
+            if (! $classroom) {
+                $classroom = Classroom::forGrade($request->input('grade', $request->input('class_level')))->first();
+            }
+        } else {
+            $classroom = $this->getHomeroomClassroom($teacher);
+        }
 
         if (! $classroom) {
             return $this->errorResponse('Anda Belum Ditugaskan Sebagai Wali Kelas', 403);

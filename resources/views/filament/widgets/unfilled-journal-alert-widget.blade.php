@@ -16,7 +16,7 @@
                             Peringatan: Jurnal Mengajar Belum Diisi!
                         </h3>
                         <p style="font-size: 0.8rem; color: #ef4444; margin: 0.15rem 0 0 0; font-weight: 500;">
-                            Terdapat jadwal yang telah selesai lebih dari 30 menit lalu namun belum memiliki jurnal harian.
+                            Terdapat jadwal yang telah selesai lebih dari 45 menit lalu namun belum memiliki jurnal harian.
                         </p>
                     </div>
                 </div>

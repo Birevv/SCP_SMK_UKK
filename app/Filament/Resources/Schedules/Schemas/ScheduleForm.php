@@ -99,51 +99,98 @@ class ScheduleForm
                         'Jumat' => 'Jumat',
                     ])
                     ->required()
+                    ->live()
+                    ->afterStateUpdated(function ($state, Set $set, Get $get) {
+                        if ($state === 'Jumat') {
+                            $jumatSessions = self::getSessions('Jumat');
+                            $validStarts = array_column($jumatSessions, 'start');
+                            $validEnds = array_column($jumatSessions, 'end');
+
+                            $currentStart = $get('start_time');
+                            $currentEnd = $get('end_time');
+
+                            if ($currentStart && ! in_array(substr((string) $currentStart, 0, 5), $validStarts)) {
+                                $set('start_time', null);
+                                $set('end_time', null);
+                            } elseif ($currentEnd && ! in_array(substr((string) $currentEnd, 0, 5), $validEnds)) {
+                                $set('end_time', null);
+                            }
+                        }
+                    })
                     ->label('Hari'),
 
                 Select::make('start_time')
                     ->label('Jam Mulai')
                     ->prefixIcon('heroicon-o-clock')
-                    ->options(fn () => self::getTimeOptions())
+                    ->options(fn (Get $get, ?Schedule $record) => self::getStartTimeOptions($record?->start_time, $get('day_of_week')))
                     ->searchable()
                     ->live()
                     ->afterStateUpdated(function ($state, Set $set, Get $get) {
                         if (! $state) {
                             return;
                         }
+                        $day = $get('day_of_week');
+                        $state = substr((string) $state, 0, 5);
                         $currentEnd = $get('end_time');
+                        $sessions = self::getSessions($day);
+
                         if (! $currentEnd || $currentEnd <= $state) {
-                            $suggestedEnd = date('H:i', strtotime('+2 hours', strtotime("2000-01-01 {$state}")));
-                            if ($suggestedEnd <= '18:00') {
-                                $set('end_time', $suggestedEnd);
+                            foreach ($sessions as $num => $session) {
+                                if ($session['start'] === $state) {
+                                    $targetNum = $num + 1; // Default 2 sesi (90 menit) jika tersedia dalam batasan sesi
+                                    $set('end_time', $sessions[$targetNum]['end'] ?? $session['end']);
+                                    break;
+                                }
                             }
                         }
                     })
                     ->formatStateUsing(fn ($state) => $state ? substr((string) $state, 0, 5) : null)
+                    ->rules([
+                        fn (Get $get) => function (string $attribute, $value, \Closure $fail) use ($get) {
+                            if ($get('day_of_week') === 'Jumat' && $value >= '13:50') {
+                                $fail('Jam mulai hari Jumat maksimal pada Jam ke - 8 (13:15).');
+                            }
+                        },
+                    ])
                     ->required(),
 
                 Select::make('end_time')
                     ->label('Jam Selesai')
                     ->prefixIcon('heroicon-o-clock')
-                    ->options(fn (Get $get) => self::getTimeOptions($get('start_time')))
+                    ->options(fn (Get $get, ?Schedule $record) => self::getEndTimeOptions($get('start_time'), $record?->end_time, $get('day_of_week')))
                     ->searchable()
                     ->live()
                     ->helperText(function (Get $get) {
                         $start = $get('start_time');
                         $end = $get('end_time');
+                        $day = $get('day_of_week');
                         if ($start && $end && $end > $start) {
                             $diffMinutes = (strtotime("2000-01-01 {$end}") - strtotime("2000-01-01 {$start}")) / 60;
-                            $hours = floor($diffMinutes / 60);
-                            $mins = $diffMinutes % 60;
-                            $durStr = ($hours > 0 ? "{$hours} Jam " : '').($mins > 0 ? "{$mins} Menit" : '');
+                            $sessions = self::getSessions($day);
+                            $sessionCount = 0;
+                            foreach ($sessions as $session) {
+                                if ($session['start'] >= $start && $session['end'] <= $end) {
+                                    $sessionCount++;
+                                }
+                            }
+                            if ($sessionCount > 0) {
+                                return "Durasi Belajar: {$sessionCount} Sesi ({$diffMinutes} Menit)";
+                            }
 
-                            return 'Durasi Belajar: '.trim($durStr)." ({$diffMinutes} menit)";
+                            return "Durasi Belajar: {$diffMinutes} Menit";
                         }
 
                         return null;
                     })
                     ->after('start_time')
                     ->formatStateUsing(fn ($state) => $state ? substr((string) $state, 0, 5) : null)
+                    ->rules([
+                        fn (Get $get) => function (string $attribute, $value, \Closure $fail) use ($get) {
+                            if ($get('day_of_week') === 'Jumat' && $value > '13:50') {
+                                $fail('Jadwal hari Jumat maksimal hanya sampai Jam ke - 8 (13:50).');
+                            }
+                        },
+                    ])
                     ->required(),
 
                 Select::make('cycle_type')
@@ -157,33 +204,71 @@ class ScheduleForm
             ]);
     }
 
-    public static function getTimeOptions(?string $minTime = null): array
+    public static function getSessions(?string $dayOfWeek = null): array
+    {
+        if ($dayOfWeek === 'Jumat') {
+            return [
+                1 => ['start' => '07:15', 'end' => '07:55', 'label' => 'Jam ke - 1'],
+                2 => ['start' => '07:55', 'end' => '08:35', 'label' => 'Jam ke - 2'],
+                3 => ['start' => '08:35', 'end' => '09:15', 'label' => 'Jam ke - 3'],
+                4 => ['start' => '09:30', 'end' => '10:10', 'label' => 'Jam ke - 4'],
+                5 => ['start' => '10:10', 'end' => '10:50', 'label' => 'Jam ke - 5'],
+                6 => ['start' => '10:50', 'end' => '11:25', 'label' => 'Jam ke - 6'],
+                7 => ['start' => '12:40', 'end' => '13:15', 'label' => 'Jam ke - 7'],
+                8 => ['start' => '13:15', 'end' => '13:50', 'label' => 'Jam ke - 8'],
+            ];
+        }
+
+        return [
+            1 => ['start' => '07:15', 'end' => '07:55', 'label' => 'Jam ke - 1'],
+            2 => ['start' => '07:55', 'end' => '08:35', 'label' => 'Jam ke - 2'],
+            3 => ['start' => '08:35', 'end' => '09:15', 'label' => 'Jam ke - 3'],
+            4 => ['start' => '09:30', 'end' => '10:10', 'label' => 'Jam ke - 4'],
+            5 => ['start' => '10:10', 'end' => '10:50', 'label' => 'Jam ke - 5'],
+            6 => ['start' => '10:50', 'end' => '11:30', 'label' => 'Jam ke - 6'],
+            7 => ['start' => '12:30', 'end' => '13:10', 'label' => 'Jam ke - 7'],
+            8 => ['start' => '13:10', 'end' => '13:50', 'label' => 'Jam ke - 8'],
+            9 => ['start' => '13:50', 'end' => '14:30', 'label' => 'Jam ke - 9'],
+            10 => ['start' => '14:30', 'end' => '15:10', 'label' => 'Jam ke - 10'],
+        ];
+    }
+
+    public static function getStartTimeOptions(?string $currentValue = null, ?string $dayOfWeek = null): array
     {
         $options = [];
-        $start = strtotime('06:30');
-        $end = strtotime('18:00');
+        foreach (self::getSessions($dayOfWeek) as $num => $session) {
+            $options[$session['start']] = "{$session['label']} ({$session['start']})";
+        }
 
-        while ($start <= $end) {
-            $time24 = date('H:i', $start);
+        if ($currentValue) {
+            $formatted = substr($currentValue, 0, 5);
+            if (! isset($options[$formatted])) {
+                $options[$formatted] = "{$formatted} (Waktu Kustom)";
+                ksort($options);
+            }
+        }
 
-            if ($minTime && $time24 <= $minTime) {
-                $start = strtotime('+15 minutes', $start);
+        return $options;
+    }
 
+    public static function getEndTimeOptions(?string $startTime = null, ?string $currentValue = null, ?string $dayOfWeek = null): array
+    {
+        $options = [];
+        $startTime = $startTime ? substr($startTime, 0, 5) : null;
+
+        foreach (self::getSessions($dayOfWeek) as $num => $session) {
+            if ($startTime && $session['end'] <= $startTime) {
                 continue;
             }
+            $options[$session['end']] = "Selesai {$session['label']} ({$session['end']})";
+        }
 
-            $h = (int) date('H', $start);
-            $m = date('i', $start);
-            $lh = ($h > 12) ? ($h - 12) : ($h === 0 ? 12 : $h);
-            $period = match (true) {
-                $h < 11 => 'Pagi',
-                $h < 15 => 'Siang',
-                default => 'Sore',
-            };
-            $ms = $m !== '00' ? ".{$m}" : '';
-            $options[$time24] = "{$time24}  —  Jam {$lh}{$ms} {$period}";
-
-            $start = strtotime('+15 minutes', $start);
+        if ($currentValue) {
+            $formatted = substr($currentValue, 0, 5);
+            if (! isset($options[$formatted])) {
+                $options[$formatted] = "Selesai {$formatted} (Waktu Kustom)";
+                ksort($options);
+            }
         }
 
         return $options;

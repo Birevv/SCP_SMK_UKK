@@ -116,18 +116,19 @@ class ListSchedules extends ListRecords
     public function getTabs(): array
     {
         $activeCycle = SystemConfiguration::current()->active_cycle ?? 'Putaran 1';
+        $baseQuery = fn () => static::getResource()::getEloquentQuery();
 
         return [
             'all' => Tab::make('Semua Putaran')
-                ->badge(fn () => Schedule::count()),
+                ->badge(fn () => $baseQuery()->count()),
             'active_cycle' => Tab::make("Siklus Aktif ({$activeCycle})")
-                ->badge(fn () => Schedule::where('cycle_type', $activeCycle)->count())
+                ->badge(fn () => $baseQuery()->where('cycle_type', $activeCycle)->count())
                 ->modifyQueryUsing(fn (Builder $query) => $query->where('cycle_type', $activeCycle)),
             'putaran_1' => Tab::make('Putaran 1')
-                ->badge(fn () => Schedule::where('cycle_type', 'Putaran 1')->count())
+                ->badge(fn () => $baseQuery()->where('cycle_type', 'Putaran 1')->count())
                 ->modifyQueryUsing(fn (Builder $query) => $query->where('cycle_type', 'Putaran 1')),
             'putaran_2' => Tab::make('Putaran 2')
-                ->badge(fn () => Schedule::where('cycle_type', 'Putaran 2')->count())
+                ->badge(fn () => $baseQuery()->where('cycle_type', 'Putaran 2')->count())
                 ->modifyQueryUsing(fn (Builder $query) => $query->where('cycle_type', 'Putaran 2')),
         ];
     }

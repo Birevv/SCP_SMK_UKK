@@ -26,11 +26,19 @@ class StoreLeaveRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'start_date' => ['required', 'date'],
+            'start_date' => ['required', 'date', 'after_or_equal:today'],
             'end_date' => ['required', 'date', 'after_or_equal:start_date'],
             'reason_type' => ['required', 'in:Sakit,Izin'],
             'description' => ['required', 'string', 'max:500'],
             'attachment_photo' => ['nullable', 'file', 'mimes:jpg,jpeg,png,pdf', 'max:2048'],
+        ];
+    }
+
+    public function messages(): array
+    {
+        return [
+            'start_date.after_or_equal' => 'Tanggal mulai perizinan minimal mengisi hari ini.',
+            'end_date.after_or_equal' => 'Tanggal selesai harus sama dengan atau setelah tanggal mulai.',
         ];
     }
 

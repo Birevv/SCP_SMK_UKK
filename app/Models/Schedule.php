@@ -2,12 +2,17 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 /**
  * @method static \Illuminate\Database\Eloquent\Builder forActiveCycle()
+ * @method static \Illuminate\Database\Eloquent\Builder forGrade(string|int $grade)
+ * @method static \Illuminate\Database\Eloquent\Builder forMajor(string|int $major)
+ * @method static \Illuminate\Database\Eloquent\Builder forClassLevel(string|int $level)
+ * @method static \Illuminate\Database\Eloquent\Builder forRombel(string|int $rombel)
  */
 class Schedule extends Model
 {
@@ -72,5 +77,25 @@ class Schedule extends Model
         $active_cycle = SystemConfiguration::current()->active_cycle;
 
         return $query->where('cycle_type', $active_cycle);
+    }
+
+    public function scopeForGrade(Builder $query, string|int $grade): Builder
+    {
+        return $query->whereHas('classroom', fn (Builder $q) => $q->forGrade($grade));
+    }
+
+    public function scopeForMajor(Builder $query, string|int $major): Builder
+    {
+        return $query->whereHas('classroom', fn (Builder $q) => $q->forMajor($major));
+    }
+
+    public function scopeForClassLevel(Builder $query, string|int $level): Builder
+    {
+        return $query->whereHas('classroom', fn (Builder $q) => $q->forGrade($level));
+    }
+
+    public function scopeForRombel(Builder $query, string|int $rombel): Builder
+    {
+        return $query->whereHas('classroom', fn (Builder $q) => $q->forRombel($rombel));
     }
 }

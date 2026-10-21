@@ -22,10 +22,20 @@ class DashboardController extends Controller
         $dayName = $today->locale('id')->isoFormat('dddd');
         $config = SystemConfiguration::current();
 
-        $todaySchedules = Schedule::with(['subject', 'classroom', 'room'])
+        $schedulesQuery = Schedule::with(['subject', 'classroom', 'room'])
             ->where('teacher_id', $teacher->id)
             ->where('day_of_week', $dayName)
-            ->forActiveCycle()
+            ->forActiveCycle();
+
+        if ($request->filled('grade') || $request->filled('class_level')) {
+            $schedulesQuery->forGrade($request->input('grade', $request->input('class_level')));
+        }
+
+        if ($request->filled('major')) {
+            $schedulesQuery->forMajor($request->input('major'));
+        }
+
+        $todaySchedules = $schedulesQuery
             ->orderBy('start_time')
             ->get()
             ->map(function (Schedule $schedule) use ($today) {
@@ -48,12 +58,12 @@ class DashboardController extends Controller
         $pendingJournals = $todaySchedules->filter(function ($s) use ($now) {
             $endTime = Carbon::parse($s['end_time']);
 
-            return ! $s['has_journal'] && $now->greaterThan($endTime->addMinutes(30));
+            return ! $s['has_journal'] && $now->greaterThan($endTime->addMinutes(45));
         })->values()->map(fn ($s) => [
             'schedule_id' => $s['id'],
             'subject_name' => $s['subject_name'],
             'classroom_name' => $s['classroom_name'],
-            'message' => 'Jurnal belum diisi (>30 menit terlambat)',
+            'message' => 'Jurnal belum diisi (>45 menit terlambat)',
         ]);
 
         return $this->successResponse([

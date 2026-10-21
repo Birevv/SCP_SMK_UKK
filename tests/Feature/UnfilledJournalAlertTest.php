@@ -21,7 +21,7 @@ class UnfilledJournalAlertTest extends TestCase
 {
     use LazilyRefreshDatabase;
 
-    public function test_displays_alert_when_schedule_ended_more_than_30_minutes_ago_without_journal(): void
+    public function test_displays_alert_when_schedule_ended_more_than_45_minutes_ago_without_journal(): void
     {
         Carbon::setTestNow(Carbon::parse('2026-10-21 14:00:00'));
 
@@ -52,32 +52,38 @@ class UnfilledJournalAlertTest extends TestCase
             7 => 'Minggu',
         };
 
-        // Buat jadwal yang sudah selesai 1 jam yang lalu (> 30 menit yang lalu)
-        $pastStartTime = Carbon::now()->subHours(3)->format('H:i:s');
-        $pastEndTime = Carbon::now()->subMinutes(45)->format('H:i:s');
-
-        $schedule = Schedule::create([
+        // Buat jadwal yang baru selesai 30 menit yang lalu (<= 45 menit -> BELUM memunculkan alert)
+        $recentSchedule = Schedule::create([
             'academic_year_id' => $academicYear->id,
             'teacher_id' => $teacher->id,
             'classroom_id' => $classroom->id,
             'room_id' => $room->id,
             'subject_id' => $subject->id,
             'day_of_week' => $today,
-            'start_time' => $pastStartTime,
-            'end_time' => $pastEndTime,
+            'start_time' => Carbon::now()->subHours(2)->format('H:i:s'),
+            'end_time' => Carbon::now()->subMinutes(30)->format('H:i:s'),
             'cycle_type' => 'Putaran 1',
         ]);
 
-        // 2. Test: Guru login dan melihat widget -> Jadwal harus muncul di alert
         $this->actingAs($teacher);
 
+        // Alert TIDAK boleh muncul karena baru 30 menit (belum > 45 menit)
+        Livewire::test(UnfilledJournalAlertWidget::class)
+            ->assertDontSee('Peringatan: Jurnal Mengajar Belum Diisi!');
+
+        // Sekarang ubah jadwal menjadi selesai 60 menit yang lalu (> 45 menit yang lalu)
+        $recentSchedule->update([
+            'end_time' => Carbon::now()->subMinutes(60)->format('H:i:s'),
+        ]);
+
+        // Alert HARUS muncul karena sudah > 45 menit
         Livewire::test(UnfilledJournalAlertWidget::class)
             ->assertSee('Peringatan: Jurnal Mengajar Belum Diisi!')
             ->assertSee($subject->name);
 
-        // 3. Test: Guru mengisi jurnal hari ini -> Peringatan harus hilang
+        // Guru mengisi jurnal hari ini -> Peringatan harus hilang
         Journal::create([
-            'schedule_id' => $schedule->id,
+            'schedule_id' => $recentSchedule->id,
             'teacher_id' => $teacher->id,
             'date' => Carbon::today()->toDateString(),
             'teaching_material' => 'Materi Pemrograman Selesai Diisi',

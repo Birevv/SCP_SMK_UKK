@@ -37,6 +37,14 @@ class ScheduleController extends Controller
             $query->where('classroom_id', $request->classroom_id);
         }
 
+        if ($request->filled('grade') || $request->filled('class_level')) {
+            $query->forGrade($request->input('grade', $request->input('class_level')));
+        }
+
+        if ($request->filled('major')) {
+            $query->forMajor($request->input('major'));
+        }
+
         $schedules = $query->orderBy('start_time')->get();
 
         $days = ['Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat'];

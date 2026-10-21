@@ -14,6 +14,7 @@ use Filament\Schemas\Components\Utilities\Get;
 use Filament\Schemas\Components\Utilities\Set;
 use Filament\Schemas\Schema;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Auth;
 
 class LeaveRequestForm
@@ -48,44 +49,101 @@ class LeaveRequestForm
                     ->afterStateUpdated(function (Set $set, Get $get) {
                         $type = $get('reason_type');
 
-                        if ($type == ReasonTypeEnum::PULANG_CEPAT || $type == ReasonTypeEnum::KEGIATAN_LUAR) {
-                            $set('start_date', now());
-                            $set('end_date', now());
+                        $isPulangCepatOrKegiatanLuar = $type === ReasonTypeEnum::PULANG_CEPAT
+                            || $type === ReasonTypeEnum::PULANG_CEPAT->value
+                            || $type === ReasonTypeEnum::KEGIATAN_LUAR
+                            || $type === ReasonTypeEnum::KEGIATAN_LUAR->value;
+
+                        $isSakitOrIzin = $type === ReasonTypeEnum::SAKIT
+                            || $type === ReasonTypeEnum::SAKIT->value
+                            || $type === ReasonTypeEnum::IZIN
+                            || $type === ReasonTypeEnum::IZIN->value;
+
+                        if ($isPulangCepatOrKegiatanLuar) {
+                            $set('start_date', now()->toDateString());
+                            $set('end_date', now()->toDateString());
+                        } elseif ($isSakitOrIzin) {
+                            if (! $get('start_date')) {
+                                $set('start_date', now()->toDateString());
+                            }
+                            if (! $get('end_date')) {
+                                $set('end_date', now()->toDateString());
+                            }
                         }
                     }),
 
                 DatePicker::make('start_date')
                     ->required()
                     ->live()
+                    ->default(now()->toDateString())
+                    ->minDate(function (?LeaveRequest $record = null) {
+                        if ($record && $record->start_date) {
+                            $existing = Carbon::parse($record->start_date)->startOfDay();
+
+                            return $existing->isPast() ? $existing->toDateString() : now()->toDateString();
+                        }
+
+                        return now()->toDateString();
+                    })
+                    ->validationMessages([
+                        'after_or_equal' => 'Tanggal mulai minimal mengisi hari ini.',
+                    ])
                     ->readOnly(function (Get $get) {
                         $type = $get('reason_type');
 
-                        return $type == ReasonTypeEnum::PULANG_CEPAT || $type == ReasonTypeEnum::KEGIATAN_LUAR;
+                        return $type === ReasonTypeEnum::PULANG_CEPAT
+                            || $type === ReasonTypeEnum::PULANG_CEPAT->value
+                            || $type === ReasonTypeEnum::KEGIATAN_LUAR
+                            || $type === ReasonTypeEnum::KEGIATAN_LUAR->value;
                     })
                     ->visible(function (Get $get) {
                         $type = $get('reason_type');
 
-                        if ($type == ReasonTypeEnum::SAKIT || $type == ReasonTypeEnum::IZIN || $type == ReasonTypeEnum::PULANG_CEPAT || $type == ReasonTypeEnum::KEGIATAN_LUAR) {
-                            return true;
+                        return $type === ReasonTypeEnum::SAKIT
+                            || $type === ReasonTypeEnum::SAKIT->value
+                            || $type === ReasonTypeEnum::IZIN
+                            || $type === ReasonTypeEnum::IZIN->value
+                            || $type === ReasonTypeEnum::PULANG_CEPAT
+                            || $type === ReasonTypeEnum::PULANG_CEPAT->value
+                            || $type === ReasonTypeEnum::KEGIATAN_LUAR
+                            || $type === ReasonTypeEnum::KEGIATAN_LUAR->value;
+                    })
+                    ->afterStateUpdated(function (Get $get, Set $set, ?string $state) {
+                        if ($state && $get('end_date') && $get('end_date') < $state) {
+                            $set('end_date', $state);
                         }
-
-                        return false;
                     })
                     ->label('Tanggal Mulai'),
 
                 DatePicker::make('end_date')
                     ->required()
                     ->live()
+                    ->default(now()->toDateString())
+                    ->minDate(function (Get $get, ?LeaveRequest $record = null) {
+                        if ($startDate = $get('start_date')) {
+                            return $startDate;
+                        }
+
+                        if ($record && $record->end_date) {
+                            $existing = Carbon::parse($record->end_date)->startOfDay();
+
+                            return $existing->isPast() ? $existing->toDateString() : now()->toDateString();
+                        }
+
+                        return now()->toDateString();
+                    })
+                    ->afterOrEqual('start_date')
+                    ->validationMessages([
+                        'after_or_equal' => 'Tanggal selesai harus sama dengan atau setelah tanggal mulai.',
+                    ])
                     ->visible(function (Get $get) {
                         $type = $get('reason_type');
 
-                        if ($type == ReasonTypeEnum::SAKIT || $type == ReasonTypeEnum::IZIN) {
-                            return true;
-                        }
-
-                        return false;
+                        return $type === ReasonTypeEnum::SAKIT
+                            || $type === ReasonTypeEnum::SAKIT->value
+                            || $type === ReasonTypeEnum::IZIN
+                            || $type === ReasonTypeEnum::IZIN->value;
                     })
-                    ->afterOrEqual('start_date')
                     ->label('Tanggal Selesai'),
 
                 TimePicker::make('leave_time')
@@ -98,11 +156,10 @@ class LeaveRequestForm
                     ->visible(function (Get $get) {
                         $type = $get('reason_type');
 
-                        if ($type == ReasonTypeEnum::PULANG_CEPAT || $type == ReasonTypeEnum::KEGIATAN_LUAR) {
-                            return true;
-                        }
-
-                        return false;
+                        return $type === ReasonTypeEnum::PULANG_CEPAT
+                            || $type === ReasonTypeEnum::PULANG_CEPAT->value
+                            || $type === ReasonTypeEnum::KEGIATAN_LUAR
+                            || $type === ReasonTypeEnum::KEGIATAN_LUAR->value;
                     })
                     ->label('Jam Pergi'),
 

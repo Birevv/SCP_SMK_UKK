@@ -46,7 +46,7 @@ class UnfilledJournalAlertWidget extends Widget
             ];
         }
 
-        $thresholdTime = Carbon::now()->subMinutes(30)->format('H:i:s');
+        $thresholdTime = Carbon::now()->subMinutes(45)->format('H:i:s');
         $activeCycle = SystemConfiguration::current()->active_cycle;
 
         $query = Schedule::with(['classroom', 'room', 'subject', 'teacher'])
