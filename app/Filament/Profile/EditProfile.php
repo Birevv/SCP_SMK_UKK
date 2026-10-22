@@ -130,11 +130,33 @@ class EditProfile extends PagesEditProfile
             ]);
     }
 
+    public function mountAction(string $name, array $arguments = [], array $context = []): mixed
+    {
+        if ($name === 'save') {
+            $this->form->validate();
+        }
+
+        return parent::mountAction($name, $arguments, $context);
+    }
+
+    public function saveAction(): Action
+    {
+        return $this->getSaveFormAction();
+    }
+
     protected function getSaveFormAction(): Action
     {
         return parent::getSaveFormAction()
             ->label('Ubah Profil')
-            ->icon('heroicon-m-check');
+            ->icon('heroicon-m-check')
+            ->submit(null)
+            ->requiresConfirmation()
+            ->modalHeading('Konfirmasi Ubah Profil')
+            ->modalDescription('Pastikan data profil yang Anda masukkan sudah benar dan sesuai. Apakah Anda yakin ingin memperbarui profil Anda?')
+            ->modalSubmitActionLabel('Ya, Simpan Perubahan')
+            ->modalCancelActionLabel('Batal / Periksa Kembali')
+            ->modalIcon('heroicon-o-pencil-square')
+            ->action(fn () => $this->save());
     }
 
     protected function getCancelFormAction(): Action

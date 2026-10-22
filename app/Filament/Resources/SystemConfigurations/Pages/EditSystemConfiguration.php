@@ -2,12 +2,15 @@
 
 namespace App\Filament\Resources\SystemConfigurations\Pages;
 
+use App\Filament\Concerns\HasEditConfirmation;
 use App\Filament\Resources\SystemConfigurations\SystemConfigurationResource;
 use Filament\Actions\DeleteAction;
 use Filament\Resources\Pages\EditRecord;
 
 class EditSystemConfiguration extends EditRecord
 {
+    use HasEditConfirmation;
+
     protected static string $resource = SystemConfigurationResource::class;
 
     protected function getRedirectUrl(): string

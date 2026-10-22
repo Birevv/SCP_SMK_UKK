@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\Users\Pages;
 
+use App\Filament\Concerns\HasCreateConfirmation;
 use App\Filament\Resources\Users\UserResource;
 use App\Services\DocumentParserService;
 use App\Services\UserImportService;
@@ -15,6 +16,8 @@ use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class CreateUser extends CreateRecord
 {
+    use HasCreateConfirmation;
+
     protected static string $resource = UserResource::class;
 
     protected static ?string $title = 'Tambah Pengguna';

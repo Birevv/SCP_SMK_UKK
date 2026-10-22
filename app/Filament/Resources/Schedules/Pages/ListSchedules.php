@@ -4,7 +4,6 @@ namespace App\Filament\Resources\Schedules\Pages;
 
 use App\Filament\Resources\Schedules\ScheduleResource;
 use App\Models\Schedule;
-use App\Models\SystemConfiguration;
 use App\Services\DocumentParserService;
 use App\Services\ScheduleImportService;
 use Filament\Actions\Action;
@@ -115,15 +114,11 @@ class ListSchedules extends ListRecords
 
     public function getTabs(): array
     {
-        $activeCycle = SystemConfiguration::current()->active_cycle ?? 'Putaran 1';
         $baseQuery = fn () => static::getResource()::getEloquentQuery();
 
         return [
             'all' => Tab::make('Semua Putaran')
                 ->badge(fn () => $baseQuery()->count()),
-            'active_cycle' => Tab::make("Siklus Aktif ({$activeCycle})")
-                ->badge(fn () => $baseQuery()->where('cycle_type', $activeCycle)->count())
-                ->modifyQueryUsing(fn (Builder $query) => $query->where('cycle_type', $activeCycle)),
             'putaran_1' => Tab::make('Putaran 1')
                 ->badge(fn () => $baseQuery()->where('cycle_type', 'Putaran 1')->count())
                 ->modifyQueryUsing(fn (Builder $query) => $query->where('cycle_type', 'Putaran 1')),

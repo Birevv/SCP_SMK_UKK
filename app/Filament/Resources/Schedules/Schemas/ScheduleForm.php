@@ -4,6 +4,7 @@ namespace App\Filament\Resources\Schedules\Schemas;
 
 use App\Models\AcademicYear;
 use App\Models\Schedule;
+use App\Models\SchoolSession;
 use App\Models\SystemConfiguration;
 use App\Rules\NoScheduleConflict;
 use Filament\Forms\Components\Select;
@@ -101,10 +102,10 @@ class ScheduleForm
                     ->required()
                     ->live()
                     ->afterStateUpdated(function ($state, Set $set, Get $get) {
-                        if ($state === 'Jumat') {
-                            $jumatSessions = self::getSessions('Jumat');
-                            $validStarts = array_column($jumatSessions, 'start');
-                            $validEnds = array_column($jumatSessions, 'end');
+                        if ($state) {
+                            $sessions = self::getSessions($state);
+                            $validStarts = array_column($sessions, 'start');
+                            $validEnds = array_column($sessions, 'end');
 
                             $currentStart = $get('start_time');
                             $currentEnd = $get('end_time');
@@ -137,7 +138,7 @@ class ScheduleForm
                         if (! $currentEnd || $currentEnd <= $state) {
                             foreach ($sessions as $num => $session) {
                                 if ($session['start'] === $state) {
-                                    $targetNum = $num + 1; // Default 2 sesi (90 menit) jika tersedia dalam batasan sesi
+                                    $targetNum = $num + 1; // Default 2 sesi jika tersedia dalam batasan sesi
                                     $set('end_time', $sessions[$targetNum]['end'] ?? $session['end']);
                                     break;
                                 }
@@ -147,8 +148,13 @@ class ScheduleForm
                     ->formatStateUsing(fn ($state) => $state ? substr((string) $state, 0, 5) : null)
                     ->rules([
                         fn (Get $get) => function (string $attribute, $value, \Closure $fail) use ($get) {
-                            if ($get('day_of_week') === 'Jumat' && $value >= '13:50') {
-                                $fail('Jam mulai hari Jumat maksimal pada Jam ke - 8 (13:15).');
+                            $day = $get('day_of_week');
+                            $sessions = self::getSessions($day);
+                            if (! empty($sessions)) {
+                                $lastSession = end($sessions);
+                                if ($value > $lastSession['start']) {
+                                    $fail("Jam mulai hari {$day} maksimal pada {$lastSession['label']} ({$lastSession['start']}).");
+                                }
                             }
                         },
                     ])
@@ -186,8 +192,13 @@ class ScheduleForm
                     ->formatStateUsing(fn ($state) => $state ? substr((string) $state, 0, 5) : null)
                     ->rules([
                         fn (Get $get) => function (string $attribute, $value, \Closure $fail) use ($get) {
-                            if ($get('day_of_week') === 'Jumat' && $value > '13:50') {
-                                $fail('Jadwal hari Jumat maksimal hanya sampai Jam ke - 8 (13:50).');
+                            $day = $get('day_of_week');
+                            $sessions = self::getSessions($day);
+                            if (! empty($sessions)) {
+                                $lastSession = end($sessions);
+                                if ($value > $lastSession['end']) {
+                                    $fail("Jadwal hari {$day} maksimal hanya sampai {$lastSession['label']} ({$lastSession['end']}).");
+                                }
                             }
                         },
                     ])
@@ -206,31 +217,7 @@ class ScheduleForm
 
     public static function getSessions(?string $dayOfWeek = null): array
     {
-        if ($dayOfWeek === 'Jumat') {
-            return [
-                1 => ['start' => '07:15', 'end' => '07:55', 'label' => 'Jam ke - 1'],
-                2 => ['start' => '07:55', 'end' => '08:35', 'label' => 'Jam ke - 2'],
-                3 => ['start' => '08:35', 'end' => '09:15', 'label' => 'Jam ke - 3'],
-                4 => ['start' => '09:30', 'end' => '10:10', 'label' => 'Jam ke - 4'],
-                5 => ['start' => '10:10', 'end' => '10:50', 'label' => 'Jam ke - 5'],
-                6 => ['start' => '10:50', 'end' => '11:25', 'label' => 'Jam ke - 6'],
-                7 => ['start' => '12:40', 'end' => '13:15', 'label' => 'Jam ke - 7'],
-                8 => ['start' => '13:15', 'end' => '13:50', 'label' => 'Jam ke - 8'],
-            ];
-        }
-
-        return [
-            1 => ['start' => '07:15', 'end' => '07:55', 'label' => 'Jam ke - 1'],
-            2 => ['start' => '07:55', 'end' => '08:35', 'label' => 'Jam ke - 2'],
-            3 => ['start' => '08:35', 'end' => '09:15', 'label' => 'Jam ke - 3'],
-            4 => ['start' => '09:30', 'end' => '10:10', 'label' => 'Jam ke - 4'],
-            5 => ['start' => '10:10', 'end' => '10:50', 'label' => 'Jam ke - 5'],
-            6 => ['start' => '10:50', 'end' => '11:30', 'label' => 'Jam ke - 6'],
-            7 => ['start' => '12:30', 'end' => '13:10', 'label' => 'Jam ke - 7'],
-            8 => ['start' => '13:10', 'end' => '13:50', 'label' => 'Jam ke - 8'],
-            9 => ['start' => '13:50', 'end' => '14:30', 'label' => 'Jam ke - 9'],
-            10 => ['start' => '14:30', 'end' => '15:10', 'label' => 'Jam ke - 10'],
-        ];
+        return SchoolSession::getSessionsForDay($dayOfWeek);
     }
 
     public static function getStartTimeOptions(?string $currentValue = null, ?string $dayOfWeek = null): array

@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\Schedules\Pages;
 
+use App\Filament\Concerns\HasCreateConfirmation;
 use App\Filament\Resources\Schedules\ScheduleResource;
 use App\Models\Schedule;
 use App\Services\DocumentParserService;
@@ -16,6 +17,8 @@ use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class CreateSchedule extends CreateRecord
 {
+    use HasCreateConfirmation;
+
     protected static string $resource = ScheduleResource::class;
 
     protected static ?string $title = 'Tambah Jadwal';

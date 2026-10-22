@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\LeaveRequests\Pages;
 
+use App\Filament\Concerns\HasEditConfirmation;
 use App\Filament\Resources\LeaveRequests\LeaveRequestResource;
 use Filament\Actions\DeleteAction;
 use Filament\Resources\Pages\EditRecord;
@@ -9,6 +10,8 @@ use Illuminate\Support\Facades\Auth;
 
 class EditLeaveRequest extends EditRecord
 {
+    use HasEditConfirmation;
+
     protected static string $resource = LeaveRequestResource::class;
 
     protected function getRedirectUrl(): string

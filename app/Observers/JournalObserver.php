@@ -21,8 +21,9 @@ class JournalObserver
         }
 
         // Ambil semua student IDs (khusus role Siswa) melalui pivot
-        $studentIds = User::whereHas('role', function ($query) {
-            $query->where('name', 'Siswa');
+        $studentIds = User::where(function ($query) {
+            $query->whereHas('role', fn ($q) => $q->where('name', 'Siswa'))
+                ->orWhereHas('roles', fn ($q) => $q->where('name', 'Siswa'));
         })->whereHas('classrooms', function ($query) use ($classroomId) {
             $query->where('classrooms.id', $classroomId);
         })->pluck('id');
@@ -33,8 +34,8 @@ class JournalObserver
         // Pre-load semua approved leave requests dalam satu query (hindari N+1)
         $approvedLeaves = LeaveRequest::whereIn('student_id', $studentIds)
             ->where('status', 'Approved')
-            ->where('start_date', '<=', $journal->date)
-            ->where('end_date', '>=', $journal->date)
+            ->whereDate('start_date', '<=', $journal->date)
+            ->whereDate('end_date', '>=', $journal->date)
             ->get()
             ->keyBy('student_id');
 

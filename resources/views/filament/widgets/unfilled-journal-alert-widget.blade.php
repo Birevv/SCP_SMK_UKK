@@ -58,7 +58,7 @@
                             @if (class_exists(\App\Filament\Resources\Journals\JournalResource::class))
                                 <x-filament::button
                                     tag="a"
-                                    href="{{ \App\Filament\Resources\Journals\JournalResource::getUrl('create') }}"
+                                    href="{{ \App\Filament\Resources\Journals\JournalResource::getUrl('create', ['schedule_id' => $schedule->id]) }}"
                                     size="xs"
                                     color="danger"
                                     icon="heroicon-o-pencil-square">

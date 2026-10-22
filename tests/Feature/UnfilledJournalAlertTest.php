@@ -94,4 +94,73 @@ class UnfilledJournalAlertTest extends TestCase
 
         Carbon::setTestNow();
     }
+
+    public function test_alert_works_correctly_with_school_session_times(): void
+    {
+        // 1. Setup Master Data
+        $guruRole = Role::create(['name' => 'Guru']);
+        $teacher = User::factory()->create(['role_id' => $guruRole->id]);
+
+        $classroom = Classroom::factory()->create();
+        $room = Room::factory()->create();
+        $academicYear = AcademicYear::create(['name' => '2025/2026', 'is_active' => true]);
+        $subject = Subject::create(['name' => 'Basis Data']);
+
+        SystemConfiguration::create([
+            'active_cycle' => 'Putaran 1',
+            'is_schedule_locked' => false,
+        ]);
+
+        // Seed SchoolSession default: Jumat Jam ke-8 (13:20 - 14:00)
+        \App\Models\SchoolSession::seedDefaults();
+        $jumatSession = \App\Models\SchoolSession::where('day_of_week', 'Jumat')
+            ->where('session_number', 8)
+            ->first();
+
+        $this->assertNotNull($jumatSession);
+        $this->assertEquals('13:20', substr($jumatSession->start_time, 0, 5));
+        $this->assertEquals('14:00', substr($jumatSession->end_time, 0, 5));
+
+        // Buat jadwal mengajar berdasarkan sesi Jumat jam ke-8
+        $schedule = Schedule::create([
+            'academic_year_id' => $academicYear->id,
+            'teacher_id' => $teacher->id,
+            'classroom_id' => $classroom->id,
+            'room_id' => $room->id,
+            'subject_id' => $subject->id,
+            'day_of_week' => 'Jumat',
+            'start_time' => $jumatSession->start_time,
+            'end_time' => $jumatSession->end_time,
+            'cycle_type' => 'Putaran 1',
+        ]);
+
+        $this->actingAs($teacher);
+
+        // Kasus A: Hari Jumat pukul 14:40 (baru lewat 40 menit setelah jam 14:00 -> belum > 45 menit)
+        // Tanggal 2026-10-23 adalah hari Jumat
+        Carbon::setTestNow(Carbon::parse('2026-10-23 14:40:00'));
+
+        Livewire::test(UnfilledJournalAlertWidget::class)
+            ->assertDontSee('Peringatan: Jurnal Mengajar Belum Diisi!');
+
+        // Kasus B: Hari Jumat pukul 14:50 (sudah lewat 50 menit setelah jam 14:00 -> sudah > 45 menit)
+        Carbon::setTestNow(Carbon::parse('2026-10-23 14:50:00'));
+
+        Livewire::test(UnfilledJournalAlertWidget::class)
+            ->assertSee('Peringatan: Jurnal Mengajar Belum Diisi!')
+            ->assertSee($subject->name);
+
+        // Kasus C: Guru mengisi jurnal -> Alert langsung hilang
+        Journal::create([
+            'schedule_id' => $schedule->id,
+            'teacher_id' => $teacher->id,
+            'date' => '2026-10-23',
+            'teaching_material' => 'Materi Praktik Basis Data Selesai',
+        ]);
+
+        Livewire::test(UnfilledJournalAlertWidget::class)
+            ->assertDontSee('Peringatan: Jurnal Mengajar Belum Diisi!');
+
+        Carbon::setTestNow();
+    }
 }
