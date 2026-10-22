@@ -24,7 +24,7 @@
                 <button
                     type="button"
                     wire:click="setGrade('ALL')"
-                    class="px-2.5 py-1 text-xs font-medium rounded-lg transition-colors {{ $selectedGrade === 'ALL' ? 'bg-primary-600 text-white shadow-sm' : 'bg-gray-100 text-gray-700 hover:bg-gray-200 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700' }}"
+                    class="px-2.5 py-1 text-xs font-medium rounded-lg transition-colors {{ $selectedGrade === 'ALL' ? 'bg-primary-600 text-white shadow-sm' : 'bg-gray-100 text-gray-700 hover:bg-gray-200 dark:bg-gray-800 dark:text-gray-200 dark:hover:bg-gray-700' }}"
                 >
                     Semua
                 </button>
@@ -32,7 +32,7 @@
                     <button
                         type="button"
                         wire:click="setGrade('{{ $g->name }}')"
-                        class="px-2.5 py-1 text-xs font-medium rounded-lg transition-colors {{ $selectedGrade === $g->name ? 'bg-primary-600 text-white shadow-sm' : 'bg-gray-100 text-gray-700 hover:bg-gray-200 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700' }}"
+                        class="px-2.5 py-1 text-xs font-medium rounded-lg transition-colors {{ $selectedGrade === $g->name ? 'bg-primary-600 text-white shadow-sm' : 'bg-gray-100 text-gray-700 hover:bg-gray-200 dark:bg-gray-800 dark:text-gray-200 dark:hover:bg-gray-700' }}"
                     >
                         Kelas {{ $g->name }}
                     </button>
@@ -106,7 +106,7 @@
                                 <td class="py-2 px-3 font-medium text-gray-900 dark:text-white">
                                     {{ $s['subject_name'] }}
                                 </td>
-                                <td class="py-2 px-3 text-gray-700 dark:text-gray-300">
+                                <td class="py-2 px-3 text-gray-700 dark:text-gray-200">
                                     {{ $s['teacher_name'] }}
                                 </td>
                                 <td class="py-2 px-3 text-gray-500 dark:text-gray-400">

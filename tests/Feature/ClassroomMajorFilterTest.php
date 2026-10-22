@@ -18,6 +18,7 @@ use App\Models\Subject;
 use App\Models\SystemConfiguration;
 use App\Models\User;
 use Carbon\Carbon;
+use Filament\Facades\Filament;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Livewire\Livewire;
 use Tests\TestCase;
@@ -41,6 +42,8 @@ class ClassroomMajorFilterTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
+
+        Filament::setCurrentPanel(Filament::getPanel('admin'));
 
         $wakaRole = Role::firstOrCreate(['name' => 'Waka Kurikulum']);
         $guruRole = Role::firstOrCreate(['name' => 'Guru']);
@@ -258,5 +261,47 @@ class ClassroomMajorFilterTest extends TestCase
             ->set('selectedDay', 'Senin')
             ->assertSee('XII RPL 1')
             ->assertDontSee('X AKL 1');
+    }
+
+    public function test_schedules_table_filters_by_major(): void
+    {
+        $adminRole = Role::firstOrCreate(['name' => 'Super Admin']);
+        $admin = User::factory()->create(['role_id' => $adminRole->id]);
+        $admin->syncRoles(['Super Admin']);
+
+        $this->actingAs($admin);
+
+        // Filter Table by RPL
+        Livewire::test(ListSchedules::class)
+            ->filterTable('major', 'RPL')
+            ->assertCanSeeTableRecords([$this->schedule10Rpl, $this->schedule11Rpl, $this->schedule12Rpl])
+            ->assertCanNotSeeTableRecords([$this->schedule10Akl]);
+
+        // Filter Table by AKL
+        Livewire::test(ListSchedules::class)
+            ->filterTable('major', 'AKL')
+            ->assertCanSeeTableRecords([$this->schedule10Akl])
+            ->assertCanNotSeeTableRecords([$this->schedule10Rpl, $this->schedule11Rpl, $this->schedule12Rpl]);
+    }
+
+    public function test_teacher_schedule_widget_filters_by_major(): void
+    {
+        $this->actingAs($this->teacher);
+
+        // Teacher teaches 10 RPL, 11 RPL, 12 RPL
+        Livewire::test(TeacherScheduleWidget::class)
+            ->set('selectedDay', 'Senin')
+            ->call('setMajor', 'RPL')
+            ->assertSee('X RPL 1')
+            ->assertSee('XI RPL 1')
+            ->assertSee('XII RPL 1');
+
+        // Filter by AKL (teacher does not teach AKL)
+        Livewire::test(TeacherScheduleWidget::class)
+            ->set('selectedDay', 'Senin')
+            ->call('setMajor', 'AKL')
+            ->assertDontSee('X RPL 1')
+            ->assertDontSee('XI RPL 1')
+            ->assertDontSee('XII RPL 1');
     }
 }

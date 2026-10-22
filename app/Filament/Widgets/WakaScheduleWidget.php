@@ -8,9 +8,11 @@ use App\Models\Schedule;
 use App\Models\SystemConfiguration;
 use App\Models\User;
 use Carbon\Carbon;
+use Filament\Facades\Filament;
 use Filament\Widgets\Widget;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Auth;
+use Spatie\Permission\Models\Permission;
 
 class WakaScheduleWidget extends Widget
 {
@@ -31,12 +33,20 @@ class WakaScheduleWidget extends Widget
     public static function canView(): bool
     {
         /** @var User|null $user */
-        $user = Auth::user();
+        $user = Auth::user() ?? Filament::auth()?->user();
+        if (! $user) {
+            return false;
+        }
 
-        return $user?->hasRole('Waka Kurikulum')
-            || $user?->role?->name === 'Waka Kurikulum'
-            || $user?->hasRole('Super Admin')
-            || $user?->role?->name === 'Super Admin';
+        if ($user->hasRole('Super Admin') || $user->role?->name === 'Super Admin') {
+            return true;
+        }
+
+        if (Permission::where('name', 'View:WakaScheduleWidget')->exists()) {
+            return $user->can('View:WakaScheduleWidget');
+        }
+
+        return $user->hasRole('Waka Kurikulum') || $user->role?->name === 'Waka Kurikulum';
     }
 
     public function mount(): void

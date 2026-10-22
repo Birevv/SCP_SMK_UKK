@@ -27,7 +27,7 @@
             <div style="margin-top: 1.75rem;">
                 <x-filament::section>
                 <!-- Kop Laporan -->
-                <div style="border-bottom: 2px solid #374151; padding-bottom: 1rem; margin-bottom: 1.5rem; text-align: center;">
+                <div style="border-bottom: 2px solid rgba(156, 163, 175, 0.35); padding-bottom: 1rem; margin-bottom: 1.5rem; text-align: center;">
                     <h1 style="font-size: 1.5rem; font-weight: 700; text-transform: uppercase;">
                         SCHOOL CLASS PROGRESS
                     </h1>
@@ -44,32 +44,32 @@
                 <div style="overflow-x: auto;">
                     <table style="width: 100%; border-collapse: collapse; text-align: left; font-size: 0.875rem;">
                         <thead>
-                            <tr style="border-bottom: 2px solid #4b5563; background-color: rgba(156, 163, 175, 0.1);">
-                                <th style="padding: 10px; border: 1px solid #6b7280; text-align: center; width: 40px;">No</th>
-                                <th style="padding: 10px; border: 1px solid #6b7280;">NIS / Username</th>
-                                <th style="padding: 10px; border: 1px solid #6b7280;">Nama Siswa</th>
-                                <th style="padding: 10px; border: 1px solid #6b7280; text-align: center;">Hadir</th>
-                                <th style="padding: 10px; border: 1px solid #6b7280; text-align: center;">Sakit</th>
-                                <th style="padding: 10px; border: 1px solid #6b7280; text-align: center;">Izin</th>
-                                <th style="padding: 10px; border: 1px solid #6b7280; text-align: center;">Alpa</th>
-                                <th style="padding: 10px; border: 1px solid #6b7280; text-align: center;">Total</th>
-                                <th style="padding: 10px; border: 1px solid #6b7280; text-align: center;">% Kehadiran</th>
+                            <tr style="border-bottom: 2px solid rgba(156, 163, 175, 0.3); background-color: rgba(156, 163, 175, 0.08);">
+                                <th style="padding: 10px; border: 1px solid rgba(156, 163, 175, 0.25); text-align: center; width: 40px;">No</th>
+                                <th style="padding: 10px; border: 1px solid rgba(156, 163, 175, 0.25);">NIS / Username</th>
+                                <th style="padding: 10px; border: 1px solid rgba(156, 163, 175, 0.25);">Nama Siswa</th>
+                                <th style="padding: 10px; border: 1px solid rgba(156, 163, 175, 0.25); text-align: center;">Hadir</th>
+                                <th style="padding: 10px; border: 1px solid rgba(156, 163, 175, 0.25); text-align: center;">Sakit</th>
+                                <th style="padding: 10px; border: 1px solid rgba(156, 163, 175, 0.25); text-align: center;">Izin</th>
+                                <th style="padding: 10px; border: 1px solid rgba(156, 163, 175, 0.25); text-align: center;">Alpa</th>
+                                <th style="padding: 10px; border: 1px solid rgba(156, 163, 175, 0.25); text-align: center;">Total</th>
+                                <th style="padding: 10px; border: 1px solid rgba(156, 163, 175, 0.25); text-align: center;">% Kehadiran</th>
                             </tr>
                         </thead>
                         <tbody>
                             @foreach ($data['students'] as $index => $student)
-                                <tr style="border-bottom: 1px solid #4b5563;">
-                                    <td style="padding: 8px; border: 1px solid #6b7280; text-align: center;">{{ $index + 1 }}</td>
-                                    <td style="padding: 8px; border: 1px solid #6b7280;">{{ $student['username'] }}</td>
-                                    <td style="padding: 8px; border: 1px solid #6b7280; font-weight: 500;">{{ $student['full_name'] }}</td>
-                                    <td style="padding: 8px; border: 1px solid #6b7280; text-align: center; color: #16a34a; font-weight: 600;">{{ $student['hadir'] }}</td>
-                                    <td style="padding: 8px; border: 1px solid #6b7280; text-align: center; color: #ca8a04; font-weight: 600;">{{ $student['sakit'] }}</td>
-                                    <td style="padding: 8px; border: 1px solid #6b7280; text-align: center; color: #2563eb; font-weight: 600;">{{ $student['izin'] }}</td>
-                                    <td style="padding: 8px; border: 1px solid #6b7280; text-align: center; color: #dc2626; font-weight: 600;">{{ $student['alpa'] }}</td>
-                                    <td style="padding: 8px; border: 1px solid #6b7280; text-align: center; font-weight: 700;">{{ $student['total'] }}</td>
+                                <tr style="border-bottom: 1px solid rgba(156, 163, 175, 0.2);">
+                                    <td style="padding: 8px; border: 1px solid rgba(156, 163, 175, 0.2); text-align: center;">{{ $index + 1 }}</td>
+                                    <td style="padding: 8px; border: 1px solid rgba(156, 163, 175, 0.2);">{{ $student['username'] }}</td>
+                                    <td style="padding: 8px; border: 1px solid rgba(156, 163, 175, 0.2); font-weight: 500;">{{ $student['full_name'] }}</td>
+                                    <td style="padding: 8px; border: 1px solid rgba(156, 163, 175, 0.2); text-align: center; color: #16a34a; font-weight: 600;">{{ $student['hadir'] }}</td>
+                                    <td style="padding: 8px; border: 1px solid rgba(156, 163, 175, 0.2); text-align: center; color: #ca8a04; font-weight: 600;">{{ $student['sakit'] }}</td>
+                                    <td style="padding: 8px; border: 1px solid rgba(156, 163, 175, 0.2); text-align: center; color: #2563eb; font-weight: 600;">{{ $student['izin'] }}</td>
+                                    <td style="padding: 8px; border: 1px solid rgba(156, 163, 175, 0.2); text-align: center; color: #dc2626; font-weight: 600;">{{ $student['alpa'] }}</td>
+                                    <td style="padding: 8px; border: 1px solid rgba(156, 163, 175, 0.2); text-align: center; font-weight: 700;">{{ $student['total'] }}</td>
                                     <td @style([
                                         'padding: 8px',
-                                        'border: 1px solid #6b7280',
+                                        'border: 1px solid rgba(156, 163, 175, 0.2)',
                                         'text-align: center',
                                         'font-weight: 700',
                                         'color: ' . ($student['percentage'] < 75 ? '#dc2626' : '#16a34a'),

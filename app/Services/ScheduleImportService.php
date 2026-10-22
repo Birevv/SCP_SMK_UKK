@@ -59,10 +59,14 @@ class ScheduleImportService
             throw new \Exception('Jadwal pelajaran sedang dikunci. Penambahan atau import jadwal tidak diizinkan.');
         }
 
+        $isSchoolAdmin = $currentUser?->hasRole('Super Admin')
+            || $currentUser?->role?->name === 'Super Admin'
+            || $currentUser?->hasRole('Waka Kurikulum')
+            || $currentUser?->role?->name === 'Waka Kurikulum';
+
         $isOnlyTeacher = $currentUser
             && ($currentUser->hasRole('Guru') || $currentUser->role?->name === 'Guru')
-            && ! $currentUser->hasRole('Super Admin')
-            && ! $currentUser->hasRole('Waka Kurikulum');
+            && ! $isSchoolAdmin;
 
         foreach ($rows as $index => $row) {
             $rowNum = $index + 2; // header is row 1

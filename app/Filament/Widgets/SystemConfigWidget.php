@@ -7,11 +7,13 @@ use App\Models\User;
 use Filament\Actions\Action;
 use Filament\Actions\Concerns\InteractsWithActions;
 use Filament\Actions\Contracts\HasActions;
+use Filament\Facades\Filament;
 use Filament\Notifications\Notification;
 use Filament\Schemas\Concerns\InteractsWithSchemas;
 use Filament\Schemas\Contracts\HasSchemas;
 use Filament\Widgets\Widget;
 use Illuminate\Support\Facades\Auth;
+use Spatie\Permission\Models\Permission;
 
 class SystemConfigWidget extends Widget implements HasActions, HasSchemas
 {
@@ -29,13 +31,20 @@ class SystemConfigWidget extends Widget implements HasActions, HasSchemas
     public static function canView(): bool
     {
         /** @var User|null $user */
-        $user = Auth::user();
+        $user = Auth::user() ?? Filament::auth()?->user();
+        if (! $user) {
+            return false;
+        }
 
-        return $user?->hasRole('Waka Kurikulum')
-            || $user?->role?->name === 'Waka Kurikulum'
-            || $user?->hasRole('Super Admin')
-            || $user?->role?->name === 'Super Admin'
-            || (bool) $user?->can('View:SystemConfigWidget');
+        if ($user->hasRole('Super Admin') || $user->role?->name === 'Super Admin') {
+            return true;
+        }
+
+        if (Permission::where('name', 'View:SystemConfigWidget')->exists()) {
+            return $user->can('View:SystemConfigWidget');
+        }
+
+        return $user->hasRole('Waka Kurikulum') || $user->role?->name === 'Waka Kurikulum';
     }
 
     public function getViewData(): array

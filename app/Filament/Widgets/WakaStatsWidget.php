@@ -12,7 +12,9 @@ use App\Models\User;
 use Carbon\Carbon;
 use Filament\Widgets\StatsOverviewWidget as BaseWidget;
 use Filament\Widgets\StatsOverviewWidget\Stat;
+use Filament\Facades\Filament;
 use Illuminate\Support\Facades\Auth;
+use Spatie\Permission\Models\Permission;
 
 class WakaStatsWidget extends BaseWidget
 {
@@ -21,9 +23,20 @@ class WakaStatsWidget extends BaseWidget
     public static function canView(): bool
     {
         /** @var User|null $user */
-        $user = Auth::user();
+        $user = Auth::user() ?? Filament::auth()?->user();
+        if (! $user) {
+            return false;
+        }
 
-        return $user?->hasRole('Waka Kurikulum') || $user?->role?->name === 'Waka Kurikulum';
+        if ($user->hasRole('Super Admin') || $user->role?->name === 'Super Admin') {
+            return true;
+        }
+
+        if (Permission::where('name', 'View:WakaStatsWidget')->exists()) {
+            return $user->can('View:WakaStatsWidget');
+        }
+
+        return $user->hasRole('Waka Kurikulum') || $user->role?->name === 'Waka Kurikulum';
     }
 
     protected function getStats(): array

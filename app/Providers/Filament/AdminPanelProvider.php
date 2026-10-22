@@ -41,7 +41,7 @@ class AdminPanelProvider extends PanelProvider
                 FilamentShieldPlugin::make(),
             ])
             ->assets([
-                Css::make('custom-filament-styles', asset('css/filament/custom.css')),
+                Css::make('custom-filament-styles', asset('css/filament/custom.css?v=' . (file_exists(public_path('css/filament/custom.css')) ? filemtime(public_path('css/filament/custom.css')) : time()))),
             ])
             ->discoverResources(in: app_path('Filament/Resources'), for: 'App\Filament\Resources')
             ->discoverPages(in: app_path('Filament/Pages'), for: 'App\Filament\Pages')

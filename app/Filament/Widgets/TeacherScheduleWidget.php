@@ -4,12 +4,15 @@ namespace App\Filament\Widgets;
 
 use App\Models\ClassLevel;
 use App\Models\Journal;
+use App\Models\Major;
 use App\Models\Schedule;
 use App\Models\SystemConfiguration;
 use App\Models\User;
 use Carbon\Carbon;
+use Filament\Facades\Filament;
 use Filament\Widgets\Widget;
 use Illuminate\Support\Facades\Auth;
+use Spatie\Permission\Models\Permission;
 
 class TeacherScheduleWidget extends Widget
 {
@@ -21,14 +24,27 @@ class TeacherScheduleWidget extends Widget
 
     public ?string $selectedGrade = 'ALL';
 
+    public ?string $selectedMajor = 'ALL';
+
     public ?string $selectedDay = null;
 
     public static function canView(): bool
     {
         /** @var User|null $user */
-        $user = Auth::user();
+        $user = Auth::user() ?? Filament::auth()?->user();
+        if (! $user) {
+            return false;
+        }
 
-        return $user?->hasRole('Guru') || $user?->role?->name === 'Guru';
+        if (! ($user->hasRole('Guru') || $user->role?->name === 'Guru')) {
+            return false;
+        }
+
+        if (Permission::where('name', 'View:TeacherScheduleWidget')->exists()) {
+            return $user->can('View:TeacherScheduleWidget');
+        }
+
+        return true;
     }
 
     public function mount(): void
@@ -49,6 +65,11 @@ class TeacherScheduleWidget extends Widget
         $this->selectedGrade = $grade;
     }
 
+    public function setMajor(string $major): void
+    {
+        $this->selectedMajor = $major;
+    }
+
     public function setDay(string $day): void
     {
         $this->selectedDay = $day;
@@ -62,6 +83,7 @@ class TeacherScheduleWidget extends Widget
             return [
                 'schedules' => collect(),
                 'grades' => collect(),
+                'majors' => collect(),
                 'teacherGrades' => collect(),
             ];
         }
@@ -76,6 +98,7 @@ class TeacherScheduleWidget extends Widget
             ->unique();
 
         $allGrades = ClassLevel::orderBy('level')->get();
+        $allMajors = Major::orderBy('code')->get();
 
         $query = Schedule::with(['subject', 'classroom.classLevel', 'classroom.major', 'classroom.rombel', 'room'])
             ->where('teacher_id', $user->id)
@@ -84,6 +107,10 @@ class TeacherScheduleWidget extends Widget
 
         if ($this->selectedGrade && $this->selectedGrade !== 'ALL') {
             $query->forGrade($this->selectedGrade);
+        }
+
+        if ($this->selectedMajor && $this->selectedMajor !== 'ALL') {
+            $query->forMajor($this->selectedMajor);
         }
 
         $schedules = $query->orderBy('start_time')->get()->map(function (Schedule $schedule) use ($today, $now) {
@@ -108,6 +135,7 @@ class TeacherScheduleWidget extends Widget
         return [
             'schedules' => $schedules,
             'grades' => $allGrades,
+            'majors' => $allMajors,
             'activeCycle' => $config->active_cycle,
             'totalCount' => $schedules->count(),
             'filledCount' => $schedules->where('has_journal', true)->count(),

@@ -8,8 +8,10 @@ use App\Models\Schedule;
 use App\Models\SystemConfiguration;
 use App\Models\User;
 use Carbon\Carbon;
+use Filament\Facades\Filament;
 use Filament\Widgets\Widget;
 use Illuminate\Support\Facades\Auth;
+use Spatie\Permission\Models\Permission;
 
 class HomeroomScheduleWidget extends Widget
 {
@@ -28,10 +30,23 @@ class HomeroomScheduleWidget extends Widget
     public static function canView(): bool
     {
         /** @var User|null $user */
-        $user = Auth::user();
+        $user = Auth::user() ?? Filament::auth()?->user();
+        if (! $user) {
+            return false;
+        }
 
-        return $user?->hasAnyRole(['Wali Kelas', 'Guru BK'])
-            || in_array($user?->role?->name, ['Wali Kelas', 'Guru BK']);
+        $isHomeroomOrBk = $user->hasAnyRole(['Wali Kelas', 'Guru BK'])
+            || in_array($user->role?->name, ['Wali Kelas', 'Guru BK']);
+
+        if (! $isHomeroomOrBk) {
+            return false;
+        }
+
+        if (Permission::where('name', 'View:HomeroomScheduleWidget')->exists()) {
+            return $user->can('View:HomeroomScheduleWidget');
+        }
+
+        return true;
     }
 
     public function mount(): void

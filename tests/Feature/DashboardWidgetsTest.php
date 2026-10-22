@@ -56,7 +56,7 @@ class DashboardWidgetsTest extends TestCase
 
         $this->assertTrue(WakaStatsWidget::canView());
         $this->assertTrue(SystemConfigWidget::canView());
-        $this->assertTrue(UnfilledJournalAlertWidget::canView());
+        $this->assertFalse(UnfilledJournalAlertWidget::canView());
 
         $this->assertFalse(StatsOverviewWidget::canView());
         $this->assertFalse(TeacherStatsWidget::canView());
@@ -120,6 +120,38 @@ class DashboardWidgetsTest extends TestCase
         $this->assertFalse(WakaStatsWidget::canView());
         $this->assertFalse(TeacherStatsWidget::canView());
         $this->assertFalse(HomeroomStatsWidget::canView());
+        $this->assertFalse(UnfilledJournalAlertWidget::canView());
+    }
+
+    public function test_unfilled_journal_alert_widget_respects_permissions_dynamically(): void
+    {
+        $perm = \Spatie\Permission\Models\Permission::firstOrCreate([
+            'name' => 'View:UnfilledJournalAlertWidget',
+            'guard_name' => 'web',
+        ]);
+
+        $waka = User::factory()->create();
+        $waka->assignRole('Waka Kurikulum');
+        $this->actingAs($waka);
+
+        // Without permission, Waka cannot view
+        $this->assertFalse(UnfilledJournalAlertWidget::canView());
+
+        // Grant permission via Super Admin action
+        $wakaRole = Role::findByName('Waka Kurikulum', 'web');
+        $wakaRole->givePermissionTo($perm);
+        app()[\Spatie\Permission\PermissionRegistrar::class]->forgetCachedPermissions();
+        $waka->load('roles.permissions');
+
+        // With permission, Waka can view
+        $this->assertTrue(UnfilledJournalAlertWidget::canView());
+
+        // Revoke permission via Super Admin action
+        $wakaRole->revokePermissionTo($perm);
+        app()[\Spatie\Permission\PermissionRegistrar::class]->forgetCachedPermissions();
+        $waka->load('roles.permissions');
+
+        // Without permission again, Waka cannot view
         $this->assertFalse(UnfilledJournalAlertWidget::canView());
     }
 }

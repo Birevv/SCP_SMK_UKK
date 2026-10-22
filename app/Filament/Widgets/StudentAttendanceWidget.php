@@ -4,8 +4,10 @@ namespace App\Filament\Widgets;
 
 use App\Models\Attendance;
 use App\Models\User;
+use Filament\Facades\Filament;
 use Filament\Widgets\Widget;
 use Illuminate\Support\Facades\Auth;
+use Spatie\Permission\Models\Permission;
 
 class StudentAttendanceWidget extends Widget
 {
@@ -16,9 +18,20 @@ class StudentAttendanceWidget extends Widget
     public static function canView(): bool
     {
         /** @var User|null $user */
-        $user = Auth::user();
+        $user = Auth::user() ?? Filament::auth()?->user();
+        if (! $user) {
+            return false;
+        }
 
-        return $user?->hasRole('Siswa') || $user?->role?->name === 'Siswa';
+        if (! ($user->hasRole('Siswa') || $user->role?->name === 'Siswa')) {
+            return false;
+        }
+
+        if (Permission::where('name', 'View:StudentAttendanceWidget')->exists()) {
+            return $user->can('View:StudentAttendanceWidget');
+        }
+
+        return true;
     }
 
     protected function getViewData(): array

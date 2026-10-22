@@ -11,9 +11,11 @@ use App\Models\Subject;
 use App\Models\SystemConfiguration;
 use App\Models\User;
 use Carbon\Carbon;
+use Filament\Facades\Filament;
 use Filament\Widgets\StatsOverviewWidget as BaseWidget;
 use Filament\Widgets\StatsOverviewWidget\Stat;
 use Illuminate\Support\Facades\Auth;
+use Spatie\Permission\Models\Permission;
 
 class StatsOverviewWidget extends BaseWidget
 {
@@ -22,9 +24,20 @@ class StatsOverviewWidget extends BaseWidget
     public static function canView(): bool
     {
         /** @var User|null $user */
-        $user = Auth::user();
+        $user = Auth::user() ?? Filament::auth()?->user();
+        if (! $user) {
+            return false;
+        }
 
-        return $user?->hasRole('Super Admin') || $user?->role?->name === 'Super Admin';
+        if ($user->hasRole('Super Admin') || $user->role?->name === 'Super Admin') {
+            return true;
+        }
+
+        if (Permission::where('name', 'View:StatsOverviewWidget')->exists()) {
+            return $user->can('View:StatsOverviewWidget');
+        }
+
+        return false;
     }
 
     protected function getStats(): array

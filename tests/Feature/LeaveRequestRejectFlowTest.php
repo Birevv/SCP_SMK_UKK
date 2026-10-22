@@ -304,4 +304,46 @@ class LeaveRequestRejectFlowTest extends TestCase
         $this->assertNotNull($startDateField);
         $this->assertEquals(now()->subDays(5)->toDateString(), $startDateField->getMinDate());
     }
+
+    public function test_approve_and_reject_actions_respect_approve_leave_request_permission(): void
+    {
+        $perm = \Spatie\Permission\Models\Permission::firstOrCreate([
+            'name' => 'approve_leave_request',
+            'guard_name' => 'web',
+        ]);
+
+        $leaveRequest = LeaveRequest::create([
+            'student_id' => $this->student->id,
+            'submitted_by' => $this->student->id,
+            'start_date' => now()->toDateString(),
+            'end_date' => now()->toDateString(),
+            'reason_type' => 'Izin',
+            'description' => 'Keperluan keluarga',
+            'status' => 'Pending',
+        ]);
+
+        $waliRole = Role::findByName('Wali Kelas', 'web');
+
+        // With permission granted, Wali Kelas can see approve/reject
+        $waliRole->givePermissionTo($perm);
+        app()[\Spatie\Permission\PermissionRegistrar::class]->forgetCachedPermissions();
+        $this->waliKelas->load('roles.permissions');
+
+        $this->actingAs($this->waliKelas);
+        $table = \App\Filament\Resources\LeaveRequests\Tables\LeaveRequestsTable::configure(\Filament\Tables\Table::make(\Livewire\Livewire::new(\App\Filament\Resources\LeaveRequests\Pages\ListLeaveRequests::class)));
+        $approveAction = collect($table->getActions())->first(fn ($a) => $a->getName() === 'approve');
+        $approveAction->record($leaveRequest);
+        $this->assertTrue($approveAction->isVisible());
+
+        // When permission is revoked from Wali Kelas in Super Admin, buttons become hidden
+        $waliRole->revokePermissionTo($perm);
+        app()[\Spatie\Permission\PermissionRegistrar::class]->forgetCachedPermissions();
+        $this->waliKelas->unsetRelation('roles')->unsetRelation('permissions');
+        \Illuminate\Support\Facades\Auth::setUser($this->waliKelas);
+
+        $table2 = \App\Filament\Resources\LeaveRequests\Tables\LeaveRequestsTable::configure(\Filament\Tables\Table::make(\Livewire\Livewire::new(\App\Filament\Resources\LeaveRequests\Pages\ListLeaveRequests::class)));
+        $approveAction2 = collect($table2->getActions())->first(fn ($a) => $a->getName() === 'approve');
+        $approveAction2->record($leaveRequest);
+        $this->assertFalse($approveAction2->isVisible());
+    }
 }

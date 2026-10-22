@@ -14,6 +14,7 @@ use Filament\Notifications\Notification;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
 use Illuminate\Support\Facades\Auth;
+use Spatie\Permission\Models\Permission;
 
 class LeaveRequestsTable
 {
@@ -93,11 +94,26 @@ class LeaveRequestsTable
                             ->success()
                             ->send();
                     })
-                    ->visible(fn (LeaveRequest $record): bool => $record->status === 'Pending' &&
-                        (Auth::user()?->can('approve_leave_request') || Auth::user()?->hasAnyRole(['Wali Kelas', 'Guru BK', 'Super Admin']) || in_array(Auth::user()?->role?->name, ['Wali Kelas', 'Guru BK', 'Super Admin'])) &&
-                        $record->submitted_by !== Auth::id() &&
-                        $record->student_id !== Auth::id()
-                    ),
+                    ->visible(function (LeaveRequest $record): bool {
+                        if ($record->status !== 'Pending' || $record->submitted_by === Auth::id() || $record->student_id === Auth::id()) {
+                            return false;
+                        }
+
+                        $user = Auth::user();
+                        if (! $user) {
+                            return false;
+                        }
+
+                        if ($user->hasRole('Super Admin') || $user->role?->name === 'Super Admin') {
+                            return true;
+                        }
+
+                        if (Permission::where('name', 'approve_leave_request')->exists()) {
+                            return $user->can('approve_leave_request');
+                        }
+
+                        return $user->hasAnyRole(['Wali Kelas', 'Guru BK']) || in_array($user->role?->name, ['Wali Kelas', 'Guru BK']);
+                    }),
 
                 Action::make('reject')
                     ->label('Reject')
@@ -127,11 +143,26 @@ class LeaveRequestsTable
                             ->danger()
                             ->send();
                     })
-                    ->visible(fn (LeaveRequest $record): bool => $record->status === 'Pending' &&
-                        (Auth::user()?->can('approve_leave_request') || Auth::user()?->hasAnyRole(['Wali Kelas', 'Guru BK', 'Super Admin']) || in_array(Auth::user()?->role?->name, ['Wali Kelas', 'Guru BK', 'Super Admin'])) &&
-                        $record->submitted_by !== Auth::id() &&
-                        $record->student_id !== Auth::id()
-                    ),
+                    ->visible(function (LeaveRequest $record): bool {
+                        if ($record->status !== 'Pending' || $record->submitted_by === Auth::id() || $record->student_id === Auth::id()) {
+                            return false;
+                        }
+
+                        $user = Auth::user();
+                        if (! $user) {
+                            return false;
+                        }
+
+                        if ($user->hasRole('Super Admin') || $user->role?->name === 'Super Admin') {
+                            return true;
+                        }
+
+                        if (Permission::where('name', 'approve_leave_request')->exists()) {
+                            return $user->can('approve_leave_request');
+                        }
+
+                        return $user->hasAnyRole(['Wali Kelas', 'Guru BK']) || in_array($user->role?->name, ['Wali Kelas', 'Guru BK']);
+                    }),
 
                 DeleteAction::make(),
             ])

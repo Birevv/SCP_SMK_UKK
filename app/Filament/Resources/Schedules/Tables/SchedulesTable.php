@@ -40,6 +40,13 @@ class SchedulesTable
                     ->color('info')
                     ->label('Kelas'),
 
+                TextColumn::make('classroom.major.code')
+                    ->label('Jurusan')
+                    ->badge()
+                    ->color('gray')
+                    ->sortable()
+                    ->toggleable(),
+
                 TextColumn::make('room.name')
                     ->sortable()
                     ->label('Ruangan'),
@@ -90,17 +97,19 @@ class SchedulesTable
 
                 SelectFilter::make('major')
                     ->label('Jurusan')
+                    ->searchable()
+                    ->preload()
                     ->options(function () {
-                        $majors = Major::pluck('name', 'code')->toArray();
+                        $majors = Major::orderBy('code')->pluck('name', 'code')->toArray();
                         if (empty($majors)) {
                             return [
-                                'RPL' => 'Rekayasa Perangkat Lunak',
-                                'AKL' => 'Akuntansi dan Keuangan Lembaga',
-                                'TKJ' => 'Teknik Komputer dan Jaringan',
+                                'RPL' => 'RPL - Rekayasa Perangkat Lunak',
+                                'AKL' => 'AKL - Akuntansi dan Keuangan Lembaga',
+                                'TKJ' => 'TKJ - Teknik Komputer dan Jaringan',
                             ];
                         }
 
-                        return array_map(fn ($code, $name) => "{$code} - {$name}", array_keys($majors), $majors);
+                        return collect($majors)->mapWithKeys(fn ($name, $code) => [$code => "{$code} - {$name}"])->toArray();
                     })
                     ->query(fn (Builder $query, array $data) => filled($data['value'] ?? null)
                         ? $query->forMajor($data['value'])

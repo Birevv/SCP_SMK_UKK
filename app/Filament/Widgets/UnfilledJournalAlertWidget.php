@@ -6,8 +6,10 @@ use App\Models\Schedule;
 use App\Models\SystemConfiguration;
 use App\Models\User;
 use Carbon\Carbon;
+use Filament\Facades\Filament;
 use Filament\Widgets\Widget;
 use Illuminate\Support\Facades\Auth;
+use Spatie\Permission\Models\Permission;
 
 class UnfilledJournalAlertWidget extends Widget
 {
@@ -20,13 +22,20 @@ class UnfilledJournalAlertWidget extends Widget
     public static function canView(): bool
     {
         /** @var User|null $user */
-        $user = Auth::user();
-        if ($user?->hasRole('Super Admin') || $user?->role?->name === 'Super Admin'
-            || $user?->hasRole('Waka Kurikulum') || $user?->role?->name === 'Waka Kurikulum') {
+        $user = Auth::user() ?? Filament::auth()?->user();
+        if (! $user) {
+            return false;
+        }
+
+        if ($user->hasRole('Super Admin') || $user->role?->name === 'Super Admin') {
             return true;
         }
 
-        return $user?->hasRole('Guru') || $user?->role?->name === 'Guru';
+        if (Permission::where('name', 'View:UnfilledJournalAlertWidget')->exists()) {
+            return $user->can('View:UnfilledJournalAlertWidget');
+        }
+
+        return $user->hasRole('Guru') || $user->role?->name === 'Guru';
     }
 
     public function getViewData(): array

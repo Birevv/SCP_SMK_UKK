@@ -22,7 +22,7 @@
                     <button
                         type="button"
                         wire:click="setMajor('ALL')"
-                        class="px-3 py-1.5 text-xs font-medium rounded-lg transition-colors {{ $selectedMajor === 'ALL' ? 'bg-primary-600 text-white shadow-sm' : 'bg-gray-100 text-gray-700 hover:bg-gray-200 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700' }}"
+                        class="px-3 py-1.5 text-xs font-medium rounded-lg transition-colors {{ $selectedMajor === 'ALL' ? 'bg-primary-600 text-white shadow-sm' : 'bg-gray-100 text-gray-700 hover:bg-gray-200 dark:bg-gray-800 dark:text-gray-200 dark:hover:bg-gray-700' }}"
                     >
                         Semua Jurusan
                     </button>
@@ -30,7 +30,7 @@
                         <button
                             type="button"
                             wire:click="setMajor('{{ $m->code }}')"
-                            class="px-3 py-1.5 text-xs font-medium rounded-lg transition-colors flex items-center gap-1.5 {{ $selectedMajor === $m->code ? 'bg-primary-600 text-white shadow-sm' : 'bg-gray-100 text-gray-700 hover:bg-gray-200 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700' }}"
+                            class="px-3 py-1.5 text-xs font-medium rounded-lg transition-colors flex items-center gap-1.5 {{ $selectedMajor === $m->code ? 'bg-primary-600 text-white shadow-sm' : 'bg-gray-100 text-gray-700 hover:bg-gray-200 dark:bg-gray-800 dark:text-gray-200 dark:hover:bg-gray-700' }}"
                         >
                             <span>{{ $m->code }}</span>
                             <span class="text-[10px] opacity-80">({{ $m->name }})</span>
@@ -39,8 +39,24 @@
                 </div>
             </div>
 
-            {{-- Filter Tingkat & Hari & Putaran --}}
-            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-2 border-t border-gray-200 dark:border-gray-800">
+            {{-- Filter Jurusan & Tingkat & Hari & Putaran --}}
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 pt-2 border-t border-gray-200 dark:border-gray-800">
+                {{-- Jurusan --}}
+                <div>
+                    <label class="text-xs font-semibold text-gray-500 dark:text-gray-400 mb-1 block">
+                        Jurusan:
+                    </label>
+                    <select
+                        wire:model.live="selectedMajor"
+                        class="w-full text-xs rounded-lg border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-200 focus:ring-primary-500 focus:border-primary-500"
+                    >
+                        <option value="ALL">Semua Jurusan</option>
+                        @foreach ($majors as $m)
+                            <option value="{{ $m->code }}">{{ $m->code }} - {{ $m->name }}</option>
+                        @endforeach
+                    </select>
+                </div>
+
                 {{-- Tingkat Kelas --}}
                 <div>
                     <label class="text-xs font-semibold text-gray-500 dark:text-gray-400 mb-1 block">
@@ -154,14 +170,14 @@
                                             {{ $s['classroom_name'] }}
                                         </x-filament::badge>
                                         @if ($s['major_code'] !== '-')
-                                            <span class="text-[10px] text-gray-500 font-medium">({{ $s['major_code'] }})</span>
+                                            <span class="text-[10px] text-gray-500 dark:text-gray-400 font-medium">({{ $s['major_code'] }})</span>
                                         @endif
                                     </div>
                                 </td>
                                 <td class="py-2 px-3 font-medium text-gray-900 dark:text-white">
                                     {{ $s['subject_name'] }}
                                 </td>
-                                <td class="py-2 px-3 text-gray-700 dark:text-gray-300">
+                                <td class="py-2 px-3 text-gray-700 dark:text-gray-200">
                                     {{ $s['teacher_name'] }}
                                 </td>
                                 <td class="py-2 px-3 text-gray-500 dark:text-gray-400">

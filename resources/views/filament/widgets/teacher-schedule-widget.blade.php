@@ -24,7 +24,7 @@
                 <button
                     type="button"
                     wire:click="setGrade('ALL')"
-                    class="px-3 py-1 text-xs font-medium rounded-lg transition-colors {{ $selectedGrade === 'ALL' ? 'bg-primary-600 text-white shadow-sm' : 'bg-gray-100 text-gray-700 hover:bg-gray-200 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700' }}"
+                    class="px-3 py-1 text-xs font-medium rounded-lg transition-colors {{ $selectedGrade === 'ALL' ? 'bg-primary-600 text-white shadow-sm' : 'bg-gray-100 text-gray-700 hover:bg-gray-200 dark:bg-gray-800 dark:text-gray-200 dark:hover:bg-gray-700' }}"
                 >
                     Semua Kelas
                 </button>
@@ -32,24 +32,39 @@
                     <button
                         type="button"
                         wire:click="setGrade('{{ $g->name }}')"
-                        class="px-3 py-1 text-xs font-medium rounded-lg transition-colors {{ $selectedGrade === $g->name ? 'bg-primary-600 text-white shadow-sm' : 'bg-gray-100 text-gray-700 hover:bg-gray-200 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700' }}"
+                        class="px-3 py-1 text-xs font-medium rounded-lg transition-colors {{ $selectedGrade === $g->name ? 'bg-primary-600 text-white shadow-sm' : 'bg-gray-100 text-gray-700 hover:bg-gray-200 dark:bg-gray-800 dark:text-gray-200 dark:hover:bg-gray-700' }}"
                     >
                         Kelas {{ $g->name }}
                     </button>
                 @endforeach
             </div>
 
-            {{-- Filter Hari --}}
-            <div class="flex items-center gap-2">
-                <span class="text-xs font-semibold text-gray-500 dark:text-gray-400">Hari:</span>
-                <select
-                    wire:model.live="selectedDay"
-                    class="text-xs rounded-lg border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-200 focus:ring-primary-500 focus:border-primary-500 py-1"
-                >
-                    @foreach (['Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat'] as $d)
-                        <option value="{{ $d }}">{{ $d }}</option>
-                    @endforeach
-                </select>
+            {{-- Filter Jurusan & Hari --}}
+            <div class="flex items-center gap-3">
+                <div class="flex items-center gap-1.5">
+                    <span class="text-xs font-semibold text-gray-500 dark:text-gray-400">Jurusan:</span>
+                    <select
+                        wire:model.live="selectedMajor"
+                        class="text-xs rounded-lg border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-200 focus:ring-primary-500 focus:border-primary-500 py-1"
+                    >
+                        <option value="ALL">Semua Jurusan</option>
+                        @foreach ($majors as $m)
+                            <option value="{{ $m->code }}">{{ $m->code }}</option>
+                        @endforeach
+                    </select>
+                </div>
+
+                <div class="flex items-center gap-1.5">
+                    <span class="text-xs font-semibold text-gray-500 dark:text-gray-400">Hari:</span>
+                    <select
+                        wire:model.live="selectedDay"
+                        class="text-xs rounded-lg border-gray-300 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-200 focus:ring-primary-500 focus:border-primary-500 py-1"
+                    >
+                        @foreach (['Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat'] as $d)
+                            <option value="{{ $d }}">{{ $d }}</option>
+                        @endforeach
+                    </select>
+                </div>
             </div>
         </div>
 

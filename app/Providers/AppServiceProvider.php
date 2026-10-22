@@ -26,7 +26,7 @@ class AppServiceProvider extends ServiceProvider
     {
         // Super Admin memiliki akses penuh ke seluruh gate & abilities
         Gate::before(function ($user, $ability) {
-            return $user->hasRole('Super Admin') ? true : null;
+            return ($user->hasRole('Super Admin') || $user->role?->name === 'Super Admin') ? true : null;
         });
 
         // Konfigurasi konfirmasi global untuk aksi-aksi CRUD Filament

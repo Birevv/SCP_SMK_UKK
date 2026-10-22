@@ -7,9 +7,11 @@ use App\Models\Schedule;
 use App\Models\SystemConfiguration;
 use App\Models\User;
 use Carbon\Carbon;
+use Filament\Facades\Filament;
 use Filament\Widgets\StatsOverviewWidget as BaseWidget;
 use Filament\Widgets\StatsOverviewWidget\Stat;
 use Illuminate\Support\Facades\Auth;
+use Spatie\Permission\Models\Permission;
 
 class TeacherStatsWidget extends BaseWidget
 {
@@ -18,9 +20,20 @@ class TeacherStatsWidget extends BaseWidget
     public static function canView(): bool
     {
         /** @var User|null $user */
-        $user = Auth::user();
+        $user = Auth::user() ?? Filament::auth()?->user();
+        if (! $user) {
+            return false;
+        }
 
-        return $user?->hasRole('Guru') || $user?->role?->name === 'Guru';
+        if (! ($user->hasRole('Guru') || $user->role?->name === 'Guru')) {
+            return false;
+        }
+
+        if (Permission::where('name', 'View:TeacherStatsWidget')->exists()) {
+            return $user->can('View:TeacherStatsWidget');
+        }
+
+        return true;
     }
 
     protected function getStats(): array
