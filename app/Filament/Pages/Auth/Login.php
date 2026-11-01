@@ -24,7 +24,7 @@ class Login extends BaseLogin
             return __('filament-panels::auth/pages/login.multi_factor.heading');
         }
 
-        return 'Masuk ke Sistem';
+        return 'Masuk ke Sistem School Class Progress';
     }
 
     public function getSubheading(): string|Htmlable|null
@@ -33,7 +33,7 @@ class Login extends BaseLogin
             return __('filament-panels::auth/pages/login.multi_factor.subheading');
         }
 
-        return 'Gunakan NISN (Siswa) atau NIP/Username (Guru) untuk masuk';
+        return 'Masukkan Username dan Password Untuk Masuk ke Sistem';
     }
 
     public function form(Schema $schema): Schema
@@ -49,8 +49,8 @@ class Login extends BaseLogin
     protected function getLoginFormComponent(): Component
     {
         return TextInput::make('login')
-            ->label('NISN / Nomor Induk / Username')
-            ->placeholder('NISN siswa atau NIP/Username guru')
+            ->label('Username')
+            ->placeholder('Masukkan Username')
             ->required()
             ->autocomplete('username')
             ->autofocus();

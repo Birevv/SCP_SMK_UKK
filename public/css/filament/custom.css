@@ -780,3 +780,413 @@ html.dark .scp-alert-card-time strong {
 html.dark .scp-alert-card-due {
     color: #f87171 !important;
 }
+
+/* ==========================================================================
+   5. Brand Logo Styles
+   ========================================================================== */
+/* Generic Brand Logo Wrapper */
+.fi-brand-logo-wrapper {
+    display: inline-flex;
+    align-items: center;
+}
+
+/* 5.1 Topbar / Navbar Brand Logo */
+.fi-topbar .fi-logo {
+    height: auto !important;
+    display: flex !important;
+    align-items: center !important;
+    padding-left: 0.85rem !important; /* Margin from left edge so it's not mepet */
+    padding-right: 0.5rem !important;
+}
+
+.fi-topbar .fi-brand-logo-wrapper {
+    display: flex !important;
+    align-items: center !important;
+    gap: 0.85rem !important; /* Spacing between logo and text */
+}
+
+.fi-topbar .fi-brand-logo-img {
+    height: 2.35rem !important;
+    width: 2.35rem !important;
+    object-fit: contain !important;
+    flex-shrink: 0 !important;
+    margin: 0 0.25rem !important;
+    filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.25));
+    transition: transform 0.2s ease-in-out;
+}
+
+.fi-topbar .fi-brand-logo-img:hover {
+    transform: scale(1.05);
+}
+
+.fi-topbar .fi-brand-logo-text {
+    font-size: 1.05rem !important;
+    font-weight: 700 !important;
+    letter-spacing: -0.015em !important;
+    color: #ffffff !important;
+    white-space: nowrap !important;
+    line-height: 1.25 !important;
+}
+
+html:not(.dark) .fi-topbar .fi-brand-logo-text {
+    color: #111827 !important;
+}
+
+/* 5.2 Sidebar Brand Logo */
+.fi-sidebar-header .fi-logo {
+    height: auto !important;
+    display: flex !important;
+    align-items: center !important;
+    padding-left: 0.5rem !important;
+}
+
+.fi-sidebar-header .fi-brand-logo-wrapper {
+    display: flex !important;
+    align-items: center !important;
+    gap: 0.75rem !important;
+}
+
+.fi-sidebar-header .fi-brand-logo-img {
+    height: 2.25rem !important;
+    width: 2.25rem !important;
+    object-fit: contain !important;
+    flex-shrink: 0 !important;
+    filter: drop-shadow(0 1px 3px rgba(0, 0, 0, 0.2));
+}
+
+.fi-sidebar-header .fi-brand-logo-text {
+    font-size: 1rem !important;
+    font-weight: 700 !important;
+    color: #ffffff !important;
+    white-space: nowrap !important;
+}
+
+html:not(.dark) .fi-sidebar-header .fi-brand-logo-text {
+    color: #111827 !important;
+}
+
+/* 5.3 Login / Auth Pages Brand Logo */
+.fi-simple-header .fi-logo {
+    height: auto !important;
+    margin-bottom: 1.25rem !important;
+}
+
+.fi-simple-header .fi-brand-logo-wrapper {
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    text-align: center !important;
+    gap: 0.5rem !important;
+}
+
+.fi-simple-header .fi-brand-logo-img {
+    height: 4.5rem !important;
+    width: 4.5rem !important;
+    object-fit: contain !important;
+    filter: drop-shadow(0 4px 10px rgba(0, 0, 0, 0.35));
+    transition: transform 0.2s ease-in-out;
+}
+
+.fi-simple-header .fi-brand-logo-img:hover {
+    transform: scale(1.04);
+}
+
+.fi-simple-header .fi-brand-logo-text {
+    display: none !important;
+}
+
+/* ==========================================================================
+   6. User Profile Card Component (Human-Designed UI)
+   ========================================================================== */
+.scp-profile-card {
+    background-color: #ffffff;
+    border: 1px solid #e5e7eb;
+    border-radius: 0.75rem;
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+    box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.04);
+}
+.scp-profile-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 1.25rem;
+}
+.scp-profile-identity {
+    display: flex;
+    align-items: center;
+    gap: 1.25rem;
+}
+.scp-avatar-container {
+    position: relative;
+    flex-shrink: 0;
+    width: 4rem;
+    height: 4rem;
+}
+.scp-avatar-img {
+    width: 4rem;
+    height: 4rem;
+    border-radius: 9999px;
+    object-fit: cover;
+    border: 1px solid rgba(0, 0, 0, 0.08);
+}
+.scp-avatar-fallback {
+    width: 4rem;
+    height: 4rem;
+    border-radius: 9999px;
+    background-color: #f1f5f9;
+    color: #1e293b;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.25rem;
+    font-weight: 600;
+    border: 1px solid #e2e8f0;
+}
+.scp-identity-text {
+    min-width: 0;
+}
+.scp-user-name-row {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0.65rem;
+}
+.scp-user-name {
+    font-size: 1.25rem;
+    font-weight: 600;
+    letter-spacing: -0.015em;
+    color: #0f172a;
+    margin: 0;
+    line-height: 1.3;
+}
+.scp-role-tag {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.15rem 0.55rem;
+    border-radius: 0.375rem;
+    font-size: 0.75rem;
+    font-weight: 500;
+    line-height: 1.25;
+}
+.scp-tag-super-admin {
+    background-color: #faf5ff;
+    color: #7e22ce;
+    border: 1px solid #e9d5ff;
+}
+.scp-tag-waka {
+    background-color: #eef2ff;
+    color: #4338ca;
+    border: 1px solid #c7d2fe;
+}
+.scp-tag-guru {
+    background-color: #f0fdf4;
+    color: #15803d;
+    border: 1px solid #bbf7d0;
+}
+.scp-tag-wali {
+    background-color: #eff6ff;
+    color: #1d4ed8;
+    border: 1px solid #bfdbfe;
+}
+.scp-tag-bk {
+    background-color: #fffbeb;
+    color: #b45309;
+    border: 1px solid #fde68a;
+}
+.scp-tag-siswa {
+    background-color: #f0fdfa;
+    color: #0f766e;
+    border: 1px solid #99f6e4;
+}
+.scp-tag-default {
+    background-color: #f8fafc;
+    color: #475569;
+    border: 1px solid #e2e8f0;
+}
+.scp-user-meta {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0.65rem;
+    font-size: 0.8125rem;
+    color: #64748b;
+    margin-top: 0.35rem;
+}
+.scp-meta-username {
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, monospace;
+    font-size: 0.75rem;
+    color: #64748b;
+}
+.scp-meta-dot {
+    color: #cbd5e1;
+}
+.scp-card-divider {
+    height: 1px;
+    background-color: #e2e8f0;
+    margin: 1.25rem 0 1rem 0;
+}
+.scp-meta-heading {
+    font-size: 0.75rem;
+    font-weight: 500;
+    color: #64748b;
+    margin-bottom: 0.75rem;
+}
+.scp-data-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 0.75rem;
+}
+@media (max-width: 768px) {
+    .scp-data-grid {
+        grid-template-columns: 1fr;
+    }
+}
+.scp-data-card {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.75rem;
+    padding: 0.85rem 1rem;
+    border-radius: 0.5rem;
+    background-color: #f8fafc;
+    border: 1px solid #e2e8f0;
+}
+.scp-data-icon {
+    width: 1.125rem;
+    height: 1.125rem;
+    color: #94a3b8;
+    margin-top: 0.125rem;
+    flex-shrink: 0;
+}
+.scp-data-content {
+    min-width: 0;
+    flex: 1;
+}
+.scp-data-label {
+    font-size: 0.6875rem;
+    font-weight: 500;
+    color: #64748b;
+}
+.scp-data-val {
+    font-size: 0.8125rem;
+    font-weight: 600;
+    color: #0f172a;
+    margin-top: 0.2rem;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+.scp-data-val-mono {
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, monospace;
+    font-size: 0.8125rem;
+    font-weight: 500;
+    font-variant-numeric: tabular-nums;
+    color: #0f172a;
+    letter-spacing: 0.025em;
+}
+
+/* DARK MODE OVERRIDES */
+html.dark .scp-profile-card,
+.dark .scp-profile-card {
+    background-color: #111827;
+    border-color: rgba(255, 255, 255, 0.08);
+    box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.2);
+}
+html.dark .scp-avatar-fallback,
+.dark .scp-avatar-fallback {
+    background-color: #1f2937;
+    color: #f3f4f6;
+    border-color: rgba(255, 255, 255, 0.12);
+}
+html.dark .scp-avatar-img,
+.dark .scp-avatar-img {
+    border-color: rgba(255, 255, 255, 0.12);
+}
+html.dark .scp-user-name,
+.dark .scp-user-name {
+    color: #f9fafb;
+}
+html.dark .scp-user-meta,
+.dark .scp-user-meta {
+    color: #9ca3af;
+}
+html.dark .scp-meta-username,
+.dark .scp-meta-username {
+    color: #9ca3af;
+}
+html.dark .scp-meta-dot,
+.dark .scp-meta-dot {
+    color: #4b5563;
+}
+html.dark .scp-card-divider,
+.dark .scp-card-divider {
+    background-color: rgba(255, 255, 255, 0.08);
+}
+html.dark .scp-meta-heading,
+.dark .scp-meta-heading {
+    color: #9ca3af;
+}
+html.dark .scp-data-card,
+.dark .scp-data-card {
+    background-color: rgba(255, 255, 255, 0.03);
+    border-color: rgba(255, 255, 255, 0.07);
+}
+html.dark .scp-data-icon,
+.dark .scp-data-icon {
+    color: #6b7280;
+}
+html.dark .scp-data-label,
+.dark .scp-data-label {
+    color: #9ca3af;
+}
+html.dark .scp-data-val,
+.dark .scp-data-val {
+    color: #f9fafb;
+}
+html.dark .scp-data-val-mono,
+.dark .scp-data-val-mono {
+    color: #f9fafb;
+}
+html.dark .scp-tag-super-admin,
+.dark .scp-tag-super-admin {
+    background-color: rgba(126, 34, 206, 0.15);
+    color: #d8b4fe;
+    border-color: rgba(126, 34, 206, 0.3);
+}
+html.dark .scp-tag-waka,
+.dark .scp-tag-waka {
+    background-color: rgba(67, 56, 202, 0.15);
+    color: #a5b4fc;
+    border-color: rgba(67, 56, 202, 0.3);
+}
+html.dark .scp-tag-guru,
+.dark .scp-tag-guru {
+    background-color: rgba(22, 163, 74, 0.15);
+    color: #86efac;
+    border-color: rgba(22, 163, 74, 0.3);
+}
+html.dark .scp-tag-wali,
+.dark .scp-tag-wali {
+    background-color: rgba(29, 78, 216, 0.15);
+    color: #93c5fd;
+    border-color: rgba(29, 78, 216, 0.3);
+}
+html.dark .scp-tag-bk,
+.dark .scp-tag-bk {
+    background-color: rgba(180, 83, 9, 0.15);
+    color: #fde68a;
+    border-color: rgba(180, 83, 9, 0.3);
+}
+html.dark .scp-tag-siswa,
+.dark .scp-tag-siswa {
+    background-color: rgba(15, 118, 110, 0.15);
+    color: #5eead4;
+    border-color: rgba(15, 118, 110, 0.3);
+}
+html.dark .scp-tag-default,
+.dark .scp-tag-default {
+    background-color: rgba(255, 255, 255, 0.05);
+    color: #d1d5db;
+    border-color: rgba(255, 255, 255, 0.1);
+}

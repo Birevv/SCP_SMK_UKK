@@ -89,8 +89,14 @@
     </div>
 
     <div class="header">
-        <h1>SCHOOL CLASS PROGRESS (SCP)</h1>
-        <p>LAPORAN REKAPITULASI KEHADIRAN SISWA</p>
+        <div style="display: flex; align-items: center; justify-content: center; gap: 16px; margin-bottom: 8px;">
+            <img src="{{ asset(file_exists(public_path('storage/assets/SMK_Negeri_1_Bantul_logo (1).png')) ? 'storage/assets/SMK_Negeri_1_Bantul_logo (1).png' : 'storage/Assets/SMK_Negeri_1_Bantul_logo (1).png') }}" alt="Logo SMK" style="height: 52px; width: 52px; object-fit: contain;">
+            <div style="text-align: left;">
+                <h1 style="margin: 0; font-size: 18px; letter-spacing: 0.5px;">SMK NEGERI 1 BANTUL</h1>
+                <p style="margin: 2px 0 0 0; font-size: 13px; font-weight: normal; color: #374151;">School Class Progress (SCP)</p>
+            </div>
+        </div>
+        <p style="font-size: 14px; font-weight: bold; margin: 4px 0 0 0;">LAPORAN REKAPITULASI KEHADIRAN SISWA</p>
         <div class="meta-info">
             <span>KELAS: {{ strtoupper($classroom?->name ?? '-') }}</span>
             <span>PERIODE: {{ $start_date }} s/d {{ $end_date }}</span>

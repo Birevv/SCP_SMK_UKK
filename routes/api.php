@@ -7,11 +7,14 @@ use App\Http\Controllers\Api\ReferenceController;
 use App\Http\Controllers\Api\StudentApiController;
 use App\Http\Controllers\Api\Teacher\DashboardController as TeacherDashboardController;
 use App\Http\Controllers\Api\Teacher\JournalController as TeacherJournalController;
+use App\Http\Controllers\Api\ForgotPasswordOtpController;
 use App\Http\Controllers\Api\Teacher\ScheduleController as TeacherScheduleController;
 use Illuminate\Support\Facades\Route;
 
 // Public Routes
 Route::post('/login', [AuthController::class, 'login']);
+Route::post('/forgot-password/send-otp', [ForgotPasswordOtpController::class, 'sendOtp']);
+Route::post('/forgot-password/reset', [ForgotPasswordOtpController::class, 'resetPassword']);
 
 // Authenticated Routes (Memerlukan Token Sanctum)
 Route::middleware('auth:sanctum')->group(function () {

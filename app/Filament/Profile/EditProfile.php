@@ -52,8 +52,8 @@ class EditProfile extends PagesEditProfile
                 ])
                     ->schema([
                         // Form Ubah Profil
-                        Section::make('Ubah Informasi Profil')
-                            ->description('Perbarui foto profil, nama lengkap, email, dan nomor telepon aktif Anda.')
+                        Section::make('Informasi Profil')
+                            ->description('Perbarui foto profil, nama lengkap, alamat email, dan nomor telepon aktif Anda.')
                             ->icon('heroicon-o-user-circle')
                             ->schema([
                                 FileUpload::make('profile_photo')
@@ -92,7 +92,7 @@ class EditProfile extends PagesEditProfile
                             ]),
 
                         // Form Ganti Password
-                        Section::make('Keamanan & Ganti Password')
+                        Section::make('Keamanan Akun')
                             ->description('Kelola kata sandi akun Anda. Kosongkan jika tidak ingin mengubah kata sandi saat ini.')
                             ->icon('heroicon-o-lock-closed')
                             ->schema([
@@ -147,15 +147,15 @@ class EditProfile extends PagesEditProfile
     protected function getSaveFormAction(): Action
     {
         return parent::getSaveFormAction()
-            ->label('Ubah Profil')
+            ->label('Simpan Perubahan')
             ->icon('heroicon-m-check')
             ->submit(null)
             ->requiresConfirmation()
-            ->modalHeading('Konfirmasi Ubah Profil')
-            ->modalDescription('Pastikan data profil yang Anda masukkan sudah benar dan sesuai. Apakah Anda yakin ingin memperbarui profil Anda?')
+            ->modalHeading('Konfirmasi Simpan Profil')
+            ->modalDescription('Pastikan data profil yang Anda masukkan sudah benar. Apakah Anda yakin ingin memperbarui profil Anda?')
             ->modalSubmitActionLabel('Ya, Simpan Perubahan')
-            ->modalCancelActionLabel('Batal / Periksa Kembali')
-            ->modalIcon('heroicon-o-pencil-square')
+            ->modalCancelActionLabel('Batal')
+            ->modalIcon('heroicon-o-check-circle')
             ->action(fn () => $this->save());
     }
 
