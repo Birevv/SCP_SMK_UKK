@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\AcademicYears\Schemas;
 
+use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
 use Filament\Schemas\Schema;
@@ -17,6 +18,14 @@ class AcademicYearForm
                     ->required()
                     ->placeholder('Contoh: 2026/2027 Ganjil')
                     ->maxLength(255),
+
+                DatePicker::make('start_date')
+                    ->label('Tanggal Mulai Semester')
+                    ->required(),
+
+                DatePicker::make('end_date')
+                    ->label('Tanggal Selesai Semester')
+                    ->required(),
 
                 Toggle::make('is_active')
                     ->label('Status Aktif')

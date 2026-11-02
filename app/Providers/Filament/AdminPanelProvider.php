@@ -47,11 +47,19 @@ class AdminPanelProvider extends PanelProvider
             ->profile(EditProfile::class, isSimple: false)
             ->colors([
                 'primary' => Color::Blue,
+                'teal' => Color::Teal,
+                'rose' => Color::Rose,
             ])
             ->plugins([
                 FilamentShieldPlugin::make(),
+                \Saade\FilamentFullCalendar\FilamentFullCalendarPlugin::make()
+                    ->selectable(true)
+                    ->editable(true)
+                    ->timezone(config('app.timezone', 'Asia/Jakarta'))
+                    ->locale('id'),
             ])
             ->assets([
+                Css::make('fullcalendar-styles', asset('css/filament/fullcalendar.css?v=' . (file_exists(public_path('css/filament/fullcalendar.css')) ? filemtime(public_path('css/filament/fullcalendar.css')) : time()))),
                 Css::make('custom-filament-styles', asset('css/filament/custom.css?v=' . (file_exists(public_path('css/filament/custom.css')) ? filemtime(public_path('css/filament/custom.css')) : time()))),
             ])
             ->discoverResources(in: app_path('Filament/Resources'), for: 'App\Filament\Resources')

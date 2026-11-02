@@ -12,10 +12,14 @@ class AcademicYear extends Model
 {
     protected $fillable = [
         'name',
+        'start_date',
+        'end_date',
         'is_active',
     ];
 
     protected $casts = [
+        'start_date' => 'date',
+        'end_date' => 'date',
         'is_active' => 'boolean',
     ];
 
@@ -32,5 +36,10 @@ class AcademicYear extends Model
     public function schedules(): HasMany
     {
         return $this->hasMany(Schedule::class);
+    }
+
+    public function events(): HasMany
+    {
+        return $this->hasMany(AcademicEvent::class);
     }
 }

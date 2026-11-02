@@ -15,6 +15,7 @@ class LeaveRequest extends Model
         'submitted_by',
         'start_date',
         'end_date',
+        'leave_time',
         'attachment_photo',
         'reason_type',
         'description',

@@ -103,12 +103,16 @@ class AttendanceReport extends Page implements HasForms
 
         $report = [];
 
+        // Eager-load semua presensi siswa dalam periode terpilih sekaligus (Mencegah N+1 Query)
+        $attendancesGrouped = Attendance::whereIn('student_id', $students->pluck('id'))
+            ->whereHas('journal', function ($query) {
+                $query->whereBetween('date', [$this->start_date, $this->end_date]);
+            })
+            ->get()
+            ->groupBy('student_id');
+
         foreach ($students as $student) {
-            $attendances = Attendance::where('student_id', $student->id)
-                ->whereHas('journal', function ($query) {
-                    $query->whereBetween('date', [$this->start_date, $this->end_date]);
-                })
-                ->get();
+            $attendances = $attendancesGrouped->get($student->id, collect());
 
             $hadir = $attendances->where('status', 'Hadir')->count();
             $sakit = $attendances->where('status', 'Sakit')->count();

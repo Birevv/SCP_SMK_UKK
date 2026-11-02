@@ -22,13 +22,13 @@ class AcademicYearResource extends Resource
 {
     protected static ?string $model = AcademicYear::class;
 
-    protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedCalendar;
+    protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedCalendarDays;
 
     protected static string|UnitEnum|null $navigationGroup = 'Data Master';
 
-    protected static ?string $navigationLabel = 'Tahun Ajaran';
+    protected static ?string $navigationLabel = 'Kalender Akademik';
 
-    protected static ?string $pluralLabel = 'Data Tahun Ajaran';
+    protected static ?string $pluralLabel = 'Kalender Akademik';
 
     protected static ?int $navigationSort = 1;
 

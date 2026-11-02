@@ -3,6 +3,7 @@
 namespace App\Filament\Resources\LeaveRequests\Tables;
 
 use App\Models\LeaveRequest;
+use App\Models\SchoolSession;
 use Filament\Actions\Action;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteAction;
@@ -13,6 +14,7 @@ use Filament\Forms\Components\Textarea;
 use Filament\Notifications\Notification;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Auth;
 use Spatie\Permission\Models\Permission;
 
@@ -34,12 +36,45 @@ class LeaveRequestsTable
                     ->date()
                     ->label('Selesai'),
 
+                TextColumn::make('leave_time')
+                    ->label('Jam / Sesi Pergi')
+                    ->placeholder('-')
+                    ->formatStateUsing(function (?string $state, LeaveRequest $record) {
+                        if (! $state) {
+                            return '-';
+                        }
+                        $timeStr = substr((string) $state, 0, 5);
+                        try {
+                            $day = $record->start_date ? Carbon::parse($record->start_date)->locale('id')->isoFormat('dddd') : 'Senin';
+                            $sessions = SchoolSession::getSessionsForDay($day);
+                            foreach ($sessions as $session) {
+                                if (substr((string) $session['start'], 0, 5) === $timeStr) {
+                                    return "{$session['label']} ({$timeStr})";
+                                }
+                            }
+                        } catch (\Throwable $e) {
+                        }
+
+                        return $timeStr;
+                    })
+                    ->badge()
+                    ->color('gray'),
+
                 TextColumn::make('reason_type')
                     ->badge()
-                    ->color(fn (string $state): string => match ($state) {
-                        'Sakit' => 'warning',
-                        'Izin' => 'info',
+                    ->color(fn (string $state): string => match (strtolower(str_replace(' ', '_', $state))) {
+                        'sakit' => 'warning',
+                        'izin' => 'info',
+                        'pulang_cepat' => 'danger',
+                        'kegiatan_luar' => 'primary',
                         default => 'gray',
+                    })
+                    ->formatStateUsing(fn (string $state): string => match (strtolower(str_replace(' ', '_', $state))) {
+                        'sakit' => 'Sakit',
+                        'izin' => 'Izin',
+                        'pulang_cepat' => 'Pulang Cepat',
+                        'kegiatan_luar' => 'Kegiatan Luar',
+                        default => $state,
                     })
                     ->label('Jenis'),
 

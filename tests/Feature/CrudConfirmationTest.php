@@ -44,6 +44,8 @@ class CrudConfirmationTest extends TestCase
 
         // 2. Jika input valid, modal konfirmasi berhasil terbuka (action termount)
         $component->set('data.name', '2027/2028 - Ganjil');
+        $component->set('data.start_date', '2027-07-01');
+        $component->set('data.end_date', '2027-12-31');
         $component->set('data.is_active', false);
         $component->call('mountAction', 'create', [], ['schemaComponent' => 'content.form-actions']);
         $this->assertNotEmpty($component->get('mountedActions'));
@@ -61,6 +63,8 @@ class CrudConfirmationTest extends TestCase
 
         $year = AcademicYear::create([
             'name' => '2028/2029 - Genap',
+            'start_date' => '2028-01-01',
+            'end_date' => '2028-06-30',
             'is_active' => false,
         ]);
 
@@ -73,6 +77,8 @@ class CrudConfirmationTest extends TestCase
 
         // 2. Jika valid, modal konfirmasi terbuka dan data berhasil diperbarui
         $component->set('data.name', '2028/2029 - Genap Diperbarui');
+        $component->set('data.start_date', '2028-01-01');
+        $component->set('data.end_date', '2028-06-30');
         $component->call('mountAction', 'save', [], ['schemaComponent' => 'content.form-actions']);
         $this->assertNotEmpty($component->get('mountedActions'));
 

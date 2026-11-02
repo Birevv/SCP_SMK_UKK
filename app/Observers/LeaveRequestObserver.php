@@ -59,6 +59,11 @@ class LeaveRequestObserver
             ->whereBetween('date', [$leaveRequest->start_date, $leaveRequest->end_date])
             ->get();
 
+        $normalizedStatus = match (strtolower(str_replace(' ', '_', (string) $leaveRequest->reason_type))) {
+            'sakit' => 'Sakit',
+            default => 'Izin',
+        };
+
         foreach ($journals as $journal) {
             Attendance::updateOrCreate(
                 [
@@ -66,9 +71,9 @@ class LeaveRequestObserver
                     'student_id' => $student->id,
                 ],
                 [
-                    'status' => $leaveRequest->reason_type, // 'Sakit' / 'Izin'
+                    'status' => $normalizedStatus,
                     'date' => $journal->date,
-                    'notes' => 'Otomatis tersinkronisasi dari Pengajuan Izin Approved',
+                    'notes' => 'Otomatis tersinkronisasi dari Pengajuan Izin Approved' . ($leaveRequest->leave_time ? ' (Sesi Mulai ' . substr((string) $leaveRequest->leave_time, 0, 5) . ')' : ''),
                 ]
             );
         }

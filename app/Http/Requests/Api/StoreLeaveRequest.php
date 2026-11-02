@@ -28,7 +28,8 @@ class StoreLeaveRequest extends FormRequest
         return [
             'start_date' => ['required', 'date', 'after_or_equal:today'],
             'end_date' => ['required', 'date', 'after_or_equal:start_date'],
-            'reason_type' => ['required', 'in:Sakit,Izin'],
+            'reason_type' => ['required', 'in:Sakit,Izin,Pulang Cepat,Kegiatan Luar,sakit,izin,pulang_cepat,kegiatan_luar'],
+            'leave_time' => ['nullable', 'string', 'required_if:reason_type,Pulang Cepat,Kegiatan Luar,pulang_cepat,kegiatan_luar'],
             'description' => ['required', 'string', 'max:500'],
             'attachment_photo' => ['nullable', 'file', 'mimes:jpg,jpeg,png,pdf', 'max:2048'],
         ];

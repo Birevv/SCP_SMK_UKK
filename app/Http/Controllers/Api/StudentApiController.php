@@ -41,6 +41,15 @@ class StudentApiController extends Controller
 
         $percentage = $total > 0 ? round(($hadir / $total) * 100, 1) : 0;
 
+        $gradeName = $student->classroom?->level?->name;
+        $todayEvent = \App\Models\AcademicEvent::query()
+            ->forDateRange($today, $today)
+            ->where(function ($q) use ($gradeName) {
+                $q->whereNull('target_grades')
+                    ->orWhereJsonContains('target_grades', $gradeName);
+            })
+            ->first();
+
         $recentHistory = Attendance::with(['journal.schedule.teacher', 'journal.schedule.subject'])
             ->whereBelongsTo($student, 'student')
             ->latest('date')
@@ -58,6 +67,15 @@ class StudentApiController extends Controller
         return $this->successResponse([
             'student_name' => $student->full_name,
             'classroom' => $student->classroom?->name,
+            'today_event' => $todayEvent ? [
+                'id' => $todayEvent->id,
+                'title' => $todayEvent->title,
+                'category' => $todayEvent->category instanceof \App\Enums\AcademicEventCategory ? $todayEvent->category->value : (string) $todayEvent->category,
+                'category_label' => $todayEvent->category instanceof \App\Enums\AcademicEventCategory ? $todayEvent->category->getLabel() : 'Kegiatan',
+                'is_holiday' => (bool) $todayEvent->is_holiday,
+                'disable_kbm' => (bool) $todayEvent->disable_kbm,
+                'requires_attendance' => (bool) $todayEvent->requires_attendance,
+            ] : null,
             'statistics' => [
                 'hadir' => $hadir,
                 'sakit' => $sakit,

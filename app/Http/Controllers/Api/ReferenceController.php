@@ -33,4 +33,46 @@ class ReferenceController extends Controller
 
         return $this->successResponse($subjects, 'Data Mata Pelajaran Berhasil Dimuat');
     }
+
+    public function calendarEvents(\Illuminate\Http\Request $request): JsonResponse
+    {
+        $month = (int) $request->query('month', now()->month);
+        $year = (int) $request->query('year', now()->year);
+        $grade = $request->query('grade');
+
+        $start = \Carbon\Carbon::create($year, $month, 1)->startOfMonth();
+        $end = $start->copy()->endOfMonth();
+
+        $query = \App\Models\AcademicEvent::query()
+            ->forDateRange($start, $end);
+
+        if ($grade) {
+            $query->where(function ($q) use ($grade) {
+                $q->whereNull('target_grades')
+                    ->orWhereJsonContains('target_grades', $grade);
+            });
+        }
+
+        $events = $query->orderBy('start_date')->get()->map(function (\App\Models\AcademicEvent $e) {
+            return [
+                'id' => $e->id,
+                'title' => $e->title,
+                'category' => $e->category instanceof \App\Enums\AcademicEventCategory ? $e->category->value : (string) $e->category,
+                'category_label' => $e->category instanceof \App\Enums\AcademicEventCategory ? $e->category->getLabel() : 'Kegiatan',
+                'color' => $e->color,
+                'target_grades' => $e->target_grades,
+                'is_holiday' => (bool) $e->is_holiday,
+                'disable_kbm' => (bool) $e->disable_kbm,
+                'requires_attendance' => (bool) $e->requires_attendance,
+                'start_date' => $e->start_date?->toDateString(),
+                'end_date' => $e->end_date?->toDateString(),
+                'is_all_day' => (bool) $e->is_all_day,
+                'start_time' => $e->start_time,
+                'end_time' => $e->end_time,
+                'description' => $e->description,
+            ];
+        });
+
+        return $this->successResponse($events, 'Data Kalender Akademik Berhasil Dimuat');
+    }
 }

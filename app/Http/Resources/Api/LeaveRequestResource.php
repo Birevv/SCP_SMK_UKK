@@ -20,6 +20,7 @@ class LeaveRequestResource extends JsonResource
             'reason_type' => $this->reason_type,
             'start_date' => $this->start_date?->format('Y-m-d'),
             'end_date' => $this->end_date?->format('Y-m-d'),
+            'leave_time' => $this->leave_time ? substr((string) $this->leave_time, 0, 5) : null,
             'description' => $this->description,
             'attachment_url' => $this->attachment_photo ? Storage::url($this->attachment_photo) : null,
             'status' => $this->status,

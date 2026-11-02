@@ -31,6 +31,7 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/classrooms', [ReferenceController::class, 'classrooms']);
         Route::get('/rooms', [ReferenceController::class, 'rooms']);
         Route::get('/subjects', [ReferenceController::class, 'subjects']);
+        Route::get('/calendar-events', [ReferenceController::class, 'calendarEvents']);
     });
 
     // Student API (Hanya Siswa)

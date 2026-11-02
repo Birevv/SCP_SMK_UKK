@@ -346,4 +346,73 @@ class LeaveRequestRejectFlowTest extends TestCase
         $approveAction2->record($leaveRequest);
         $this->assertFalse($approveAction2->isVisible());
     }
+
+    public function test_leave_request_form_leave_time_is_session_select(): void
+    {
+        $this->actingAs($this->student);
+        $livewire = \Livewire\Livewire::new(\App\Filament\Resources\LeaveRequests\Pages\CreateLeaveRequest::class);
+        $schema = Schema::make($livewire);
+        LeaveRequestForm::configure($schema);
+
+        /** @var \Filament\Forms\Components\Select $leaveTimeField */
+        $leaveTimeField = collect($schema->getComponents(withHidden: true))->first(function ($c) {
+            return method_exists($c, 'getName') && $c->getName() === 'leave_time';
+        });
+
+        $this->assertNotNull($leaveTimeField);
+        $this->assertInstanceOf(\Filament\Forms\Components\Select::class, $leaveTimeField);
+        $this->assertEquals('Jam Pergi', $leaveTimeField->getLabel());
+
+        $options = $leaveTimeField->getOptions();
+        $this->assertIsArray($options);
+        $this->assertNotEmpty($options);
+        // Cek bahwa format opsi mencakup format sesi (misal 'Jam ke - 1')
+        $firstLabel = reset($options);
+        $this->assertStringContainsString('Jam ke -', $firstLabel);
+    }
+
+    public function test_student_can_submit_pulang_cepat_with_session_time_via_api(): void
+    {
+        $this->actingAs($this->student, 'sanctum');
+
+        $response = $this->postJson('/api/student/leave-requests', [
+            'start_date' => now()->toDateString(),
+            'end_date' => now()->toDateString(),
+            'reason_type' => 'Pulang Cepat',
+            'leave_time' => '10:10',
+            'description' => 'Ada keperluan mendesak di rumah jam ke-5',
+        ]);
+
+        $response->assertStatus(201)
+            ->assertJsonPath('data.status', 'Pending')
+            ->assertJsonPath('data.reason_type', 'Pulang Cepat')
+            ->assertJsonPath('data.leave_time', '10:10');
+
+        $this->assertDatabaseHas('leave_requests', [
+            'student_id' => $this->student->id,
+            'reason_type' => 'Pulang Cepat',
+            'leave_time' => '10:10',
+        ]);
+    }
+
+    public function test_approved_pulang_cepat_syncs_attendance_as_izin(): void
+    {
+        $leaveRequest = LeaveRequest::create([
+            'student_id' => $this->student->id,
+            'submitted_by' => $this->student->id,
+            'start_date' => now()->toDateString(),
+            'end_date' => now()->toDateString(),
+            'reason_type' => 'Pulang Cepat',
+            'leave_time' => '12:30:00',
+            'description' => 'Pulang jam dzuhur',
+            'status' => 'Approved',
+        ]);
+
+        $this->assertDatabaseHas('leave_requests', [
+            'id' => $leaveRequest->id,
+            'reason_type' => 'Pulang Cepat',
+            'leave_time' => '12:30:00',
+            'status' => 'Approved',
+        ]);
+    }
 }

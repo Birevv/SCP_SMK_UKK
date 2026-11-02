@@ -4,6 +4,7 @@ namespace App\Filament\Resources\LeaveRequests\Schemas;
 
 use App\Enums\ReasonTypeEnum;
 use App\Models\LeaveRequest;
+use App\Models\SchoolSession;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\Hidden;
@@ -63,6 +64,7 @@ class LeaveRequestForm
                             $set('start_date', now()->toDateString());
                             $set('end_date', now()->toDateString());
                         } elseif ($isSakitOrIzin) {
+                            $set('leave_time', null);
                             if (! $get('start_date')) {
                                 $set('start_date', now()->toDateString());
                             }
@@ -146,22 +148,54 @@ class LeaveRequestForm
                     })
                     ->label('Tanggal Selesai'),
 
-                TimePicker::make('leave_time')
+                Select::make('leave_time')
+                    ->label('Jam Pergi')
+                    ->placeholder('Pilih sesi jam pergi...')
                     ->required()
                     ->live()
-                    ->seconds(false)
-                    ->displayFormat('H:i')
-                    ->format('H:i')
                     ->native(false)
+                    ->searchable()
+                    ->options(function (Get $get, ?string $state) {
+                        $startDate = $get('start_date') ?: now()->toDateString();
+                        try {
+                            $dayOfWeek = Carbon::parse($startDate)->locale('id')->isoFormat('dddd');
+                        } catch (\Throwable $e) {
+                            $dayOfWeek = 'Senin';
+                        }
+
+                        $sessions = SchoolSession::getSessionsForDay($dayOfWeek);
+                        $options = [];
+                        foreach ($sessions as $num => $session) {
+                            $start = substr((string) $session['start'], 0, 5);
+                            $end = substr((string) $session['end'], 0, 5);
+                            $options[$start] = "{$session['label']} ({$start} - {$end})";
+                        }
+
+                        if ($state) {
+                            $key = substr((string) $state, 0, 5);
+                            if (! isset($options[$key])) {
+                                $options[$key] = "Waktu Kustom ({$key})";
+                            }
+                        }
+
+                        return $options;
+                    })
+                    ->formatStateUsing(function (?string $state) {
+                        return $state ? substr((string) $state, 0, 5) : null;
+                    })
                     ->visible(function (Get $get) {
                         $type = $get('reason_type');
 
-                        return $type === ReasonTypeEnum::PULANG_CEPAT
-                            || $type === ReasonTypeEnum::PULANG_CEPAT->value
-                            || $type === ReasonTypeEnum::KEGIATAN_LUAR
-                            || $type === ReasonTypeEnum::KEGIATAN_LUAR->value;
+                        return in_array($type, [
+                            ReasonTypeEnum::PULANG_CEPAT,
+                            ReasonTypeEnum::PULANG_CEPAT->value,
+                            ReasonTypeEnum::KEGIATAN_LUAR,
+                            ReasonTypeEnum::KEGIATAN_LUAR->value,
+                            'Pulang Cepat',
+                            'Kegiatan Luar',
+                        ]);
                     })
-                    ->label('Jam Pergi'),
+                    ->helperText('Pilih sesi jam pelajaran saat siswa mulai izin meninggalkan sekolah.'),
 
                 Textarea::make('description')
                     ->required()
