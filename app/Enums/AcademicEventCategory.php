@@ -111,7 +111,7 @@ enum AcademicEventCategory: string implements HasLabel, HasColor, HasIcon
     public function defaultTargetGrades(): ?array
     {
         return match ($this) {
-            self::PKL => ['XI', 'XII'],
+            self::PKL => ['XII'],
             self::UKK => ['XII'],
             default   => null, // Berlaku seluruh sekolah
         };

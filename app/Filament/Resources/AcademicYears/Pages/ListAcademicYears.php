@@ -8,9 +8,15 @@ use App\Models\AcademicEvent;
 use App\Models\AcademicYear;
 use App\Services\AcademicCalendarService;
 use Carbon\Carbon;
+use Filament\Actions\Action;
 use Filament\Actions\CreateAction;
+use Filament\Actions\DeleteAction;
+use Filament\Actions\EditAction;
+use Filament\Forms;
 use Filament\Notifications\Notification;
 use Filament\Resources\Pages\ListRecords;
+use Filament\Schemas\Components\Grid;
+use Filament\Schemas\Components\Section;
 use Illuminate\Support\Facades\Auth;
 
 class ListAcademicYears extends ListRecords
@@ -180,13 +186,21 @@ class ListAcademicYears extends ListRecords
         }
     }
 
-    public function openCreateEventModal(?string $date = null): void
+    public function openCreateEventModal(?string $date = null, ?string $endDate = null): void
     {
         if (! $this->canManage()) {
             return;
         }
 
-        $defaultDate = $date ?? Carbon::create($this->currentYear, $this->currentMonth, 1)->toDateString();
+        $defaultStartDate = $date ?? Carbon::create($this->currentYear, $this->currentMonth, 1)->toDateString();
+        $defaultEndDate = $endDate ?? $defaultStartDate;
+
+        // Pastikan urutan tanggal mulai <= tanggal selesai jika diswipe terbalik
+        if ($date && $endDate && $date > $endDate) {
+            $temp = $defaultStartDate;
+            $defaultStartDate = $defaultEndDate;
+            $defaultEndDate = $temp;
+        }
 
         $this->editingEventId = null;
         $this->eventTitle = '';
@@ -195,8 +209,8 @@ class ListAcademicYears extends ListRecords
         $this->eventIsHoliday = false;
         $this->eventDisableKbm = false;
         $this->eventRequiresAttendance = true;
-        $this->eventStartDate = $defaultDate;
-        $this->eventEndDate = $defaultDate;
+        $this->eventStartDate = $defaultStartDate;
+        $this->eventEndDate = $defaultEndDate;
         $this->eventIsAllDay = true;
         $this->eventStartTime = null;
         $this->eventEndTime = null;
@@ -211,23 +225,7 @@ class ListAcademicYears extends ListRecords
             return;
         }
 
-        $event = AcademicEvent::findOrFail($id);
-
-        $this->editingEventId = $event->id;
-        $this->eventTitle = $event->title;
-        $this->eventCategory = $event->category instanceof AcademicEventCategory ? $event->category->value : $event->category;
-        $this->eventTargetGrades = $event->target_grades ?? [];
-        $this->eventIsHoliday = (bool) $event->is_holiday;
-        $this->eventDisableKbm = (bool) $event->disable_kbm;
-        $this->eventRequiresAttendance = (bool) $event->requires_attendance;
-        $this->eventStartDate = $event->start_date->toDateString();
-        $this->eventEndDate = $event->end_date->toDateString();
-        $this->eventIsAllDay = (bool) $event->is_all_day;
-        $this->eventStartTime = $event->start_time;
-        $this->eventEndTime = $event->end_time;
-        $this->eventDescription = $event->description;
-
-        $this->showEventModal = true;
+        $this->mountAction('editEvent', ['id' => $id]);
     }
 
     public function closeEventModal(): void
@@ -282,6 +280,127 @@ class ListAcademicYears extends ListRecords
         }
 
         $this->closeEventModal();
+    }
+
+    public function editEventAction(): Action
+    {
+        return EditAction::make('editEvent')
+            ->record(fn (array $arguments) => AcademicEvent::find($arguments['id'] ?? null))
+            ->icon('heroicon-m-pencil-square')
+            ->iconButton()
+            ->color('gray')
+            ->tooltip('Edit Agenda')
+            ->visible(fn (): bool => $this->canManage())
+            ->modalHeading('Edit Agenda Akademik')
+            ->modalWidth('2xl')
+            ->form($this->getEventFormSchema())
+            ->successNotificationTitle('Agenda Berhasil Diperbarui');
+    }
+
+    public function getEventFormSchema(): array
+    {
+        return [
+            Grid::make(2)->schema([
+                Forms\Components\TextInput::make('title')
+                    ->label('Nama / Judul Agenda')
+                    ->required()
+                    ->placeholder('Contoh: Asesmen Sumatif Akhir Semester'),
+
+                Forms\Components\Select::make('category')
+                    ->label('Kategori Acara')
+                    ->options(AcademicEventCategory::class)
+                    ->required()
+                    ->default(AcademicEventCategory::KEGIATAN_SISWA->value)
+                    ->live()
+                    ->afterStateUpdated(function ($state, callable $set): void {
+                        $cat = $state instanceof AcademicEventCategory
+                            ? $state
+                            : AcademicEventCategory::tryFrom((string) $state);
+
+                        if ($cat) {
+                            $set('is_holiday', $cat->defaultIsHoliday());
+                            $set('disable_kbm', $cat->defaultDisableKbm());
+                            $set('requires_attendance', $cat->defaultRequiresAttendance());
+                            if ($cat === AcademicEventCategory::UKK) {
+                                $set('target_grades', ['XII']);
+                            } elseif ($cat === AcademicEventCategory::PKL) {
+                                $set('target_grades', ['XI', 'XII']);
+                            }
+                        }
+                    }),
+            ]),
+
+            Grid::make(2)->schema([
+                Forms\Components\DatePicker::make('start_date')
+                    ->label('Tanggal Mulai')
+                    ->required(),
+
+                Forms\Components\DatePicker::make('end_date')
+                    ->label('Tanggal Selesai')
+                    ->required()
+                    ->afterOrEqual('start_date'),
+            ]),
+
+            Grid::make(2)->schema([
+                Forms\Components\CheckboxList::make('target_grades')
+                    ->label('Target Tingkat Siswa')
+                    ->options([
+                        'X' => 'Kelas X',
+                        'XI' => 'Kelas XI',
+                        'XII' => 'Kelas XII',
+                    ])
+                    ->columns(3),
+
+                Grid::make(1)->schema([
+                    Forms\Components\Toggle::make('is_all_day')
+                        ->label('Seharian Penuh (All Day)')
+                        ->default(true)
+                        ->live(),
+
+                    Grid::make(2)->schema([
+                        Forms\Components\TimePicker::make('start_time')
+                            ->label('Jam Mulai')
+                            ->seconds(false),
+                        Forms\Components\TimePicker::make('end_time')
+                            ->label('Jam Selesai')
+                            ->seconds(false),
+                    ])->visible(fn ($get): bool => ! (bool) $get('is_all_day')),
+                ]),
+            ]),
+
+            Grid::make(3)->schema([
+                Forms\Components\Toggle::make('is_holiday')
+                    ->label('Hari Libur'),
+
+                Forms\Components\Toggle::make('disable_kbm')
+                    ->label('Nonaktifkan KBM'),
+
+                Forms\Components\Toggle::make('requires_attendance')
+                    ->label('Wajib Presensi')
+                    ->default(true),
+            ]),
+
+            Forms\Components\TextInput::make('description')
+                ->label('Catatan / Keterangan')
+                ->placeholder('Catatan atau keterangan opsional...')
+                ->columnSpanFull(),
+        ];
+    }
+
+    public function deleteEventAction(): Action
+    {
+        return DeleteAction::make('deleteEvent')
+            ->record(fn (array $arguments) => AcademicEvent::find($arguments['id'] ?? $this->editingEventId))
+            ->icon('heroicon-m-trash')
+            ->iconButton()
+            ->color('danger')
+            ->tooltip('Hapus Agenda')
+            ->visible(fn (): bool => $this->canManage())
+            ->modalHeading('Konfirmasi Hapus agenda')
+            ->successNotificationTitle('Agenda Berhasil Dihapus')
+            ->after(function (): void {
+                $this->closeEventModal();
+            });
     }
 
     public function deleteEvent(?int $id = null): void
@@ -443,7 +562,12 @@ class ListAcademicYears extends ListRecords
             });
         }
 
-        $allEvents = $eventsQuery->orderBy('start_date')->get();
+        $allEvents = $eventsQuery
+            ->orderByRaw('CASE WHEN start_date != end_date THEN 0 ELSE 1 END')
+            ->orderBy('start_date')
+            ->orderBy('end_date', 'desc')
+            ->orderBy('id')
+            ->get();
 
         $weeks = [];
         $today = Carbon::today();

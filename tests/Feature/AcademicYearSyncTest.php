@@ -17,6 +17,7 @@ use Tests\TestCase;
 class AcademicYearSyncTest extends TestCase
 {
     use RefreshDatabase;
+    
 
     protected function setUp(): void
     {

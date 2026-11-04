@@ -12,10 +12,13 @@
         "laravel/framework": "^13.8",
         "laravel/sanctum": "^4.0",
         "laravel/tinker": "^3.0",
-        "saade/filament-fullcalendar": "5.0"
+        "phpoffice/phpspreadsheet": "*",
+        "saade/filament-fullcalendar": "5.0",
+        "smalot/pdfparser": "*"
     },
     "require-dev": {
         "fakerphp/faker": "^1.23",
+        "fruitcake/laravel-debugbar": "^4.4",
         "laravel/boost": "^2.4",
         "laravel/pail": "^1.2.5",
         "laravel/pao": "^1.0.6",
@@ -88,11 +91,5 @@
         }
     },
     "minimum-stability": "stable",
-    "prefer-stable": true,
-    "repositories": {
-        "packagist": {
-            "type": "composer",
-            "url": "https://mirrors.cloud.tencent.com/composer/"
-        }
-    }
+    "prefer-stable": true
 }

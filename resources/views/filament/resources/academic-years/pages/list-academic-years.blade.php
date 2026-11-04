@@ -71,16 +71,99 @@
         .scp-dot-rapat          { background-color: #4f46e5; }
         .scp-dot-lainnya        { background-color: #6b7280; }
 
-        /* Agenda Multi-Hari: Solid Colored Bar dengan Teks Putih */
-        .scp-solid-libur_nasional { background-color: #dc2626; color: #ffffff !important; }
-        .scp-solid-libur_sekolah  { background-color: #d97706; color: #ffffff !important; }
-        .scp-solid-upacara        { background-color: #e11d48; color: #ffffff !important; }
-        .scp-solid-ujian          { background-color: #0284c7; color: #ffffff !important; }
-        .scp-solid-pkl            { background-color: #0d9488; color: #ffffff !important; }
-        .scp-solid-ukk            { background-color: #9333ea; color: #ffffff !important; }
-        .scp-solid-kegiatan_siswa { background-color: #10b981; color: #ffffff !important; }
-        .scp-solid-rapat          { background-color: #4f46e5; color: #ffffff !important; }
-        .scp-solid-lainnya        { background-color: #6b7280; color: #ffffff !important; }
+        /* Agenda Multi-Hari: Badge Colors (Soft background, dark readable text, subtle border) */
+        .scp-solid-libur_nasional { background-color: #fee2e2; color: #991b1b !important; border-color: #fca5a5 !important; }
+        .scp-solid-libur_sekolah  { background-color: #fef3c7; color: #92400e !important; border-color: #fcd34d !important; }
+        .scp-solid-upacara        { background-color: #ffe4e6; color: #9f1239 !important; border-color: #fda4af !important; }
+        .scp-solid-ujian          { background-color: #e0f2fe; color: #075985 !important; border-color: #7dd3fc !important; }
+        .scp-solid-pkl            { background-color: #ccfbf1; color: #115e59 !important; border-color: #5eead4 !important; }
+        .scp-solid-ukk            { background-color: #f3e8ff; color: #6b21a8 !important; border-color: #d8b4fe !important; }
+        .scp-solid-kegiatan_siswa { background-color: #d1fae5; color: #065f46 !important; border-color: #6ee7b7 !important; }
+        .scp-solid-rapat          { background-color: #e0e7ff; color: #3730a3 !important; border-color: #a5b4fc !important; }
+        .scp-solid-lainnya        { background-color: #f3f4f6; color: #374151 !important; border-color: #d1d5db !important; }
+
+        /* Dark mode overrides for badge colors */
+        .dark .scp-solid-libur_nasional { background-color: rgba(239, 68, 68, 0.2); color: #fca5a5 !important; border-color: rgba(239, 68, 68, 0.4) !important; }
+        .dark .scp-solid-libur_sekolah  { background-color: rgba(245, 158, 11, 0.2); color: #fde68a !important; border-color: rgba(245, 158, 11, 0.4) !important; }
+        .dark .scp-solid-upacara        { background-color: rgba(244, 63, 94, 0.2); color: #fda4af !important; border-color: rgba(244, 63, 94, 0.4) !important; }
+        .dark .scp-solid-ujian          { background-color: rgba(14, 165, 233, 0.2); color: #7dd3fc !important; border-color: rgba(14, 165, 233, 0.4) !important; }
+        .dark .scp-solid-pkl            { background-color: rgba(20, 184, 166, 0.2); color: #5eead4 !important; border-color: rgba(20, 184, 166, 0.4) !important; }
+        .dark .scp-solid-ukk            { background-color: rgba(168, 85, 247, 0.2); color: #d8b4fe !important; border-color: rgba(168, 85, 247, 0.4) !important; }
+        .dark .scp-solid-kegiatan_siswa { background-color: rgba(16, 185, 129, 0.2); color: #6ee7b7 !important; border-color: rgba(16, 185, 129, 0.4) !important; }
+        .dark .scp-solid-rapat          { background-color: rgba(99, 102, 241, 0.2); color: #a5b4fc !important; border-color: rgba(99, 102, 241, 0.4) !important; }
+        .dark .scp-solid-lainnya        { background-color: rgba(107, 114, 128, 0.2); color: #d1d5db !important; border-color: rgba(107, 114, 128, 0.4) !important; }
+
+        /* Agenda Multi-Hari: Satu Garis Menyambung Penuh (Continuous Bar) */
+        .scp-event-bar {
+            display: block !important;
+            height: 22px !important;
+            min-height: 22px !important;
+            line-height: 20px !important;
+            font-size: 0.75rem !important;
+            font-weight: 700 !important;
+            white-space: nowrap !important;
+            overflow: hidden !important;
+            text-overflow: ellipsis !important;
+            outline: none !important;
+            cursor: pointer !important;
+            box-sizing: border-box !important;
+            position: relative !important;
+            z-index: 2;
+            padding: 0 8px !important;
+            text-align: left !important;
+            border-style: solid !important;
+            transition: filter 0.15s ease-in-out;
+        }
+        .scp-event-bar:hover {
+            filter: brightness(0.95);
+            z-index: 10;
+        }
+        .scp-bar-start {
+            width: calc(100% - 5px) !important;
+            margin-left: 6px !important;
+            margin-right: -1px !important;
+            border-top-left-radius: 6px !important;
+            border-bottom-left-radius: 6px !important;
+            border-top-right-radius: 0 !important;
+            border-bottom-right-radius: 0 !important;
+            border-width: 1px 0 1px 1px !important;
+        }
+        .scp-bar-middle {
+            width: calc(100% + 2px) !important;
+            margin-left: -1px !important;
+            margin-right: -1px !important;
+            border-radius: 0 !important;
+            border-width: 1px 0 1px 0 !important;
+        }
+        .scp-bar-end {
+            width: calc(100% - 5px) !important;
+            margin-left: -1px !important;
+            margin-right: 6px !important;
+            border-top-right-radius: 6px !important;
+            border-bottom-right-radius: 6px !important;
+            border-top-left-radius: 0 !important;
+            border-bottom-left-radius: 0 !important;
+            border-width: 1px 1px 1px 0 !important;
+        }
+        .scp-bar-single {
+            width: calc(100% - 12px) !important;
+            margin-left: 6px !important;
+            margin-right: 6px !important;
+            border-radius: 6px !important;
+            border-width: 1px !important;
+        }
+
+        /* Block Seleksi Rentang Tanggal (Transparan) */
+        .scp-calendar-cell-selected {
+            background-color: rgba(59, 130, 246, 0.15) !important;
+            outline: 2px solid rgba(59, 130, 246, 0.45) !important;
+            outline-offset: -2px;
+        }
+        .dark .scp-calendar-cell-selected {
+            background-color: rgba(59, 130, 246, 0.25) !important;
+            outline: 2px solid rgba(96, 165, 250, 0.55) !important;
+            outline-offset: -2px;
+        }
 
         /* Print Settings */
         @media print {
@@ -149,7 +232,7 @@
                 </div>
             </div>
 
-            <!-- Sisi Kanan Header: Action Button / Badge Status Periode Aktif -->
+            <!-- Sisi Kanan Header: Action Button -->
             <div style="display: flex; align-items: center; gap: 8px;">
                 @if ($currentViewTab === 'years')
                     <a
@@ -158,16 +241,6 @@
                         <x-filament::icon icon="heroicon-m-plus" class="w-4 h-4" />
                         <span>Buat Tahun Ajaran</span>
                     </a>
-                @endif
-
-                @if ($this->selectedYear)
-                    <div style="display: inline-flex; align-items: center; gap: 8px; font-size: 0.8125rem; font-weight: 500; color: #4b5563; background: #f9fafb; padding: 6px 12px; border-radius: 8px; border: 1px solid #e5e7eb;">
-                        <span style="width: 8px; height: 8px; border-radius: 9999px; background-color: {{ $this->selectedYear->is_active ? '#10b981' : '#9ca3af' }};"></span>
-                        <span>Tahun Ajaran Aktif: <strong style="color: #111827;">{{ $this->selectedYear->name }}</strong></span>
-                        @if ($this->selectedYear->start_date && $this->selectedYear->end_date)
-                            <span style="color: #9ca3af;">({{ $this->selectedYear->start_date->format('d M Y') }} - {{ $this->selectedYear->end_date->format('d M Y') }})</span>
-                        @endif
-                    </div>
                 @endif
             </div>
         </div>
@@ -220,6 +293,11 @@
 
                         <!-- Sisi Kanan: Action Buttons (dengan padding dan gaya eksplisit) -->
                         <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+                            <span style="font-size: 0.75rem; color: #6b7280; display: inline-flex; align-items: center; gap: 4px; margin-right: 4px;" class="hidden md:inline-flex">
+                                <x-filament::icon icon="heroicon-m-cursor-arrow-rays" class="w-3.5 h-3.5 text-primary-500" />
+                                <span>Geser / swipe tanggal untuk agenda multi-hari</span>
+                            </span>
+
                             @if ($this->canManage())
                                 <button
                                     type="button"
@@ -229,14 +307,6 @@
                                     <span>Tarik Libur Nasional</span>
                                 </button>
                             @endif
-
-                            <button
-                                type="button"
-                                onclick="window.print()"
-                                style="padding: 8px 14px; display: inline-flex; align-items: center; gap: 6px; white-space: nowrap; border-radius: 8px; border: 1px solid #d1d5db; background: #ffffff; color: #374151; font-size: 0.875rem; font-weight: 500; cursor: pointer;">
-                                <x-filament::icon icon="heroicon-o-printer" class="w-4 h-4 text-gray-500" />
-                                <span>Export / Cetak PDF</span>
-                            </button>
 
                             @if ($this->canManage())
                                 <button
@@ -289,15 +359,6 @@
                             <h2 style="font-size: 1.35rem; font-weight: 700; color: #1f2937; margin: 0;">
                                 {{ \Carbon\Carbon::create($currentYear, $currentMonth, 1)->locale('id')->translatedFormat('F Y') }}
                             </h2>
-                            @if ($this->isOutOfPeriod)
-                                <div style="margin-top: 4px; display: inline-flex; align-items: center; gap: 6px; padding: 2px 10px; border-radius: 9999px; font-size: 0.75rem; font-weight: 500; background-color: #fef3c7; color: #92400e; border: 1px solid #fcd34d;">
-                                    <x-filament::icon icon="heroicon-m-exclamation-triangle" class="w-3.5 h-3.5 text-amber-600 shrink-0" />
-                                    <span>Di luar rentang semester</span>
-                                    <button type="button" wire:click="resetToActivePeriod" style="text-decoration: underline; font-weight: 700; color: #78350f; background: none; border: none; cursor: pointer; padding: 0;">
-                                        Kembali ke Periode Aktif
-                                    </button>
-                                </div>
-                            @endif
                         </div>
 
                         <!-- Kanan: Input Pencarian dan Switcher -->
@@ -341,30 +402,6 @@
                                 </button>
                             </div>
                         </div>
-                    </div>
-
-                    <!-- LEGENDA FILTER KATEGORI (PILL KECIL SATU BARIS DENGAN TITIK WARNA DAN NAMA SINGKAT) -->
-                    <div style="display: flex; align-items: center; gap: 6px; overflow-x: auto; padding: 6px 0; border-top: 1px solid #f3f4f6; border-bottom: 1px solid #f3f4f6;" class="no-print">
-                        <span style="font-size: 0.75rem; font-weight: 700; color: #6b7280; text-transform: uppercase; letter-spacing: 0.05em; margin-right: 4px; flex-shrink: 0;">
-                            Kategori:
-                        </span>
-                        @foreach (\App\Enums\AcademicEventCategory::cases() as $cat)
-                            @php
-                                $isActive = empty($selectedCategories) || in_array($cat->value, $selectedCategories, true);
-                                $count = $this->categoryCounts[$cat->value] ?? 0;
-                            @endphp
-                            <button
-                                type="button"
-                                wire:click="toggleCategoryFilter('{{ $cat->value }}')"
-                                title="Klik untuk filter {{ $cat->getLabel() }}"
-                                class="scp-legend-pill scp-pill-{{ $cat->value }} {{ $isActive ? 'opacity-100 ring-1 ring-primary-500/70 shadow-2xs' : 'opacity-35 grayscale-[25%] hover:opacity-75' }}">
-                                <span class="scp-legend-dot"></span>
-                                <span class="whitespace-nowrap">{{ $cat->getShortLabel() }}</span>
-                                <span style="padding: 1px 6px; border-radius: 9999px; font-size: 0.65rem; background: rgba(255,255,255,0.8); font-weight: 700; margin-left: 2px;">
-                                    {{ $count }}
-                                </span>
-                            </button>
-                        @endforeach
                     </div>
 
                     <!-- 5. TAMPILAN UTAMA KALENDER (BULAN / MINGGU / DAFTAR AGENDA) -->
@@ -425,22 +462,9 @@
                                             </div>
 
                                             @if ($this->canManage())
-                                                <div style="display: flex; align-items: center; gap: 8px;">
-                                                    <button
-                                                        type="button"
-                                                        wire:click="openEditEventModal({{ $item->id }})"
-                                                        style="padding: 6px; border: none; background: transparent; color: #4b5563; cursor: pointer; border-radius: 6px;"
-                                                        title="Edit Agenda">
-                                                        <x-filament::icon icon="heroicon-m-pencil-square" class="w-4 h-4" />
-                                                    </button>
-                                                    <button
-                                                        type="button"
-                                                        wire:click="deleteEvent({{ $item->id }})"
-                                                        wire:confirm="Apakah Anda yakin ingin menghapus agenda ini?"
-                                                        style="padding: 6px; border: none; background: transparent; color: #ef4444; cursor: pointer; border-radius: 6px;"
-                                                        title="Hapus Agenda">
-                                                        <x-filament::icon icon="heroicon-m-trash" class="w-4 h-4" />
-                                                    </button>
+                                                <div style="display: flex; align-items: center; gap: 4px;">
+                                                    {{ ($this->editEventAction)(['id' => $item->id]) }}
+                                                    {{ ($this->deleteEventAction)(['id' => $item->id]) }}
                                                 </div>
                                             @endif
                                         </div>
@@ -449,8 +473,79 @@
                             @endif
                         </div>
                     @else
-                        <!-- 2. TABEL GRID KALENDER (BORDER EKSPLISIT & TINGGI 105PX, TANPA TANDA + APAPUN) -->
-                        <div style="overflow-x: auto; border: 1px solid #e5e7eb; border-radius: 8px;">
+                        <!-- 2. TABEL GRID KALENDER (SWIPE / DRAG MULTI-DAY SELECTION) -->
+                        <div
+                            x-data="{
+                                isDragging: false,
+                                startDate: null,
+                                hoverDate: null,
+                                canManage: {{ $this->canManage() ? 'true' : 'false' }},
+
+                                startDrag(date, event) {
+                                    if (!this.canManage) return;
+                                    if (event.target.closest('button') || event.target.closest('a') || event.target.closest('.pointer-events-auto')) {
+                                        return;
+                                    }
+                                    if (event.type === 'mousedown' && event.button !== 0) return;
+
+                                    this.isDragging = true;
+                                    this.startDate = date;
+                                    this.hoverDate = date;
+                                },
+
+                                onHover(date) {
+                                    if (!this.isDragging) return;
+                                    this.hoverDate = date;
+                                },
+
+                                endDrag(date) {
+                                    if (!this.isDragging) return;
+                                    this.isDragging = false;
+
+                                    let start = this.startDate;
+                                    let end = date || this.hoverDate || this.startDate;
+
+                                    if (start && end) {
+                                        let s = start <= end ? start : end;
+                                        let e = start <= end ? end : start;
+                                        $wire.openCreateEventModal(s, e);
+                                    }
+
+                                    this.startDate = null;
+                                    this.hoverDate = null;
+                                },
+
+                                isInRange(date) {
+                                    if (!this.isDragging || !this.startDate || !this.hoverDate) return false;
+                                    let s = this.startDate <= this.hoverDate ? this.startDate : this.hoverDate;
+                                    let e = this.startDate <= this.hoverDate ? this.hoverDate : this.startDate;
+                                    return date >= s && date <= e;
+                                },
+
+                                handleTouchMove(event) {
+                                    if (!this.isDragging) return;
+                                    let touch = event.touches[0];
+                                    let el = document.elementFromPoint(touch.clientX, touch.clientY);
+                                    if (el) {
+                                        let cell = el.closest('[data-calendar-date]');
+                                        if (cell) {
+                                            let date = cell.getAttribute('data-calendar-date');
+                                            if (date) {
+                                                this.hoverDate = date;
+                                            }
+                                        }
+                                    }
+                                },
+
+                                handleTouchEnd(event) {
+                                    if (!this.isDragging) return;
+                                    this.endDrag(this.hoverDate);
+                                }
+                            }"
+                            @mouseup.window="endDrag()"
+                            @touchmove="handleTouchMove($event)"
+                            @touchend="handleTouchEnd($event)"
+                            style="overflow-x: auto; border: 1px solid #e5e7eb; border-radius: 8px; user-select: none; -webkit-user-select: none; position: relative;">
                             <table style="width: 100%; border-collapse: collapse; table-layout: fixed;">
                                 <thead>
                                     <tr style="background-color: #f9fafb;">
@@ -459,7 +554,7 @@
                                         <th style="border: 1px solid #e5e7eb; height: auto; vertical-align: middle; padding: 10px; text-align: center; font-size: 0.8125rem; font-weight: 700; color: #374151; width: 14.285%;">Rabu</th>
                                         <th style="border: 1px solid #e5e7eb; height: auto; vertical-align: middle; padding: 10px; text-align: center; font-size: 0.8125rem; font-weight: 700; color: #374151; width: 14.285%;">Kamis</th>
                                         <th style="border: 1px solid #e5e7eb; height: auto; vertical-align: middle; padding: 10px; text-align: center; font-size: 0.8125rem; font-weight: 700; color: #374151; width: 14.285%;">Jumat</th>
-                                        <th style="border: 1px solid #e5e7eb; height: auto; vertical-align: middle; padding: 10px; text-align: center; font-size: 0.8125rem; font-weight: 700; color: #374151; width: 14.285%;">Sabtu</th>
+                                        <th style="border: 1px solid #e5e7eb; height: auto; vertical-align: middle; padding: 10px; text-align: center; font-size: 0.8125rem; font-weight: 700; color: #ef4444; width: 14.285%;">Sabtu</th>
                                         <th style="border: 1px solid #e5e7eb; height: auto; vertical-align: middle; padding: 10px; text-align: center; font-size: 0.8125rem; font-weight: 700; color: #ef4444; width: 14.285%;">Minggu</th>
                                     </tr>
                                 </thead>
@@ -473,24 +568,31 @@
                                                         $cellBgStyle = 'background-color: #eff6ff;'; // Soft blue highlight untuk Hari Ini
                                                     } elseif (! $day['is_current_month']) {
                                                         $cellBgStyle = 'background-color: #f9fafb;'; // Redup untuk tanggal di luar bulan
+                                                    } elseif ($day['is_weekend']) {
+                                                        $cellBgStyle = 'background-color: #fef8f8;'; // Soft subtle tint untuk hari libur akhir pekan (Sabtu & Minggu)
                                                     }
                                                 @endphp
                                                 <td
-                                                    style="border: 1px solid #e5e7eb; height: 105px; min-height: 105px; vertical-align: top; padding: 8px 10px; position: relative; {{ $cellBgStyle }}"
+                                                    data-calendar-date="{{ $day['date'] }}"
                                                     @if ($this->canManage())
-                                                        wire:click="openCreateEventModal('{{ $day['date'] }}')"
+                                                        @mousedown="startDrag('{{ $day['date'] }}', $event)"
+                                                        @mouseenter="onHover('{{ $day['date'] }}')"
+                                                        @mouseup="endDrag('{{ $day['date'] }}')"
+                                                        @touchstart="startDrag('{{ $day['date'] }}', $event)"
                                                     @endif
+                                                    :class="isInRange('{{ $day['date'] }}') ? 'scp-calendar-cell-selected' : ''"
+                                                    style="border: 1px solid #e5e7eb; height: 105px; min-height: 105px; vertical-align: top; padding: 6px 0; position: relative; {{ $cellBgStyle }}"
                                                     class="align-top transition duration-150 hover:bg-blue-50/40 cursor-pointer">
                                                     
                                                     <!-- Top Row: Angka Tanggal Saja di Pojok Kanan Atas (Tanda + SUDAH DIHAPUS SEPENUHNYA DARI KODE) -->
-                                                    <div style="display: flex; justify-content: flex-end; margin-bottom: 6px; pointer-events: none;">
-                                                        <span style="font-size: 0.875rem; font-weight: 600; {{ $day['is_today'] ? 'color: #2563eb; font-weight: 800;' : ($day['is_sunday'] ? 'color: #ef4444; font-weight: 800;' : ($day['is_current_month'] ? 'color: #1f2937;' : 'color: #9ca3af;')) }}">
+                                                    <div style="display: flex; justify-content: flex-end; margin-bottom: 4px; padding: 0 8px; pointer-events: none;">
+                                                        <span style="font-size: 0.875rem; font-weight: 600; {{ $day['is_today'] ? 'color: #2563eb; font-weight: 800;' : ($day['is_weekend'] ? ($day['is_current_month'] ? 'color: #ef4444; font-weight: 800;' : 'color: #fca5a5;') : ($day['is_current_month'] ? 'color: #1f2937;' : 'color: #9ca3af;')) }}">
                                                             {{ $day['day_number'] }}
                                                         </span>
                                                     </div>
 
                                                     <!-- Container Daftar Agenda Sel -->
-                                                    <div style="display: flex; flex-direction: column; gap: 4px; overflow-y: auto; max-height: 72px; scrollbar-width: none;">
+                                                    <div style="display: flex; flex-direction: column; gap: 3px; min-height: 68px; width: 100%;">
                                                         @foreach ($day['events'] as $event)
                                                             @php
                                                                 $isMultiDay = $event->start_date->ne($event->end_date);
@@ -499,26 +601,52 @@
                                                                 x-data="{ showPopover: false }"
                                                                 @mouseenter="showPopover = true"
                                                                 @mouseleave="showPopover = false"
-                                                                style="position: relative;"
+                                                                @mousedown.stop
+                                                                @touchstart.stop
+                                                                @mouseup.stop
+                                                                style="position: relative; width: 100%;"
                                                                 class="pointer-events-auto">
                                                                 
                                                                 @if ($isMultiDay)
-                                                                    <!-- Multi-day Event: Pita / Bar Berwarna Solid Sesuai Kategori dengan Teks Putih -->
+                                                                    @php
+                                                                        $dayDate = \Carbon\Carbon::parse($day['date']);
+                                                                        $isStart = $event->start_date->toDateString() === $day['date'] || $dayDate->isMonday();
+                                                                        $isEnd   = $event->end_date->toDateString() === $day['date'] || $dayDate->isSunday();
+
+                                                                        if ($isStart && $isEnd) {
+                                                                            $barClass = 'scp-bar-single';
+                                                                            $showTitle = true;
+                                                                        } elseif ($isStart && ! $isEnd) {
+                                                                            $barClass = 'scp-bar-start';
+                                                                            $showTitle = true;
+                                                                        } elseif (! $isStart && ! $isEnd) {
+                                                                            $barClass = 'scp-bar-middle';
+                                                                            $showTitle = false;
+                                                                        } else {
+                                                                            $barClass = 'scp-bar-end';
+                                                                            $showTitle = false;
+                                                                        }
+                                                                    @endphp
+                                                                    <!-- Multi-day Event: Satu Garis Menyambung (Continuous Bar) -->
                                                                     <button
                                                                         type="button"
                                                                         wire:click.stop="openEditEventModal({{ $event->id }})"
-                                                                        class="w-full text-left rounded px-2 py-0.5 text-xs font-medium text-white truncate block transition shadow-2xs hover:brightness-95 scp-solid-{{ $event->category instanceof \App\Enums\AcademicEventCategory ? $event->category->value : $event->category }}">
-                                                                        @if ($event->target_grades)
-                                                                            <span style="font-weight: 700; font-size: 0.625rem; opacity: 0.9;">[{{ implode(',', $event->target_grades) }}]</span>
+                                                                        class="scp-event-bar {{ $barClass }} scp-solid-{{ $event->category instanceof \App\Enums\AcademicEventCategory ? $event->category->value : $event->category }}">
+                                                                        @if ($showTitle)
+                                                                            @if ($event->target_grades)
+                                                                                <span style="font-weight: 700; font-size: 0.625rem; opacity: 0.9;">[{{ implode(',', $event->target_grades) }}]</span>
+                                                                            @endif
+                                                                            <span>{{ $event->title }}</span>
+                                                                        @else
+                                                                            <span style="visibility: hidden;">&nbsp;</span>
                                                                         @endif
-                                                                        <span>{{ $event->title }}</span>
                                                                     </button>
                                                                 @else
                                                                     <!-- 1-day Event: Titik Warna Kategori (Dot) Diikuti Teks Singkat Satu Baris -->
                                                                     <button
                                                                         type="button"
                                                                         wire:click.stop="openEditEventModal({{ $event->id }})"
-                                                                        style="width: 100%; display: flex; align-items: center; gap: 6px; text-align: left; font-size: 0.75rem; font-weight: 500; color: #1f2937; padding: 2px 4px; border-radius: 4px; border: none; background: transparent; cursor: pointer;">
+                                                                        style="width: calc(100% - 12px); margin: 0 6px; display: flex; align-items: center; gap: 6px; text-align: left; font-size: 0.75rem; font-weight: 500; color: #1f2937; padding: 2px 4px; border-radius: 4px; border: none; background: transparent; cursor: pointer;">
                                                                         <span class="w-2 h-2 rounded-full shrink-0 scp-dot-{{ $event->category instanceof \App\Enums\AcademicEventCategory ? $event->category->value : $event->category }}"></span>
                                                                         @if ($event->target_grades)
                                                                             <span style="font-size: 0.625rem; font-weight: 700; color: #6b7280; flex-shrink: 0;">[{{ implode(',', $event->target_grades) }}]</span>
@@ -595,14 +723,14 @@
             </div>
         @endif
 
-        <!-- 3, 4, 5. MODAL POPUP TAMBAH / EDIT AGENDA AKADEMIK (TELEPORT KE BODY, BORDER EKSPLISIT) -->
+        <!-- 3, 4, 5. MODAL POPUP TAMBAH / EDIT AGENDA AKADEMIK (BORDER EKSPLISIT) -->
         @if ($showEventModal)
-            <div x-teleport="body">
+            <div
+                style="position: fixed; inset: 0; background-color: rgba(15, 23, 42, 0.5); z-index: 9999; display: flex; align-items: center; justify-content: center; padding: 16px;"
+                class="no-print"
+                wire:click.self="closeEventModal">
                 <div
-                    style="position: fixed; inset: 0; background-color: rgba(15, 23, 42, 0.5); z-index: 9999; display: flex; align-items: center; justify-content: center; padding: 16px;"
-                    class="no-print">
-                    <div
-                        style="background: #ffffff; border-radius: 12px; width: 100%; max-width: 600px; max-height: 90vh; overflow-y: auto; padding: 24px; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1); display: flex; flex-direction: column;">
+                    style="background: #ffffff; border-radius: 12px; width: 100%; max-width: 600px; max-height: 90vh; overflow-y: auto; padding: 24px; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1); display: flex; flex-direction: column;">
                         
                         <!-- Header Modal -->
                         <div style="display: flex; align-items: center; justify-content: space-between; padding-bottom: 16px; border-bottom: 1px solid #e5e7eb; margin-bottom: 20px;">
@@ -747,8 +875,7 @@
                                 @if ($editingEventId)
                                     <button
                                         type="button"
-                                        wire:click="deleteEvent"
-                                        wire:confirm="Hapus agenda akademik ini?"
+                                        wire:click="mountAction('deleteEvent', { id: {{ $editingEventId }} })"
                                         style="padding: 8px 14px; border: none; background: transparent; color: #ef4444; font-size: 0.875rem; font-weight: 600; cursor: pointer;">
                                         Hapus
                                     </button>
@@ -772,74 +899,73 @@
                         </div>
                     </div>
                 </div>
-            </div>
         @endif
 
-        <!-- 7. MODAL TARIK LIBUR NASIONAL (TELEPORT KE BODY) -->
+        <!-- 7. MODAL TARIK LIBUR NASIONAL -->
         @if ($showSyncModal)
-            <div x-teleport="body">
-                <div
-                    style="position: fixed; inset: 0; background-color: rgba(15, 23, 42, 0.5); z-index: 9999; display: flex; align-items: center; justify-content: center; padding: 16px;"
-                    class="no-print"
-                    x-data>
-                    <div style="background: #ffffff; border-radius: 12px; width: 100%; max-width: 450px; overflow: hidden; padding: 24px; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1);">
-                        <div style="display: flex; align-items: center; justify-content: space-between; padding-bottom: 16px; border-bottom: 1px solid #e5e7eb; margin-bottom: 16px;">
-                            <h3 style="font-size: 1.125rem; font-weight: 700; color: #111827; margin: 0; display: flex; align-items: center; gap: 8px;">
-                                <x-filament::icon icon="heroicon-o-arrow-path" class="w-5 h-5 text-primary-500" />
-                                <span>Tarik Libur Nasional Otomatis</span>
-                            </h3>
-                            <button
-                                type="button"
-                                wire:click="closeSyncModal"
-                                style="border: none; background: transparent; color: #9ca3af; cursor: pointer; display: flex; align-items: center;">
-                                <x-filament::icon icon="heroicon-m-x-mark" class="w-5 h-5" />
-                            </button>
-                        </div>
+            <div
+                style="position: fixed; inset: 0; background-color: rgba(15, 23, 42, 0.5); z-index: 9999; display: flex; align-items: center; justify-content: center; padding: 16px;"
+                class="no-print"
+                wire:click.self="closeSyncModal">
+                <div style="background: #ffffff; border-radius: 12px; width: 100%; max-width: 450px; overflow: hidden; padding: 24px; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1);">
+                    <div style="display: flex; align-items: center; justify-content: space-between; padding-bottom: 16px; border-bottom: 1px solid #e5e7eb; margin-bottom: 16px;">
+                        <h3 style="font-size: 1.125rem; font-weight: 700; color: #111827; margin: 0; display: flex; align-items: center; gap: 8px;">
+                            <x-filament::icon icon="heroicon-o-arrow-path" class="w-5 h-5 text-primary-500" />
+                            <span>Tarik Libur Nasional Otomatis</span>
+                        </h3>
+                        <button
+                            type="button"
+                            wire:click="closeSyncModal"
+                            style="border: none; background: transparent; color: #9ca3af; cursor: pointer; display: flex; align-items: center;">
+                            <x-filament::icon icon="heroicon-m-x-mark" class="w-5 h-5" />
+                        </button>
+                    </div>
 
-                        <div style="display: flex; flex-direction: column; gap: 16px; margin-bottom: 20px;">
-                            <div style="padding: 12px; background: #eff6ff; color: #1e40af; border-radius: 8px; font-size: 0.8125rem; display: flex; align-items: flex-start; gap: 10px; border: 1px solid #bfdbfe;">
-                                <x-filament::icon icon="heroicon-o-information-circle" class="w-5 h-5 text-blue-600 shrink-0 mt-0.5" />
-                                <div class="space-y-1">
-                                    <p style="font-weight: 700; margin: 0;">Sinkronisasi Resmi SKB 3 Menteri</p>
-                                    <p style="font-size: 0.75rem; margin: 0; line-height: 1.4;">
-                                        Sistem akan mengambil data hari libur nasional resmi dari API Pemerintah Republik Indonesia dan menyinkronkannya khusus untuk rentang semester aktif terpilih.
-                                    </p>
-                                </div>
-                            </div>
-
-                            <div>
-                                <label style="display: block; font-size: 0.75rem; font-weight: 700; color: #374151;">
-                                    Tahun Kalender Sinkronisasi
-                                </label>
-                                <input
-                                    type="number"
-                                    wire:model="syncYear"
-                                    style="width: 100%; border: 1px solid #d1d5db; border-radius: 8px; padding: 8px 12px; font-size: 0.875rem; margin-top: 4px; outline: none; background: #ffffff; color: #111827; box-sizing: border-box;" />
+                    <div style="display: flex; flex-direction: column; gap: 16px; margin-bottom: 20px;">
+                        <div style="padding: 12px; background: #eff6ff; color: #1e40af; border-radius: 8px; font-size: 0.8125rem; display: flex; align-items: flex-start; gap: 10px; border: 1px solid #bfdbfe;">
+                            <x-filament::icon icon="heroicon-o-information-circle" class="w-5 h-5 text-blue-600 shrink-0 mt-0.5" />
+                            <div class="space-y-1">
+                                <p style="font-weight: 700; margin: 0;">Sinkronisasi Resmi SKB 3 Menteri</p>
+                                <p style="font-size: 0.75rem; margin: 0; line-height: 1.4;">
+                                    Sistem akan mengambil data hari libur nasional resmi dari API Pemerintah Republik Indonesia dan menyinkronkannya khusus untuk rentang semester aktif terpilih.
+                                </p>
                             </div>
                         </div>
 
-                        <div style="display: flex; align-items: center; justify-content: flex-end; gap: 10px; padding-top: 16px; border-top: 1px solid #e5e7eb;">
-                            <button
-                                type="button"
-                                wire:click="closeSyncModal"
-                                style="padding: 8px 16px; border: 1px solid #d1d5db; border-radius: 8px; background: #ffffff; color: #374151; font-size: 0.875rem; font-weight: 500; cursor: pointer;">
-                                Batal
-                            </button>
-                            <button
-                                type="button"
-                                wire:click="syncNationalHolidays"
-                                wire:loading.attr="disabled"
-                                style="padding: 8px 16px; display: inline-flex; align-items: center; gap: 6px; white-space: nowrap; border-radius: 8px; background-color: #2563eb; color: #ffffff; font-size: 0.875rem; font-weight: 600; border: none; cursor: pointer;">
-                                <span wire:loading.remove wire:target="syncNationalHolidays">Mulai Tarik Data</span>
-                                <span wire:loading wire:target="syncNationalHolidays" class="flex items-center gap-1">
-                                    Sedang Menyinkronkan...
-                                </span>
-                            </button>
+                        <div>
+                            <label style="display: block; font-size: 0.75rem; font-weight: 700; color: #374151;">
+                                Tahun Kalender Sinkronisasi
+                            </label>
+                            <input
+                                type="number"
+                                wire:model="syncYear"
+                                style="width: 100%; border: 1px solid #d1d5db; border-radius: 8px; padding: 8px 12px; font-size: 0.875rem; margin-top: 4px; outline: none; background: #ffffff; color: #111827; box-sizing: border-box;" />
                         </div>
+                    </div>
+
+                    <div style="display: flex; align-items: center; justify-content: flex-end; gap: 10px; padding-top: 16px; border-top: 1px solid #e5e7eb;">
+                        <button
+                            type="button"
+                            wire:click="closeSyncModal"
+                            style="padding: 8px 16px; border: 1px solid #d1d5db; border-radius: 8px; background: #ffffff; color: #374151; font-size: 0.875rem; font-weight: 500; cursor: pointer;">
+                            Batal
+                        </button>
+                        <button
+                            type="button"
+                            wire:click="syncNationalHolidays"
+                            wire:loading.attr="disabled"
+                            style="padding: 8px 16px; display: inline-flex; align-items: center; gap: 6px; white-space: nowrap; border-radius: 8px; background-color: #2563eb; color: #ffffff; font-size: 0.875rem; font-weight: 600; border: none; cursor: pointer;">
+                            <span wire:loading.remove wire:target="syncNationalHolidays">Mulai Tarik Data</span>
+                            <span wire:loading wire:target="syncNationalHolidays" class="flex items-center gap-1">
+                                Sedang Menyinkronkan...
+                            </span>
+                        </button>
                     </div>
                 </div>
             </div>
         @endif
+
+        <x-filament-actions::modals />
 
     </div>
 </x-filament-panels::page>

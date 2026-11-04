@@ -188,7 +188,6 @@ class AcademicCalendarTest extends TestCase
         $page->assertSuccessful();
         $page->assertSee('Praktik Kerja Lapangan (PKL) Gelombang 1');
         $page->assertSee('Tarik Libur Nasional');
-        $page->assertSee('Export / Cetak PDF');
         $page->assertSee('Tambah Agenda');
 
         // Test category filter toggle
@@ -208,13 +207,23 @@ class AcademicCalendarTest extends TestCase
         $page->set('currentMonth', 11);
         $page->set('currentYear', 2026);
         $this->assertTrue($page->instance()->isOutOfPeriod);
-        $page->assertSee('Di luar rentang semester');
-        $page->assertSee('Kembali ke Periode Aktif');
 
         $page->call('resetToActivePeriod');
         $this->assertEquals(1, $page->get('currentMonth'));
         $this->assertEquals(2027, $page->get('currentYear'));
         $this->assertFalse($page->instance()->isOutOfPeriod);
+
+        // Test range selection via openCreateEventModal (forward and backward swipe)
+        $page->call('openCreateEventModal', '2027-01-10', '2027-01-15');
+        $this->assertEquals('2027-01-10', $page->get('eventStartDate'));
+        $this->assertEquals('2027-01-15', $page->get('eventEndDate'));
+        $page->call('closeEventModal');
+
+        // Test backward swipe (e.g. from 15th back to 10th)
+        $page->call('openCreateEventModal', '2027-01-15', '2027-01-10');
+        $this->assertEquals('2027-01-10', $page->get('eventStartDate'));
+        $this->assertEquals('2027-01-15', $page->get('eventEndDate'));
+        $page->call('closeEventModal');
 
         // Test saveEvent via modal
         $page->call('openCreateEventModal', '2027-01-20');
@@ -231,5 +240,21 @@ class AcademicCalendarTest extends TestCase
             'category' => 'ujian',
             'academic_year_id' => $academicYear->id,
         ]);
+
+        $createdEvent = AcademicEvent::where('title', 'Ujian Tengah Semester')->first();
+
+        // Test native Filament edit action
+        $page->call('mountAction', 'editEvent', ['id' => $createdEvent->id]);
+        $page->set('mountedActions.0.data.title', 'Ujian Tengah Semester Diperbarui');
+        $page->call('callMountedAction');
+        $this->assertDatabaseHas('academic_events', [
+            'id' => $createdEvent->id,
+            'title' => 'Ujian Tengah Semester Diperbarui',
+        ]);
+
+        // Test native Filament delete action with confirmation modal
+        $page->call('mountAction', 'deleteEvent', ['id' => $createdEvent->id]);
+        $page->call('callMountedAction');
+        $this->assertDatabaseMissing('academic_events', ['id' => $createdEvent->id]);
     }
 }

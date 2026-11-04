@@ -163,9 +163,15 @@ class AcademicCalendarService
 
     /**
      * Helper Memory O(1): Apakah KBM Guru dinonaktifkan pada tanggal tersebut?
+     * Hari Sabtu & Minggu otomatis dinonaktifkan (hari libur akhir pekan).
      */
     public function isKbmDisabled(string $dateString, ?string $grade, array $exclusionsMap): bool
     {
+        $date = Carbon::parse($dateString);
+        if ($date->isWeekend()) {
+            return true;
+        }
+
         if (! isset($exclusionsMap[$dateString])) {
             return false;
         }
@@ -183,9 +189,25 @@ class AcademicCalendarService
 
     /**
      * Helper Memory O(1): Apakah siswa bebas dari kewajiban presensi pada tanggal tersebut?
+     * Hari Sabtu & Minggu otomatis bebas presensi kecuali ada agenda khusus yang mewajibkan hadir.
      */
     public function isAttendanceExempted(string $dateString, ?string $grade, array $exclusionsMap): bool
     {
+        $date = Carbon::parse($dateString);
+        if ($date->isWeekend()) {
+            if (isset($exclusionsMap[$dateString])) {
+                foreach ($exclusionsMap[$dateString] as $rule) {
+                    if ($rule['requires_attendance']) {
+                        if (empty($rule['target_grades']) || in_array($grade, $rule['target_grades'], true)) {
+                            return false; // Wajib hadir walau akhir pekan jika ada agenda khusus bertarget
+                        }
+                    }
+                }
+            }
+
+            return true;
+        }
+
         if (! isset($exclusionsMap[$dateString])) {
             return false;
         }

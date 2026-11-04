@@ -31,8 +31,8 @@ class MajorSeeder extends Seeder
                 'description' => 'Program Keahlian Desain Komunikasi Visual',
             ],
             [
-                'code' => 'MPLB',
-                'name' => 'Manajemen Perkantoran dan Layanan Bisnis',
+                'code' => 'MP',
+                'name' => 'Manajemen Perkantoran',
                 'description' => 'Program Keahlian Manajemen Perkantoran',
             ],
         ];

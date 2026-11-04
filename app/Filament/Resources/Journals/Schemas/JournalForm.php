@@ -2,12 +2,14 @@
 
 namespace App\Filament\Resources\Journals\Schemas;
 
+use App\Filament\Forms\Components\RealtimePhotoCapture;
+use App\Filament\Resources\Journals\Pages\CreateJournal;
 use App\Models\LeaveRequest;
 use App\Models\Schedule;
 use App\Models\User;
 use Carbon\Carbon;
+use Filament\Actions\Action;
 use Filament\Forms\Components\DatePicker;
-use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\Hidden;
 use Filament\Forms\Components\Placeholder;
 use Filament\Forms\Components\Repeater;
@@ -74,7 +76,7 @@ class JournalForm
                     ->columnSpanFull()
                     ->label('Catatan Tambahan / Kendala'),
 
-                FileUpload::make('activity_photo')
+                RealtimePhotoCapture::make('activity_photo')
                     ->image()
                     ->disk('public')
                     ->directory('journal_photos')
@@ -87,7 +89,7 @@ class JournalForm
                     ->description('Daftar presensi siswa otomatis dimuat berdasarkan kelas pada jadwal yang dipilih.')
                     ->columnSpanFull()
                     ->headerActions([
-                        \Filament\Actions\Action::make('markAllHadir')
+                        Action::make('markAllHadir')
                             ->label('Set Semua Hadir')
                             ->icon('heroicon-o-check-circle')
                             ->color('success')
@@ -147,7 +149,7 @@ class JournalForm
                             ->reorderable(false)
                             ->visible(fn (Get $get) => ! empty($get('attendances'))),
                     ])
-                    ->visible(fn ($livewire, Get $get) => $livewire instanceof \App\Filament\Resources\Journals\Pages\CreateJournal && filled($get('schedule_id'))),
+                    ->visible(fn ($livewire, Get $get) => $livewire instanceof CreateJournal && filled($get('schedule_id'))),
             ]);
     }
 
@@ -169,9 +171,9 @@ class JournalForm
         }
 
         $students = User::where(function ($query) {
-                $query->whereHas('role', fn ($q) => $q->where('name', 'Siswa'))
-                    ->orWhereHas('roles', fn ($q) => $q->where('name', 'Siswa'));
-            })
+            $query->whereHas('role', fn ($q) => $q->where('name', 'Siswa'))
+                ->orWhereHas('roles', fn ($q) => $q->where('name', 'Siswa'));
+        })
             ->whereHas('classrooms', fn ($q) => $q->where('classrooms.id', $classroomId))
             ->orderBy('full_name')
             ->get();
