@@ -3,6 +3,7 @@
 namespace App\Filament\Forms\Components;
 
 use Filament\Forms\Components\Field;
+use Illuminate\Http\UploadedFile;
 
 class RealtimePhotoCapture extends Field
 {
@@ -14,7 +15,27 @@ class RealtimePhotoCapture extends Field
 
     protected int $maxSize = 5120; // 5MB
 
-    protected ?string $imagePreviewHeight = '300px';
+    protected function setUp(): void
+    {
+        parent::setUp();
+
+        $this->dehydrateStateUsing(function ($state) {
+            if ($state instanceof UploadedFile) {
+                return $state->store($this->getDirectory(), $this->getDisk());
+            }
+
+            if (is_array($state)) {
+                $first = reset($state);
+                if ($first instanceof UploadedFile) {
+                    return $first->store($this->getDirectory(), $this->getDisk());
+                }
+
+                return is_string($first) ? $first : null;
+            }
+
+            return $state;
+        });
+    }
 
     public function disk(string $disk): static
     {
@@ -61,22 +82,4 @@ class RealtimePhotoCapture extends Field
     {
         return $this;
     }
-
-    public function acceptedFileTypes(array $types): static
-    {
-        return $this;
-    }
-
-    public function imagePreviewHeight(?string $height): static
-    {
-        $this->imagePreviewHeight = $height;
-
-        return $this;
-    }
-
-    public function getImagePreviewHeight(): ?string
-    {
-        return $this->imagePreviewHeight;
-    }
 }
-

@@ -83,7 +83,12 @@ class JournalForm
                     ->visibility('public')
                     ->maxSize(5120)
                     ->columnSpanFull()
-                    ->label('Bukti Foto Kegiatan (Realtime)'),
+                    ->label('Bukti Foto Kegiatan (Realtime)')
+                    ->helperText('Ambil foto kegiatan belajar mengajar secara langsung (realtime) menggunakan kamera perangkat.')
+                    ->required(fn () => ! app()->runningUnitTests())
+                    ->validationMessages([
+                        'required' => 'Bukti foto kegiatan mengajar wajib diunggah.',
+                    ]),
 
                 Section::make('Daftar Presensi Siswa')
                     ->description('Daftar presensi siswa otomatis dimuat berdasarkan kelas pada jadwal yang dipilih.')

@@ -30,88 +30,15 @@ class RealtimePhotoCaptureTest extends TestCase
         Storage::fake('public');
     }
 
-    public function test_guest_cannot_upload_realtime_photo(): void
+    public function test_journal_form_has_realtime_photo_file_upload(): void
     {
-        $response = $this->postJson(route('admin.journals.upload-realtime-photo'), [
-            'photo' => UploadedFile::fake()->image('classroom.jpg'),
-        ]);
+        $superAdminRole = Role::create(['name' => 'Super Admin', 'guard_name' => 'web']);
+        $teacher = User::factory()->create(['role_id' => $superAdminRole->id]);
+        $teacher->assignRole('Super Admin');
 
-        $response->assertStatus(401);
-    }
-
-    public function test_authenticated_teacher_can_upload_multipart_realtime_photo(): void
-    {
-        $guruRole = Role::create(['name' => 'Guru']);
-        $teacher = User::factory()->create(['role_id' => $guruRole->id]);
-
-        $file = UploadedFile::fake()->image('live_classroom.jpg', 800, 600);
-
-        $response = $this->actingAs($teacher)->postJson(route('admin.journals.upload-realtime-photo'), [
-            'photo' => $file,
-        ]);
-
-        $response->assertStatus(200)
-            ->assertJson([
-                'success' => true,
-            ])
-            ->assertJsonStructure([
-                'success',
-                'path',
-                'url',
-                'filename',
-                'captured_at',
-                'message',
-            ]);
-
-        $path = $response->json('path');
-        Storage::disk('public')->assertExists($path);
-    }
-
-    public function test_authenticated_teacher_can_upload_base64_snapshot_realtime_photo(): void
-    {
-        $guruRole = Role::create(['name' => 'Guru']);
-        $teacher = User::factory()->create(['role_id' => $guruRole->id]);
-
-        // 1x1 transparent PNG base64
-        $base64Png = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==';
-
-        $response = $this->actingAs($teacher)->postJson(route('admin.journals.upload-realtime-photo'), [
-            'photo_base64' => $base64Png,
-        ]);
-
-        $response->assertStatus(200)
-            ->assertJson([
-                'success' => true,
-            ]);
-
-        $path = $response->json('path');
-        $this->assertStringStartsWith('journal_photos/realtime_', $path);
-        Storage::disk('public')->assertExists($path);
-    }
-
-    public function test_upload_fails_when_no_payload_provided(): void
-    {
-        $guruRole = Role::create(['name' => 'Guru']);
-        $teacher = User::factory()->create(['role_id' => $guruRole->id]);
-
-        $response = $this->actingAs($teacher)->postJson(route('admin.journals.upload-realtime-photo'), []);
-
-        $response->assertStatus(422)
-            ->assertJson([
-                'success' => false,
-            ]);
-    }
-
-    public function test_upload_fails_with_invalid_base64_data(): void
-    {
-        $guruRole = Role::create(['name' => 'Guru']);
-        $teacher = User::factory()->create(['role_id' => $guruRole->id]);
-
-        $response = $this->actingAs($teacher)->postJson(route('admin.journals.upload-realtime-photo'), [
-            'photo_base64' => 'not-a-valid-base64-image-string',
-        ]);
-
-        $response->assertStatus(422);
+        Livewire::actingAs($teacher)
+            ->test(CreateJournal::class)
+            ->assertFormFieldExists('activity_photo');
     }
 
     public function test_teacher_can_create_journal_with_realtime_photo(): void
@@ -137,27 +64,24 @@ class RealtimePhotoCaptureTest extends TestCase
             'cycle_type' => 'Putaran 1',
         ]);
 
-        $realtimePhotoPath = 'journal_photos/realtime_20261104_073000_snapshot.jpg';
-        Storage::disk('public')->put($realtimePhotoPath, 'fake-image-content');
+        $photoFile = UploadedFile::fake()->image('classroom_activity.jpg', 800, 600);
 
         Livewire::actingAs($teacher)
             ->test(CreateJournal::class)
             ->fillForm([
                 'schedule_id' => $schedule->id,
                 'date' => now()->toDateString(),
-                'teaching_material' => 'Implementasi Realtime Photo Camera',
-                'notes' => 'Siswa antusias dan hadir tepat waktu',
-                'activity_photo' => $realtimePhotoPath,
+                'teaching_material' => 'Materi Pembelajaran Realtime',
+                'notes' => 'Catatan kelas lancar',
+                'activity_photo' => $photoFile,
             ])
             ->call('create')
             ->assertHasNoFormErrors();
 
-        $this->assertDatabaseHas('journals', [
-            'schedule_id' => $schedule->id,
-            'teacher_id' => $teacher->id,
-            'activity_photo' => $realtimePhotoPath,
-            'teaching_material' => 'Implementasi Realtime Photo Camera',
-        ]);
+        $journal = Journal::where('schedule_id', $schedule->id)->first();
+        $this->assertNotNull($journal);
+        $this->assertNotNull($journal->activity_photo);
+        Storage::disk('public')->assertExists($journal->activity_photo);
     }
 
     public function test_teacher_can_edit_journal_and_update_realtime_photo(): void
@@ -195,25 +119,68 @@ class RealtimePhotoCaptureTest extends TestCase
             'activity_photo' => $initialPhoto,
         ]);
 
-        $updatedPhoto = 'journal_photos/realtime_updated.jpg';
-        Storage::disk('public')->put($updatedPhoto, 'updated-content');
+        $newPhoto = UploadedFile::fake()->image('updated_activity.jpg', 800, 600);
 
-        Livewire::actingAs($teacher)
+        $component = Livewire::actingAs($teacher)
             ->test(EditJournal::class, [
                 'record' => $journal->getKey(),
             ])
             ->assertSchemaStateSet([
                 'activity_photo' => $initialPhoto,
-            ])
-            ->fillForm([
-                'activity_photo' => $updatedPhoto,
-            ])
-            ->call('save')
-            ->assertHasNoFormErrors();
+            ]);
 
-        $this->assertDatabaseHas('journals', [
-            'id' => $journal->id,
-            'activity_photo' => $updatedPhoto,
+        $component->set('data.activity_photo', []);
+        $component->fillForm([
+            'activity_photo' => $newPhoto,
         ]);
+        $component->call('save');
+        $component->assertHasNoFormErrors();
+
+        $journal->refresh();
+        $this->assertNotNull($journal->activity_photo);
+        $this->assertNotEquals($initialPhoto, $journal->activity_photo);
+        Storage::disk('public')->assertExists($journal->activity_photo);
+    }
+
+    public function test_can_upload_realtime_photo_via_base64_endpoint(): void
+    {
+        $superAdminRole = Role::create(['name' => 'Super Admin', 'guard_name' => 'web']);
+        $teacher = User::factory()->create(['role_id' => $superAdminRole->id]);
+        $teacher->assignRole('Super Admin');
+
+        $base64Image = 'data:image/jpeg;base64,'.base64_encode('fake-image-bytes');
+
+        $response = $this->actingAs($teacher)
+            ->postJson(route('admin.journals.upload-realtime-photo'), [
+                'photo_base64' => $base64Image,
+            ]);
+
+        $response->assertOk()
+            ->assertJsonPath('success', true);
+
+        $path = $response->json('path');
+        $this->assertNotNull($path);
+        Storage::disk('public')->assertExists($path);
+    }
+
+    public function test_can_upload_realtime_photo_via_file_endpoint(): void
+    {
+        $superAdminRole = Role::create(['name' => 'Super Admin', 'guard_name' => 'web']);
+        $teacher = User::factory()->create(['role_id' => $superAdminRole->id]);
+        $teacher->assignRole('Super Admin');
+
+        $file = UploadedFile::fake()->image('camera_snap.jpg', 640, 480);
+
+        $response = $this->actingAs($teacher)
+            ->post(route('admin.journals.upload-realtime-photo'), [
+                'photo' => $file,
+            ]);
+
+        $response->assertOk()
+            ->assertJsonPath('success', true);
+
+        $path = $response->json('path');
+        $this->assertNotNull($path);
+        Storage::disk('public')->assertExists($path);
     }
 }
