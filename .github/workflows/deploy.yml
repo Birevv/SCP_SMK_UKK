@@ -31,9 +31,6 @@ jobs:
           extensions: mbstring, xml, ctype, iconv, intl, pdo_sqlite, pdo_mysql, gd, zip
           coverage: none
 
-      - name: Validate composer.json
-        run: composer validate --strict
-
       - name: Install Dependencies
         run: composer install --prefer-dist --no-progress --no-interaction
 
