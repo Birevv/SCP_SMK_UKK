@@ -29,7 +29,7 @@ class EditProfile extends PagesEditProfile
 
     protected function getRedirectUrl(): ?string
     {
-        return '/admin';
+        return filament()->getUrl();
     }
 
     public static function getLabel(): string
@@ -164,7 +164,7 @@ class EditProfile extends PagesEditProfile
         return parent::getCancelFormAction()
             ->label('Kembali ke Dashboard')
             ->icon('heroicon-m-arrow-left')
-            ->url('/admin');
+            ->url(filament()->getUrl());
     }
 
     protected function getFormActions(): array
@@ -191,7 +191,7 @@ class EditProfile extends PagesEditProfile
                 request()->session()->invalidate();
                 request()->session()->regenerateToken();
 
-                return redirect('/admin/login');
+                return redirect(filament()->getLoginUrl());
             });
     }
 }
