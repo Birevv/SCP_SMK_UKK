@@ -1,4 +1,4 @@
-name: Deploy Production
+name: Deploy SCP SMK UKK
 
 on:
   push:
@@ -6,147 +6,55 @@ on:
       - main
   workflow_dispatch:
 
+permissions:
+  contents: read
+
 jobs:
   deploy:
-    name: Deploy to Production
     runs-on: ubuntu-latest
 
     steps:
-      - name: Notify deployment started
-        run: |
-          if [ -n "${{ secrets.TELEGRAM_BOT_TOKEN }}" ] && [ -n "${{ secrets.TELEGRAM_CHAT_ID }}" ]; then
-            curl -s -X POST "https://api.telegram.org/bot${{ secrets.TELEGRAM_BOT_TOKEN }}/sendMessage" \
-              -d "chat_id=${{ secrets.TELEGRAM_CHAT_ID }}" \
-              --data-urlencode "text=🚀 DEPLOYMENT STARTED
-
-          📦 Repository: ${{ github.repository }}
-          🌿 Branch: ${{ github.ref_name }}
-          👤 Author: ${{ github.actor }}
-          🔖 Commit: ${{ github.sha }}
-
-          ⏳ Deploying to production..."
-          else
-            echo "Telegram notification skipped (secret not set)."
-          fi
-
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
-      - name: Setup PHP
-        uses: shivammathur/setup-php@v2
-        with:
-          php-version: '8.4'
-          tools: composer:v2
-          coverage: none
-
-      - name: Install Composer dependencies
-        run: composer install --no-interaction --prefer-dist --no-progress --no-dev --ignore-platform-req=php
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: 22
-          cache: 'npm'
-
-      - name: Install NPM dependencies & Build assets
-        run: |
-          npm ci || npm install
-          npm run build
-          test -f public/build/manifest.json || { echo "Vite build failed: public/build/manifest.json not found"; exit 1; }
-
-      - name: Setup SSH
-        uses: webfactory/ssh-agent@v0.10.0
-        with:
-          ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY || secrets.SSH_KEY }}
-
-      - name: Deploy to Server
-        id: deployment
-        continue-on-error: true
+      - name: Deploy to VPS
         env:
-          SERVER_HOST: ${{ secrets.SERVER_HOST || secrets.SSH_HOST }}
-          SERVER_USER: ${{ secrets.SERVER_USER || secrets.SSH_USERNAME }}
-          SERVER_PORT: ${{ secrets.SERVER_PORT || secrets.SSH_PORT || '22' }}
-          SERVER_PATH: ${{ secrets.SERVER_PATH || secrets.WORK_DIR || '/var/www/projects/SCP_SMK_UKK' }}
+          VPS_HOST: ${{ secrets.SSH_HOST }}
+          VPS_USER: ${{ secrets.SSH_USERNAME }}
+          VPS_SSH_KEY: ${{ secrets.SSH_KEY }}
+
         run: |
-          set +e
+          mkdir -p ~/.ssh
+          chmod 700 ~/.ssh
 
-          {
-            set -e
+          printf '%s\n' "$VPS_SSH_KEY" > ~/.ssh/id_ed25519
+          chmod 600 ~/.ssh/id_ed25519
 
-            echo "=== Syncing Git repository on server ==="
-            ssh -p $SERVER_PORT -o StrictHostKeyChecking=no $SERVER_USER@$SERVER_HOST "cd $SERVER_PATH && git fetch origin main && git reset --hard origin/main && rm -f public/hot"
+          ssh-keyscan -H "$VPS_HOST" >> ~/.ssh/known_hosts
 
-            echo "=== Uploading compiled assets to server ==="
-            scp -P $SERVER_PORT -o StrictHostKeyChecking=no -r public/build $SERVER_USER@$SERVER_HOST:$SERVER_PATH/public/
+          ssh -i ~/.ssh/id_ed25519 \
+            -o IdentitiesOnly=yes \
+            "$VPS_USER@$VPS_HOST" 'bash -s' <<'REMOTE'
 
-            echo "=== Running server optimizations ==="
-            ssh -p $SERVER_PORT -o StrictHostKeyChecking=no $SERVER_USER@$SERVER_HOST "cd $SERVER_PATH && composer install --no-interaction --prefer-dist --no-dev --optimize-autoloader --ignore-platform-req=php && php artisan migrate --force && (php artisan storage:link || true) && php artisan optimize && (php artisan queue:restart || true)"
+          set -e
 
-            echo "=== Deployment completed successfully ==="
-          } 2>&1 | tee deployment.log
+          cd /var/www/projects/SCP_SMK_UKK
 
-          EXIT_CODE=${PIPESTATUS[0]}
+          echo "Pulling latest code..."
+          git pull --ff-only origin main
 
-          echo "exit_code=$EXIT_CODE" >> "$GITHUB_OUTPUT"
+          echo "Installing production dependencies..."
+          composer install --no-dev --optimize-autoloader --no-interaction
 
-          exit $EXIT_CODE
+          echo "Building frontend..."
+          npm ci
+          npm run build
 
-      - name: Notify deployment success
-        if: steps.deployment.outcome == 'success'
-        run: |
-          if [ -n "${{ secrets.TELEGRAM_BOT_TOKEN }}" ] && [ -n "${{ secrets.TELEGRAM_CHAT_ID }}" ]; then
-            curl -s -X POST "https://api.telegram.org/bot${{ secrets.TELEGRAM_BOT_TOKEN }}/sendMessage" \
-              -d "chat_id=${{ secrets.TELEGRAM_CHAT_ID }}" \
-              --data-urlencode "text=✅ DEPLOYMENT SUCCESSFUL
+          echo "Running database migrations..."
+          php artisan migrate --force
 
-          📦 Repository: ${{ github.repository }}
-          🌿 Branch: ${{ github.ref_name }}
-          👤 Author: ${{ github.actor }}
-          🔖 Commit: ${{ github.sha }}
+          echo "Clearing and rebuilding caches..."
+          php artisan optimize:clear
+          php artisan config:cache
+          php artisan event:cache
 
-          ✅ Git pull
-          ✅ NPM build (GitHub Runner - Node 22)
-          ✅ Asset transfer (public/build)
-          ✅ Composer install
-          ✅ Database migration
-          ✅ Laravel optimization
-          ✅ Queue restart
+          echo "Deployment completed successfully!"
 
-          🚀 Production is now updated.
-
-          🔗 GitHub Actions:
-          ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
-          else
-            echo "Telegram notification skipped."
-          fi
-
-      - name: Notify deployment failure
-        if: (steps.deployment.outcome == 'failure' || failure()) && steps.deployment.outcome != 'success'
-        run: |
-          if [ -f deployment.log ]; then
-            ERROR_OUTPUT=$(tail -c 3000 deployment.log)
-          else
-            ERROR_OUTPUT="Pipeline failed during asset build or server connection step. Please check GitHub Actions logs."
-          fi
-
-          if [ -n "${{ secrets.TELEGRAM_BOT_TOKEN }}" ] && [ -n "${{ secrets.TELEGRAM_CHAT_ID }}" ]; then
-            curl -s -X POST "https://api.telegram.org/bot${{ secrets.TELEGRAM_BOT_TOKEN }}/sendMessage" \
-              -d "chat_id=${{ secrets.TELEGRAM_CHAT_ID }}" \
-              --data-urlencode "text=❌ DEPLOYMENT FAILED
-
-          📦 Repository: ${{ github.repository }}
-          🌿 Branch: ${{ github.ref_name }}
-          👤 Author: ${{ github.actor }}
-          🔖 Commit: ${{ github.sha }}
-
-          💥 Deployment error:
-
-          $ERROR_OUTPUT
-
-          🔗 GitHub Actions:
-          ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
-          else
-            echo "Deployment failed. Details: $ERROR_OUTPUT"
-          fi
-
-          exit 1
+          REMOTE
