@@ -12,7 +12,7 @@ git pull origin main
 
 # 3. Install dependency PHP (Composer) tanpa dev dependencies
 echo "📦 [Deploy] Menginstall Composer dependencies..."
-composer install --no-dev --prefer-dist --optimize-autoloader --no-interaction
+composer install --no-dev --prefer-dist --optimize-autoloader --no-interaction --ignore-platform-req=php
 
 # 4. Install dependency Frontend (Node/NPM) & Build Vite
 echo "🎨 [Deploy] Menginstall NPM packages & building Vite assets..."
