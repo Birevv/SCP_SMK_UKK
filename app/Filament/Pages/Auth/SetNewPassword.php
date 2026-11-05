@@ -4,8 +4,8 @@ namespace App\Filament\Pages\Auth;
 
 use App\Services\PasswordResetOtpService;
 use Filament\Actions\Action;
-use Filament\Auth\Pages\PasswordReset\ResetPassword as BaseResetPassword;
 use Filament\Auth\Http\Responses\Contracts\PasswordResetResponse;
+use Filament\Auth\Pages\PasswordReset\ResetPassword as BaseResetPassword;
 use Filament\Facades\Filament;
 use Filament\Forms\Components\TextInput;
 use Filament\Notifications\Notification;
@@ -156,7 +156,7 @@ class SetNewPassword extends BaseResetPassword
         } catch (\Throwable $e) {
             Notification::make()
                 ->title('Terjadi Kesalahan')
-                ->body('Kendala: ' . $e->getMessage())
+                ->body('Kendala: '.$e->getMessage())
                 ->danger()
                 ->send();
 

@@ -73,7 +73,7 @@ class LeaveRequestObserver
                 [
                     'status' => $normalizedStatus,
                     'date' => $journal->date,
-                    'notes' => 'Otomatis tersinkronisasi dari Pengajuan Izin Approved' . ($leaveRequest->leave_time ? ' (Sesi Mulai ' . substr((string) $leaveRequest->leave_time, 0, 5) . ')' : ''),
+                    'notes' => 'Otomatis tersinkronisasi dari Pengajuan Izin Approved'.($leaveRequest->leave_time ? ' (Sesi Mulai '.substr((string) $leaveRequest->leave_time, 0, 5).')' : ''),
                 ]
             );
         }

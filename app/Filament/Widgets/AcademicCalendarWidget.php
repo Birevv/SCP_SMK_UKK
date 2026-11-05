@@ -5,6 +5,7 @@ namespace App\Filament\Widgets;
 use App\Enums\AcademicEventCategory;
 use App\Models\AcademicEvent;
 use App\Models\AcademicYear;
+use App\Models\User;
 use App\Services\AcademicCalendarService;
 use Carbon\Carbon;
 use Filament\Actions\Action;
@@ -28,7 +29,7 @@ use Saade\FilamentFullCalendar\Widgets\FullCalendarWidget;
 
 class AcademicCalendarWidget extends FullCalendarWidget
 {
-    public Model | string | null $model = AcademicEvent::class;
+    public Model|string|null $model = AcademicEvent::class;
 
     protected ?string $startAttribute = 'start_date';
 
@@ -49,7 +50,7 @@ class AcademicCalendarWidget extends FullCalendarWidget
 
     public function canManage(): bool
     {
-        /** @var \App\Models\User|null $user */
+        /** @var User|null $user */
         $user = Auth::user();
 
         if (! $user) {
@@ -123,7 +124,7 @@ class AcademicCalendarWidget extends FullCalendarWidget
     /**
      * Mengambil daftar event sesuai batas tampilan FullCalendar & filter aktif.
      */
-    public function fetchEvents(FetchInfo $info): iterable | Builder | Relation
+    public function fetchEvents(FetchInfo $info): iterable|Builder|Relation
     {
         $startDate = Carbon::parse($info->start);
         $endDate = Carbon::parse($info->end);
@@ -169,7 +170,7 @@ class AcademicCalendarWidget extends FullCalendarWidget
 
             $titlePrefix = '';
             if (! empty($event->target_grades)) {
-                $titlePrefix = '[' . implode(',', $event->target_grades) . '] ';
+                $titlePrefix = '['.implode(',', $event->target_grades).'] ';
             }
 
             $icon = '';
@@ -181,13 +182,13 @@ class AcademicCalendarWidget extends FullCalendarWidget
 
             return [
                 'id' => $event->id,
-                'title' => $icon . $titlePrefix . $event->title,
+                'title' => $icon.$titlePrefix.$event->title,
                 'start' => $event->is_all_day
                     ? $event->start_date->toDateString()
-                    : $event->start_date->toDateString() . 'T' . ($event->start_time ?? '00:00:00'),
+                    : $event->start_date->toDateString().'T'.($event->start_time ?? '00:00:00'),
                 'end' => $event->is_all_day
                     ? $endDate->toDateString()
-                    : $event->end_date->toDateString() . 'T' . ($event->end_time ?? '23:59:59'),
+                    : $event->end_date->toDateString().'T'.($event->end_time ?? '23:59:59'),
                 'allDay' => $event->is_all_day,
                 'backgroundColor' => $color,
                 'borderColor' => $color,
@@ -343,6 +344,7 @@ class AcademicCalendarWidget extends FullCalendarWidget
                 if (empty($data['academic_year_id'])) {
                     $data['academic_year_id'] = $this->selectedYearId ?? AcademicYear::getActive()?->id;
                 }
+
                 return $data;
             })
             ->after(fn () => $this->refreshRecords());
@@ -408,6 +410,7 @@ class AcademicCalendarWidget extends FullCalendarWidget
                             ->title('Tahun Ajaran Tidak Ditemukan')
                             ->body('Silakan pilih Tahun Ajaran aktif terlebih dahulu.')
                             ->send();
+
                         return;
                     }
 

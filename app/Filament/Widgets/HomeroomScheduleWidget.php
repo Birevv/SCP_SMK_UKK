@@ -4,6 +4,7 @@ namespace App\Filament\Widgets;
 
 use App\Models\ClassLevel;
 use App\Models\Classroom;
+use App\Models\Journal;
 use App\Models\Schedule;
 use App\Models\SystemConfiguration;
 use App\Models\User;
@@ -126,8 +127,19 @@ class HomeroomScheduleWidget extends Widget
             $query->whereIn('classroom_id', $userClassrooms->pluck('id'));
         }
 
-        $schedules = $query->orderBy('start_time')->get()->map(function (Schedule $schedule) use ($today, $now) {
-            $hasJournal = $schedule->journals()->whereDate('date', $today)->exists();
+        $rawSchedules = $query->orderBy('start_time')->get();
+        $scheduleIds = $rawSchedules->pluck('id')->filter()->all();
+
+        $filledScheduleIds = ! empty($scheduleIds)
+            ? Journal::whereIn('schedule_id', $scheduleIds)
+                ->whereDate('date', $today)
+                ->pluck('schedule_id')
+                ->flip()
+                ->toArray()
+            : [];
+
+        $schedules = $rawSchedules->map(function (Schedule $schedule) use ($now, $filledScheduleIds) {
+            $hasJournal = isset($filledScheduleIds[$schedule->id]);
             $endTime = Carbon::parse($schedule->end_time);
             $isOverdue = ! $hasJournal && $now->greaterThan($endTime->copy()->addMinutes(45));
 

@@ -16,7 +16,7 @@ return new class extends Migration
                 // Drop index if exists before dropping column
                 try {
                     $table->dropIndex(['day_of_week', 'is_active']);
-                } catch (\Throwable $e) {
+                } catch (Throwable $e) {
                     // ignore if index name differs
                 }
 

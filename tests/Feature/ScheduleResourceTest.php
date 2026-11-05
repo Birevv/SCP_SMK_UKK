@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use App\Filament\Resources\Schedules\ScheduleResource;
+use App\Filament\Resources\Schedules\Schemas\ScheduleForm;
 use App\Models\Schedule;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
@@ -20,7 +21,7 @@ class ScheduleResourceTest extends TestCase
     /** @test */
     public function test_schedule_sessions_default_to_10_sessions()
     {
-        $sessions = \App\Filament\Resources\Schedules\Schemas\ScheduleForm::getSessions();
+        $sessions = ScheduleForm::getSessions();
         $this->assertCount(10, $sessions);
         $this->assertEquals('07:15', $sessions[1]['start']);
         $this->assertEquals('07:55', $sessions[1]['end']);
@@ -30,7 +31,7 @@ class ScheduleResourceTest extends TestCase
         $this->assertEquals('12:30', $sessions[7]['start']); // Setelah Istirahat 2
         $this->assertEquals('15:30', $sessions[10]['end']); // Berakhir pukul 15:30
 
-        $startOptions = \App\Filament\Resources\Schedules\Schemas\ScheduleForm::getStartTimeOptions(dayOfWeek: 'Senin');
+        $startOptions = ScheduleForm::getStartTimeOptions(dayOfWeek: 'Senin');
         $this->assertCount(10, $startOptions);
         $this->assertArrayHasKey('14:50', $startOptions); // Jam ke-10 start
     }
@@ -38,7 +39,7 @@ class ScheduleResourceTest extends TestCase
     /** @test */
     public function test_schedule_sessions_on_friday_limited_to_8_sessions()
     {
-        $jumatSessions = \App\Filament\Resources\Schedules\Schemas\ScheduleForm::getSessions('Jumat');
+        $jumatSessions = ScheduleForm::getSessions('Jumat');
         $this->assertCount(8, $jumatSessions);
         $this->assertEquals('07:15', $jumatSessions[1]['start']);
         $this->assertEquals('09:15', $jumatSessions[3]['end']); // Sebelum Istirahat 1 (09:15 - 09:30)
@@ -49,13 +50,13 @@ class ScheduleResourceTest extends TestCase
         $this->assertArrayNotHasKey(9, $jumatSessions);
         $this->assertArrayNotHasKey(10, $jumatSessions);
 
-        $startOptions = \App\Filament\Resources\Schedules\Schemas\ScheduleForm::getStartTimeOptions(dayOfWeek: 'Jumat');
+        $startOptions = ScheduleForm::getStartTimeOptions(dayOfWeek: 'Jumat');
         $this->assertCount(8, $startOptions);
         $this->assertArrayHasKey('13:20', $startOptions); // Jam ke-8 start
         $this->assertArrayNotHasKey('14:00', $startOptions);
         $this->assertArrayNotHasKey('14:30', $startOptions);
 
-        $endOptions = \App\Filament\Resources\Schedules\Schemas\ScheduleForm::getEndTimeOptions(dayOfWeek: 'Jumat');
+        $endOptions = ScheduleForm::getEndTimeOptions(dayOfWeek: 'Jumat');
         $this->assertCount(8, $endOptions);
         $this->assertArrayHasKey('14:00', $endOptions); // Jam ke-8 end
         $this->assertArrayNotHasKey('14:30', $endOptions);

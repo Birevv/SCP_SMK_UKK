@@ -8,13 +8,11 @@ use App\Filament\Resources\Classrooms\Pages\ListClassrooms;
 use App\Filament\Resources\Classrooms\Schemas\ClassroomForm;
 use App\Filament\Resources\Classrooms\Tables\ClassroomsTable;
 use App\Models\Classroom;
-use App\Models\User;
 use BackedEnum;
 use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Table;
-use Illuminate\Support\Facades\Auth;
 use UnitEnum;
 
 class ClassroomResource extends Resource

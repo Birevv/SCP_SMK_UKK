@@ -7,11 +7,9 @@ use App\Filament\Widgets\HomeroomScheduleWidget;
 use App\Filament\Widgets\TeacherScheduleWidget;
 use App\Filament\Widgets\WakaScheduleWidget;
 use App\Models\AcademicYear;
-use App\Models\ClassLevel;
 use App\Models\Classroom;
 use App\Models\Major;
 use App\Models\Role;
-use App\Models\Rombel;
 use App\Models\Room;
 use App\Models\Schedule;
 use App\Models\Subject;
@@ -28,15 +26,25 @@ class ClassroomMajorFilterTest extends TestCase
     use RefreshDatabase;
 
     protected User $waka;
+
     protected User $teacher;
+
     protected User $homeroom;
+
     protected Classroom $class10Rpl;
+
     protected Classroom $class11Rpl;
+
     protected Classroom $class12Rpl;
+
     protected Classroom $class10Akl;
+
     protected Schedule $schedule10Rpl;
+
     protected Schedule $schedule11Rpl;
+
     protected Schedule $schedule12Rpl;
+
     protected Schedule $schedule10Akl;
 
     protected function setUp(): void

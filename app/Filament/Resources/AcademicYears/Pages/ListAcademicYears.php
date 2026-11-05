@@ -6,17 +6,16 @@ use App\Enums\AcademicEventCategory;
 use App\Filament\Resources\AcademicYears\AcademicYearResource;
 use App\Models\AcademicEvent;
 use App\Models\AcademicYear;
+use App\Models\User;
 use App\Services\AcademicCalendarService;
 use Carbon\Carbon;
 use Filament\Actions\Action;
-use Filament\Actions\CreateAction;
 use Filament\Actions\DeleteAction;
 use Filament\Actions\EditAction;
 use Filament\Forms;
 use Filament\Notifications\Notification;
 use Filament\Resources\Pages\ListRecords;
 use Filament\Schemas\Components\Grid;
-use Filament\Schemas\Components\Section;
 use Illuminate\Support\Facades\Auth;
 
 class ListAcademicYears extends ListRecords
@@ -101,7 +100,7 @@ class ListAcademicYears extends ListRecords
 
     public function canManage(): bool
     {
-        /** @var \App\Models\User|null $user */
+        /** @var User|null $user */
         $user = Auth::user();
 
         if (! $user) {
@@ -437,6 +436,7 @@ class ListAcademicYears extends ListRecords
         $academicYear = $this->selectedYear;
         if (! $academicYear) {
             Notification::make()->danger()->title('Tahun Ajaran Tidak Ditemukan')->send();
+
             return;
         }
 
@@ -555,7 +555,7 @@ class ListAcademicYears extends ListRecords
         }
 
         if (filled($this->searchQuery)) {
-            $search = '%' . trim($this->searchQuery) . '%';
+            $search = '%'.trim($this->searchQuery).'%';
             $eventsQuery->where(function ($q) use ($search) {
                 $q->where('title', 'like', $search)
                     ->orWhere('description', 'like', $search);
@@ -619,7 +619,7 @@ class ListAcademicYears extends ListRecords
             ->when($this->selectedGrade, fn ($q) => $q->where(fn ($sub) => $sub->whereNull('target_grades')->orWhereJsonContains('target_grades', $this->selectedGrade)))
             ->when(! empty($this->selectedCategories), fn ($q) => $q->whereIn('category', $this->selectedCategories))
             ->when(filled($this->searchQuery), function ($q) {
-                $search = '%' . trim($this->searchQuery) . '%';
+                $search = '%'.trim($this->searchQuery).'%';
                 $q->where(fn ($sub) => $sub->where('title', 'like', $search)->orWhere('description', 'like', $search));
             });
 

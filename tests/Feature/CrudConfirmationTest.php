@@ -10,7 +10,6 @@ use App\Models\User;
 use Filament\Actions\DeleteAction;
 use Filament\Actions\DeleteBulkAction;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Validation\ValidationException;
 use Livewire\Livewire;
 use Tests\TestCase;
 

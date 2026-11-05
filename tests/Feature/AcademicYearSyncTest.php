@@ -2,7 +2,6 @@
 
 namespace Tests\Feature;
 
-use App\Filament\Resources\Schedules\Schemas\ScheduleForm;
 use App\Models\AcademicYear;
 use App\Models\Classroom;
 use App\Models\Role;
@@ -10,6 +9,7 @@ use App\Models\Room;
 use App\Models\Schedule;
 use App\Models\Subject;
 use App\Models\User;
+use Database\Seeders\ShieldSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
 use Tests\TestCase;
@@ -17,12 +17,11 @@ use Tests\TestCase;
 class AcademicYearSyncTest extends TestCase
 {
     use RefreshDatabase;
-    
 
     protected function setUp(): void
     {
         parent::setUp();
-        $this->seed(\Database\Seeders\ShieldSeeder::class);
+        $this->seed(ShieldSeeder::class);
     }
 
     public function test_activating_academic_year_automatically_updates_other_tables(): void

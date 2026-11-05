@@ -113,8 +113,19 @@ class TeacherScheduleWidget extends Widget
             $query->forMajor($this->selectedMajor);
         }
 
-        $schedules = $query->orderBy('start_time')->get()->map(function (Schedule $schedule) use ($today, $now) {
-            $hasJournal = $schedule->journals()->whereDate('date', $today)->exists();
+        $rawSchedules = $query->orderBy('start_time')->get();
+        $scheduleIds = $rawSchedules->pluck('id')->filter()->all();
+
+        $filledScheduleIds = ! empty($scheduleIds)
+            ? Journal::whereIn('schedule_id', $scheduleIds)
+                ->whereDate('date', $today)
+                ->pluck('schedule_id')
+                ->flip()
+                ->toArray()
+            : [];
+
+        $schedules = $rawSchedules->map(function (Schedule $schedule) use ($now, $filledScheduleIds) {
+            $hasJournal = isset($filledScheduleIds[$schedule->id]);
             $endTime = Carbon::parse($schedule->end_time);
             $isOverdue = ! $hasJournal && $now->greaterThan($endTime->copy()->addMinutes(45));
 

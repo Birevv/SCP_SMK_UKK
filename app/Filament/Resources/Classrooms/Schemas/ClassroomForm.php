@@ -2,9 +2,7 @@
 
 namespace App\Filament\Resources\Classrooms\Schemas;
 
-use App\Models\ClassLevel;
 use App\Models\Major;
-use App\Models\Rombel;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Schemas\Schema;

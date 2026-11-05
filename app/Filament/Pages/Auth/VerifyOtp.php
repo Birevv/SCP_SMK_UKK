@@ -205,7 +205,7 @@ class VerifyOtp extends BaseRequestPasswordReset
         } catch (\Throwable $e) {
             Notification::make()
                 ->title('Gagal Menghubungi Server Email')
-                ->body('Terjadi kendala saat mengirim email: ' . $e->getMessage())
+                ->body('Terjadi kendala saat mengirim email: '.$e->getMessage())
                 ->danger()
                 ->send();
         }

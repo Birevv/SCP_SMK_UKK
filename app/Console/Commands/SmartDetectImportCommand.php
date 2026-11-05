@@ -28,20 +28,20 @@ class SmartDetectImportCommand extends Command
             return self::FAILURE;
         }
 
-        $this->info("============================================================");
-        $this->info("   SCP SMK - PENDETEKSI & IMPORT DOKUMEN OTOMATIS");
-        $this->info("============================================================");
-        $this->line("Memeriksa dan mendeteksi format dokumen...");
+        $this->info('============================================================');
+        $this->info('   SCP SMK - PENDETEKSI & IMPORT DOKUMEN OTOMATIS');
+        $this->info('============================================================');
+        $this->line('Memeriksa dan mendeteksi format dokumen...');
 
         try {
             $data = $service->detectAndParse($filePath);
 
-            $this->info("Format Terdeteksi : " . ($data['detected_format'] ?? $data['type']));
+            $this->info('Format Terdeteksi : '.($data['detected_format'] ?? $data['type']));
 
             if ($data['type'] === 'student_roster') {
-                $this->line("Tahun Ajaran      : " . ($data['academic_year'] ?? '-'));
-                $this->line("Total Kelas       : " . ($data['total_classes'] ?? 0) . " kelas");
-                $this->line("Total Siswa       : " . ($data['total_students'] ?? 0) . " siswa");
+                $this->line('Tahun Ajaran      : '.($data['academic_year'] ?? '-'));
+                $this->line('Total Kelas       : '.($data['total_classes'] ?? 0).' kelas');
+                $this->line('Total Siswa       : '.($data['total_students'] ?? 0).' siswa');
                 $this->newLine();
 
                 $this->table(
@@ -56,18 +56,18 @@ class SmartDetectImportCommand extends Command
                 );
 
                 if (count($data['students']) > 8) {
-                    $this->comment("... dan " . (count($data['students']) - 8) . " siswa lainnya.");
+                    $this->comment('... dan '.(count($data['students']) - 8).' siswa lainnya.');
                 }
 
             } elseif ($data['type'] === 'timetable_fet') {
                 $cycle = $this->option('cycle') ?: ($data['cycle_type'] ?? 'Putaran 1');
-                $this->line("Institusi         : " . ($data['institution'] ?? 'SMK NEGERI 1 BANTUL'));
-                $this->line("Putaran           : " . $cycle);
-                $this->line("Total Kelas       : " . ($data['total_classes'] ?? 0) . " kelas");
-                $this->line("Total Guru        : " . ($data['total_teachers'] ?? 0) . " guru");
-                $this->line("Total Mapel       : " . ($data['total_subjects'] ?? 0) . " mapel");
-                $this->line("Total Ruang       : " . ($data['total_rooms'] ?? 0) . " ruangan");
-                $this->line("Total Slot Jadwal : " . ($data['total_schedules'] ?? 0) . " jadwal");
+                $this->line('Institusi         : '.($data['institution'] ?? 'SMK NEGERI 1 BANTUL'));
+                $this->line('Putaran           : '.$cycle);
+                $this->line('Total Kelas       : '.($data['total_classes'] ?? 0).' kelas');
+                $this->line('Total Guru        : '.($data['total_teachers'] ?? 0).' guru');
+                $this->line('Total Mapel       : '.($data['total_subjects'] ?? 0).' mapel');
+                $this->line('Total Ruang       : '.($data['total_rooms'] ?? 0).' ruangan');
+                $this->line('Total Slot Jadwal : '.($data['total_schedules'] ?? 0).' jadwal');
                 $this->newLine();
 
                 $this->table(
@@ -75,7 +75,7 @@ class SmartDetectImportCommand extends Command
                     array_map(fn ($sc) => [
                         $sc['classroom'],
                         $sc['day_of_week'],
-                        substr($sc['start_time'], 0, 5) . ' - ' . substr($sc['end_time'], 0, 5),
+                        substr($sc['start_time'], 0, 5).' - '.substr($sc['end_time'], 0, 5),
                         $sc['subject'],
                         $sc['teacher_name'],
                         $sc['room'] ?? '-',
@@ -83,42 +83,41 @@ class SmartDetectImportCommand extends Command
                 );
 
                 if (count($data['schedules']) > 8) {
-                    $this->comment("... dan " . (count($data['schedules']) - 8) . " slot jadwal lainnya.");
+                    $this->comment('... dan '.(count($data['schedules']) - 8).' slot jadwal lainnya.');
                 }
             }
 
             if ($this->option('dry-run')) {
                 $this->newLine();
-                $this->warn("[DRY RUN] Mode validasi selesai. Tidak ada data yang diubah dalam database.");
+                $this->warn('[DRY RUN] Mode validasi selesai. Tidak ada data yang diubah dalam database.');
 
                 return self::SUCCESS;
             }
 
-            if ($this->option('import') || $this->confirm("Apakah Anda ingin langsung mengimpor data ini ke dalam database?", true)) {
-                $this->info("Menyimpan ke database dengan transaksi aman...");
-                
+            if ($this->option('import') || $this->confirm('Apakah Anda ingin langsung mengimpor data ini ke dalam database?', true)) {
+                $this->info('Menyimpan ke database dengan transaksi aman...');
+
                 $cycle = $this->option('cycle') ?: null;
                 $ayId = $this->option('academic-year-id') ? (int) $this->option('academic-year-id') : null;
 
                 $res = $service->import($data, null, $cycle, $ayId);
 
-                $this->info("✔ " . $res['message']);
+                $this->info('✔ '.$res['message']);
                 foreach ($res['stats'] as $k => $v) {
-                    $this->line("  • " . ucwords(str_replace('_', ' ', $k)) . ": " . (is_array($v) ? count($v) : $v));
+                    $this->line('  • '.ucwords(str_replace('_', ' ', $k)).': '.(is_array($v) ? count($v) : $v));
                 }
 
-                $this->info("IMPORT SELESAI DENGAN SUKSES!");
+                $this->info('IMPORT SELESAI DENGAN SUKSES!');
             } else {
-                $this->comment("Import dibatalkan.");
+                $this->comment('Import dibatalkan.');
             }
 
             return self::SUCCESS;
 
         } catch (\Throwable $e) {
-            $this->error("Terjadi kesalahan: " . $e->getMessage());
+            $this->error('Terjadi kesalahan: '.$e->getMessage());
 
             return self::FAILURE;
         }
     }
 }
-

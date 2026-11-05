@@ -2,15 +2,24 @@
 
 namespace Tests\Feature;
 
+use App\Filament\Resources\LeaveRequests\Pages\CreateLeaveRequest;
+use App\Filament\Resources\LeaveRequests\Pages\ListLeaveRequests;
 use App\Filament\Resources\LeaveRequests\Schemas\LeaveRequestForm;
+use App\Filament\Resources\LeaveRequests\Tables\LeaveRequestsTable;
 use App\Models\AcademicYear;
 use App\Models\Classroom;
 use App\Models\LeaveRequest;
 use App\Models\Role;
 use App\Models\User;
 use Filament\Forms\Components\DatePicker;
+use Filament\Forms\Components\Select;
 use Filament\Schemas\Schema;
+use Filament\Tables\Table;
 use Illuminate\Foundation\Testing\LazilyRefreshDatabase;
+use Illuminate\Support\Facades\Auth;
+use Livewire\Livewire;
+use Spatie\Permission\Models\Permission;
+use Spatie\Permission\PermissionRegistrar;
 use Tests\TestCase;
 
 class LeaveRequestRejectFlowTest extends TestCase
@@ -307,7 +316,7 @@ class LeaveRequestRejectFlowTest extends TestCase
 
     public function test_approve_and_reject_actions_respect_approve_leave_request_permission(): void
     {
-        $perm = \Spatie\Permission\Models\Permission::firstOrCreate([
+        $perm = Permission::firstOrCreate([
             'name' => 'approve_leave_request',
             'guard_name' => 'web',
         ]);
@@ -326,22 +335,22 @@ class LeaveRequestRejectFlowTest extends TestCase
 
         // With permission granted, Wali Kelas can see approve/reject
         $waliRole->givePermissionTo($perm);
-        app()[\Spatie\Permission\PermissionRegistrar::class]->forgetCachedPermissions();
+        app()[PermissionRegistrar::class]->forgetCachedPermissions();
         $this->waliKelas->load('roles.permissions');
 
         $this->actingAs($this->waliKelas);
-        $table = \App\Filament\Resources\LeaveRequests\Tables\LeaveRequestsTable::configure(\Filament\Tables\Table::make(\Livewire\Livewire::new(\App\Filament\Resources\LeaveRequests\Pages\ListLeaveRequests::class)));
+        $table = LeaveRequestsTable::configure(Table::make(Livewire::new(ListLeaveRequests::class)));
         $approveAction = collect($table->getActions())->first(fn ($a) => $a->getName() === 'approve');
         $approveAction->record($leaveRequest);
         $this->assertTrue($approveAction->isVisible());
 
         // When permission is revoked from Wali Kelas in Super Admin, buttons become hidden
         $waliRole->revokePermissionTo($perm);
-        app()[\Spatie\Permission\PermissionRegistrar::class]->forgetCachedPermissions();
+        app()[PermissionRegistrar::class]->forgetCachedPermissions();
         $this->waliKelas->unsetRelation('roles')->unsetRelation('permissions');
-        \Illuminate\Support\Facades\Auth::setUser($this->waliKelas);
+        Auth::setUser($this->waliKelas);
 
-        $table2 = \App\Filament\Resources\LeaveRequests\Tables\LeaveRequestsTable::configure(\Filament\Tables\Table::make(\Livewire\Livewire::new(\App\Filament\Resources\LeaveRequests\Pages\ListLeaveRequests::class)));
+        $table2 = LeaveRequestsTable::configure(Table::make(Livewire::new(ListLeaveRequests::class)));
         $approveAction2 = collect($table2->getActions())->first(fn ($a) => $a->getName() === 'approve');
         $approveAction2->record($leaveRequest);
         $this->assertFalse($approveAction2->isVisible());
@@ -350,17 +359,17 @@ class LeaveRequestRejectFlowTest extends TestCase
     public function test_leave_request_form_leave_time_is_session_select(): void
     {
         $this->actingAs($this->student);
-        $livewire = \Livewire\Livewire::new(\App\Filament\Resources\LeaveRequests\Pages\CreateLeaveRequest::class);
+        $livewire = Livewire::new(CreateLeaveRequest::class);
         $schema = Schema::make($livewire);
         LeaveRequestForm::configure($schema);
 
-        /** @var \Filament\Forms\Components\Select $leaveTimeField */
+        /** @var Select $leaveTimeField */
         $leaveTimeField = collect($schema->getComponents(withHidden: true))->first(function ($c) {
             return method_exists($c, 'getName') && $c->getName() === 'leave_time';
         });
 
         $this->assertNotNull($leaveTimeField);
-        $this->assertInstanceOf(\Filament\Forms\Components\Select::class, $leaveTimeField);
+        $this->assertInstanceOf(Select::class, $leaveTimeField);
         $this->assertEquals('Jam Pergi', $leaveTimeField->getLabel());
 
         $options = $leaveTimeField->getOptions();

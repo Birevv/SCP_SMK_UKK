@@ -8,14 +8,11 @@ use App\Filament\Resources\AcademicYears\Pages\ListAcademicYears;
 use App\Filament\Resources\AcademicYears\Schemas\AcademicYearForm;
 use App\Filament\Resources\AcademicYears\Tables\AcademicYearsTable;
 use App\Models\AcademicYear;
-use App\Models\User;
 use BackedEnum;
 use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Table;
-use Illuminate\Support\Facades\Auth;
-use Override;
 use UnitEnum;
 
 class AcademicYearResource extends Resource

@@ -1,13 +1,13 @@
 <?php
 
 use App\Http\Controllers\Api\AuthController;
+use App\Http\Controllers\Api\ForgotPasswordOtpController;
 use App\Http\Controllers\Api\Homeroom\DashboardController as HomeroomDashboardController;
 use App\Http\Controllers\Api\Homeroom\LeaveRequestController as HomeroomLeaveRequestController;
 use App\Http\Controllers\Api\ReferenceController;
 use App\Http\Controllers\Api\StudentApiController;
 use App\Http\Controllers\Api\Teacher\DashboardController as TeacherDashboardController;
 use App\Http\Controllers\Api\Teacher\JournalController as TeacherJournalController;
-use App\Http\Controllers\Api\ForgotPasswordOtpController;
 use App\Http\Controllers\Api\Teacher\ScheduleController as TeacherScheduleController;
 use Illuminate\Support\Facades\Route;
 

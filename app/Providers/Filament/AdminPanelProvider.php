@@ -44,7 +44,7 @@ class AdminPanelProvider extends PanelProvider
             ->brandName('School Class Progress')
             ->brandLogo(fn () => view('filament.components.brand-logo'))
             ->brandLogoHeight('2.5rem')
-            ->favicon(asset(file_exists(public_path('storage/assets/SMK_Negeri_1_Bantul_logo (1).png')) ? 'storage/assets/SMK_Negeri_1_Bantul_logo (1).png' : 'storage/Assets/SMK_Negeri_1_Bantul_logo (1).png'))
+            ->favicon(asset(file_exists(public_path('images/logo_smk.png')) ? 'images/logo_smk.png' : (file_exists(public_path('storage/assets/SMK_Negeri_1_Bantul_logo (1).png')) ? 'storage/assets/SMK_Negeri_1_Bantul_logo (1).png' : 'storage/Assets/SMK_Negeri_1_Bantul_logo (1).png')))
             ->profile(EditProfile::class, isSimple: false)
             ->colors([
                 'primary' => Color::Blue,

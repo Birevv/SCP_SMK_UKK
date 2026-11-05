@@ -9,6 +9,7 @@ use App\Models\Journal;
 use App\Models\Role;
 use App\Models\Room;
 use App\Models\Schedule;
+use App\Models\SchoolSession;
 use App\Models\Subject;
 use App\Models\SystemConfiguration;
 use App\Models\User;
@@ -112,8 +113,8 @@ class UnfilledJournalAlertTest extends TestCase
         ]);
 
         // Seed SchoolSession default: Jumat Jam ke-8 (13:20 - 14:00)
-        \App\Models\SchoolSession::seedDefaults();
-        $jumatSession = \App\Models\SchoolSession::where('day_of_week', 'Jumat')
+        SchoolSession::seedDefaults();
+        $jumatSession = SchoolSession::where('day_of_week', 'Jumat')
             ->where('session_number', 8)
             ->first();
 

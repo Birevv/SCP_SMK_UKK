@@ -7,7 +7,6 @@ use App\Models\AcademicEvent;
 use App\Models\AcademicYear;
 use Carbon\Carbon;
 use Carbon\CarbonPeriod;
-use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
@@ -38,19 +37,19 @@ class AcademicCalendarService
                 AcademicEvent::updateOrCreate(
                     [
                         'academic_year_id' => $academicYear->id,
-                        'start_date'       => $holidayDate->toDateString(),
-                        'title'            => $holidayName,
+                        'start_date' => $holidayDate->toDateString(),
+                        'title' => $holidayName,
                     ],
                     [
-                        'end_date'            => $holidayDate->toDateString(),
-                        'category'            => $isKemerdekaan ? AcademicEventCategory::UPACARA : AcademicEventCategory::LIBUR_NASIONAL,
-                        'is_holiday'          => true,
-                        'disable_kbm'         => true,
+                        'end_date' => $holidayDate->toDateString(),
+                        'category' => $isKemerdekaan ? AcademicEventCategory::UPACARA : AcademicEventCategory::LIBUR_NASIONAL,
+                        'is_holiday' => true,
+                        'disable_kbm' => true,
                         'requires_attendance' => $isKemerdekaan, // Wajib hadir upacara pada 17 Agustus
-                        'target_grades'       => null,           // Berlaku untuk seluruh sekolah
-                        'is_all_day'          => true,
-                        'description'         => 'Hari Libur Nasional Resmi (Sinkronisasi Otomatis)',
-                        'created_by'          => Auth::id(),
+                        'target_grades' => null,           // Berlaku untuk seluruh sekolah
+                        'is_all_day' => true,
+                        'description' => 'Hari Libur Nasional Resmi (Sinkronisasi Otomatis)',
+                        'created_by' => Auth::id(),
                     ]
                 );
 
@@ -83,7 +82,7 @@ class AcademicCalendarService
                 }
             }
         } catch (\Throwable $e) {
-            Log::warning("Primary Holiday API failed: " . $e->getMessage());
+            Log::warning('Primary Holiday API failed: '.$e->getMessage());
         }
 
         // 2. Endpoint Fallback: Nager.Date Global Public API
@@ -99,7 +98,7 @@ class AcademicCalendarService
                 }
             }
         } catch (\Throwable $e) {
-            Log::warning("Fallback Nager Date API failed: " . $e->getMessage());
+            Log::warning('Fallback Nager Date API failed: '.$e->getMessage());
         }
 
         // 3. Fallback Data Preset Lokal
@@ -148,12 +147,12 @@ class AcademicCalendarService
             foreach ($period as $date) {
                 $dateKey = $date->toDateString();
                 $exclusions[$dateKey][] = [
-                    'title'               => $event->title,
-                    'is_holiday'          => (bool) $event->is_holiday,
-                    'disable_kbm'         => (bool) $event->disable_kbm,
+                    'title' => $event->title,
+                    'is_holiday' => (bool) $event->is_holiday,
+                    'disable_kbm' => (bool) $event->disable_kbm,
                     'requires_attendance' => (bool) $event->requires_attendance,
-                    'target_grades'       => $event->target_grades,
-                    'category'            => $event->category instanceof AcademicEventCategory ? $event->category->value : (string) $event->category,
+                    'target_grades' => $event->target_grades,
+                    'category' => $event->category instanceof AcademicEventCategory ? $event->category->value : (string) $event->category,
                 ];
             }
         }
@@ -224,4 +223,3 @@ class AcademicCalendarService
         return false;
     }
 }
-

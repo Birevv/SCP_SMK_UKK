@@ -95,7 +95,7 @@ class AcademicEvent extends Model
             return 'Semua Tingkat';
         }
 
-        return implode(', ', array_map(fn ($g) => 'Kls ' . $g, $this->target_grades));
+        return implode(', ', array_map(fn ($g) => 'Kls '.$g, $this->target_grades));
     }
 
     public function getColorAttribute(): string
@@ -112,4 +112,3 @@ class AcademicEvent extends Model
             : 'heroicon-o-calendar';
     }
 }
-

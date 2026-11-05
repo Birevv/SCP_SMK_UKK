@@ -6,7 +6,6 @@ use App\Models\ClassLevel;
 use App\Models\Classroom;
 use App\Models\Major;
 use App\Models\Rombel;
-use App\Models\Schedule;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 

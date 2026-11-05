@@ -2,12 +2,16 @@
 
 namespace App\Http\Controllers\Api;
 
+use App\Enums\AcademicEventCategory;
 use App\Http\Controllers\Controller;
+use App\Models\AcademicEvent;
 use App\Models\Classroom;
 use App\Models\Room;
 use App\Models\Subject;
 use App\Traits\ApiResponser;
+use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
 
 class ReferenceController extends Controller
 {
@@ -34,16 +38,16 @@ class ReferenceController extends Controller
         return $this->successResponse($subjects, 'Data Mata Pelajaran Berhasil Dimuat');
     }
 
-    public function calendarEvents(\Illuminate\Http\Request $request): JsonResponse
+    public function calendarEvents(Request $request): JsonResponse
     {
         $month = (int) $request->query('month', now()->month);
         $year = (int) $request->query('year', now()->year);
         $grade = $request->query('grade');
 
-        $start = \Carbon\Carbon::create($year, $month, 1)->startOfMonth();
+        $start = Carbon::create($year, $month, 1)->startOfMonth();
         $end = $start->copy()->endOfMonth();
 
-        $query = \App\Models\AcademicEvent::query()
+        $query = AcademicEvent::query()
             ->forDateRange($start, $end);
 
         if ($grade) {
@@ -53,12 +57,12 @@ class ReferenceController extends Controller
             });
         }
 
-        $events = $query->orderBy('start_date')->get()->map(function (\App\Models\AcademicEvent $e) {
+        $events = $query->orderBy('start_date')->get()->map(function (AcademicEvent $e) {
             return [
                 'id' => $e->id,
                 'title' => $e->title,
-                'category' => $e->category instanceof \App\Enums\AcademicEventCategory ? $e->category->value : (string) $e->category,
-                'category_label' => $e->category instanceof \App\Enums\AcademicEventCategory ? $e->category->getLabel() : 'Kegiatan',
+                'category' => $e->category instanceof AcademicEventCategory ? $e->category->value : (string) $e->category,
+                'category_label' => $e->category instanceof AcademicEventCategory ? $e->category->getLabel() : 'Kegiatan',
                 'color' => $e->color,
                 'target_grades' => $e->target_grades,
                 'is_holiday' => (bool) $e->is_holiday,

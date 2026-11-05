@@ -68,7 +68,7 @@ class SmartImportDetectorService
      */
     public function findPythonBinary(): ?string
     {
-        $custom = env('PYTHON_BINARY');
+        $custom = config('services.python_binary') ?: env('PYTHON_BINARY');
         if ($custom && file_exists($custom)) {
             return $custom;
         }

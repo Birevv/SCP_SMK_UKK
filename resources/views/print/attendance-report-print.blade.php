@@ -90,7 +90,7 @@
 
     <div class="header">
         <div style="display: flex; align-items: center; justify-content: center; gap: 16px; margin-bottom: 8px;">
-            <img src="{{ asset(file_exists(public_path('storage/assets/SMK_Negeri_1_Bantul_logo (1).png')) ? 'storage/assets/SMK_Negeri_1_Bantul_logo (1).png' : 'storage/Assets/SMK_Negeri_1_Bantul_logo (1).png') }}" alt="Logo SMK" style="height: 52px; width: 52px; object-fit: contain;">
+            <img src="{{ asset(file_exists(public_path('images/logo_smk.png')) ? 'images/logo_smk.png' : (file_exists(public_path('storage/assets/SMK_Negeri_1_Bantul_logo (1).png')) ? 'storage/assets/SMK_Negeri_1_Bantul_logo (1).png' : 'storage/Assets/SMK_Negeri_1_Bantul_logo (1).png')) }}" alt="Logo SMK" style="height: 52px; width: 52px; object-fit: contain;">
             <div style="text-align: left;">
                 <h1 style="margin: 0; font-size: 18px; letter-spacing: 0.5px;">SMK NEGERI 1 BANTUL</h1>
                 <p style="margin: 2px 0 0 0; font-size: 13px; font-weight: normal; color: #374151;">School Class Progress (SCP)</p>

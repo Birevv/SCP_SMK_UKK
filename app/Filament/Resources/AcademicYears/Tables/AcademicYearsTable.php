@@ -26,7 +26,7 @@ class AcademicYearsTable
                 TextColumn::make('period')
                     ->label('Periode Semester')
                     ->state(fn (AcademicYear $record): string => $record->start_date && $record->end_date
-                        ? $record->start_date->format('d/m/Y') . ' - ' . $record->end_date->format('d/m/Y')
+                        ? $record->start_date->format('d/m/Y').' - '.$record->end_date->format('d/m/Y')
                         : '-'),
 
                 IconColumn::make('is_active')

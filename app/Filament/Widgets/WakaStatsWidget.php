@@ -10,9 +10,9 @@ use App\Models\Subject;
 use App\Models\SystemConfiguration;
 use App\Models\User;
 use Carbon\Carbon;
+use Filament\Facades\Filament;
 use Filament\Widgets\StatsOverviewWidget as BaseWidget;
 use Filament\Widgets\StatsOverviewWidget\Stat;
-use Filament\Facades\Filament;
 use Illuminate\Support\Facades\Auth;
 use Spatie\Permission\Models\Permission;
 

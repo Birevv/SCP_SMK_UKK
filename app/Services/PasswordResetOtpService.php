@@ -7,11 +7,13 @@ use App\Notifications\ResetPasswordOtpNotification;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 
 class PasswordResetOtpService
 {
     public const OTP_EXPIRY_MINUTES = 5;
+
     public const RESEND_COOLDOWN_SECONDS = 60;
 
     /**
@@ -163,7 +165,7 @@ class PasswordResetOtpService
         }
 
         // Buat token reset aman
-        $resetToken = \Illuminate\Support\Str::random(64);
+        $resetToken = Str::random(64);
 
         DB::table('password_reset_tokens')->updateOrInsert(
             ['email' => $normalizedEmail],

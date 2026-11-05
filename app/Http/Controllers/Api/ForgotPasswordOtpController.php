@@ -42,7 +42,7 @@ class ForgotPasswordOtpController extends Controller
         } catch (\Throwable $e) {
             return response()->json([
                 'status' => 'error',
-                'message' => 'Gagal mengirim email OTP: ' . $e->getMessage(),
+                'message' => 'Gagal mengirim email OTP: '.$e->getMessage(),
             ], 500);
         }
     }

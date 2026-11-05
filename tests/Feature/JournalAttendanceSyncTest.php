@@ -2,6 +2,10 @@
 
 namespace Tests\Feature;
 
+use App\Filament\Resources\Journals\Pages\CreateJournal;
+use App\Filament\Resources\Journals\Pages\EditJournal;
+use App\Filament\Resources\Journals\RelationManagers\AttendancesRelationManager;
+use App\Filament\Resources\Journals\Schemas\JournalForm;
 use App\Models\AcademicYear;
 use App\Models\Classroom;
 use App\Models\Journal;
@@ -12,6 +16,7 @@ use App\Models\Schedule;
 use App\Models\Subject;
 use App\Models\User;
 use Illuminate\Foundation\Testing\LazilyRefreshDatabase;
+use Livewire\Livewire;
 use Tests\TestCase;
 
 class JournalAttendanceSyncTest extends TestCase
@@ -177,7 +182,7 @@ class JournalAttendanceSyncTest extends TestCase
             'cycle_type' => 'Putaran 1',
         ]);
 
-        $attendances = \App\Filament\Resources\Journals\Schemas\JournalForm::getStudentsAttendanceData($schedule->id, now()->toDateString());
+        $attendances = JournalForm::getStudentsAttendanceData($schedule->id, now()->toDateString());
 
         $this->assertCount(2, $attendances);
         $budi = collect($attendances)->firstWhere('student_id', $student1->id);
@@ -222,8 +227,8 @@ class JournalAttendanceSyncTest extends TestCase
             'cycle_type' => 'Putaran 1',
         ]);
 
-        \Livewire\Livewire::actingAs($teacher)
-            ->test(\App\Filament\Resources\Journals\Pages\CreateJournal::class)
+        Livewire::actingAs($teacher)
+            ->test(CreateJournal::class)
             ->fillForm([
                 'schedule_id' => $schedule->id,
                 'date' => now()->toDateString(),
@@ -302,10 +307,10 @@ class JournalAttendanceSyncTest extends TestCase
         $this->assertNotNull($attendance);
 
         // AttendancesRelationManager table can be tested
-        \Livewire\Livewire::actingAs($teacher)
-            ->test(\App\Filament\Resources\Journals\RelationManagers\AttendancesRelationManager::class, [
+        Livewire::actingAs($teacher)
+            ->test(AttendancesRelationManager::class, [
                 'ownerRecord' => $journal,
-                'pageClass' => \App\Filament\Resources\Journals\Pages\EditJournal::class,
+                'pageClass' => EditJournal::class,
             ])
             ->assertCanSeeTableRecords([$attendance]);
     }
@@ -337,9 +342,9 @@ class JournalAttendanceSyncTest extends TestCase
             'cycle_type' => 'Putaran 1',
         ]);
 
-        \Livewire\Livewire::withQueryParams(['schedule_id' => $schedule->id])
+        Livewire::withQueryParams(['schedule_id' => $schedule->id])
             ->actingAs($teacher)
-            ->test(\App\Filament\Resources\Journals\Pages\CreateJournal::class)
+            ->test(CreateJournal::class)
             ->assertSchemaStateSet([
                 'schedule_id' => $schedule->id,
             ]);

@@ -75,4 +75,3 @@ class JournalPhotoUploadController extends Controller
         }
     }
 }
-

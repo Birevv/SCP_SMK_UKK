@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Policies;
 
 use App\Models\LeaveRequest;
+use App\Models\User;
 use Illuminate\Auth\Access\HandlesAuthorization;
 use Illuminate\Foundation\Auth\User as AuthUser;
 
@@ -34,7 +35,7 @@ class LeaveRequestPolicy
 
     public function delete(AuthUser $authUser, LeaveRequest $leaveRequest): bool
     {
-        /** @var \App\Models\User $authUser */
+        /** @var User $authUser */
         if ($authUser->hasRole('Super Admin') || $authUser->role?->name === 'Super Admin') {
             return true;
         }
@@ -49,7 +50,7 @@ class LeaveRequestPolicy
 
     public function deleteAny(AuthUser $authUser): bool
     {
-        /** @var \App\Models\User $authUser */
+        /** @var User $authUser */
         if ($authUser->hasRole('Super Admin') || $authUser->role?->name === 'Super Admin') {
             return true;
         }

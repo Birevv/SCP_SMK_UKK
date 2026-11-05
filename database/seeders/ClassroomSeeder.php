@@ -2,10 +2,7 @@
 
 namespace Database\Seeders;
 
-use App\Models\ClassLevel;
 use App\Models\Classroom;
-use App\Models\Major;
-use App\Models\Rombel;
 use Illuminate\Database\Seeder;
 
 class ClassroomSeeder extends Seeder

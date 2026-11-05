@@ -2,11 +2,13 @@
 
 namespace App\Http\Controllers\Api;
 
+use App\Enums\AcademicEventCategory;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Api\StoreLeaveRequest;
 use App\Http\Resources\Api\AttendanceHistoryResource;
 use App\Http\Resources\Api\LeaveRequestResource;
 use App\Http\Resources\Api\ScheduleResource;
+use App\Models\AcademicEvent;
 use App\Models\Attendance;
 use App\Models\LeaveRequest;
 use App\Models\Schedule;
@@ -30,7 +32,7 @@ class StudentApiController extends Controller
 
         $dayName = $today->locale('id')->isoFormat('dddd');
 
-        $classroomIds = $student->classrooms()->pluck('classrooms_id');
+        $classroomIds = $student->classrooms->pluck('id');
         $classroomName = $student->classrooms->pluck('name')->join(', ');
 
         $hadir = $attendances->where('status', 'Hadir')->count();
@@ -41,8 +43,8 @@ class StudentApiController extends Controller
 
         $percentage = $total > 0 ? round(($hadir / $total) * 100, 1) : 0;
 
-        $gradeName = $student->classroom?->level?->name;
-        $todayEvent = \App\Models\AcademicEvent::query()
+        $gradeName = $student->classroom?->classLevel?->name;
+        $todayEvent = AcademicEvent::query()
             ->forDateRange($today, $today)
             ->where(function ($q) use ($gradeName) {
                 $q->whereNull('target_grades')
@@ -70,8 +72,8 @@ class StudentApiController extends Controller
             'today_event' => $todayEvent ? [
                 'id' => $todayEvent->id,
                 'title' => $todayEvent->title,
-                'category' => $todayEvent->category instanceof \App\Enums\AcademicEventCategory ? $todayEvent->category->value : (string) $todayEvent->category,
-                'category_label' => $todayEvent->category instanceof \App\Enums\AcademicEventCategory ? $todayEvent->category->getLabel() : 'Kegiatan',
+                'category' => $todayEvent->category instanceof AcademicEventCategory ? $todayEvent->category->value : (string) $todayEvent->category,
+                'category_label' => $todayEvent->category instanceof AcademicEventCategory ? $todayEvent->category->getLabel() : 'Kegiatan',
                 'is_holiday' => (bool) $todayEvent->is_holiday,
                 'disable_kbm' => (bool) $todayEvent->disable_kbm,
                 'requires_attendance' => (bool) $todayEvent->requires_attendance,

@@ -1,0 +1,105 @@
+name: CI/CD Pipeline & Deployment
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:
+
+concurrency:
+  group: production-deployment
+  cancel-in-progress: false
+
+jobs:
+  # ==========================================
+  # STAGE 1: Code Quality & Pint Check
+  # ==========================================
+  ci:
+    name: Code Quality & Pint Check
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup PHP Environment
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          extensions: mbstring, xml, ctype, iconv, intl, pdo_sqlite, pdo_mysql, gd, zip
+          coverage: none
+
+      - name: Validate composer.json
+        run: composer validate --strict
+
+      - name: Install Dependencies
+        run: composer install --prefer-dist --no-progress --no-interaction
+
+      - name: Run Laravel Pint (Code Style)
+        run: ./vendor/bin/pint --test
+
+  # ==========================================
+  # STAGE 2: Deploy to Server via SSH
+  # ==========================================
+  deploy:
+    name: Deploy to Production Server
+    needs: ci
+    if: github.ref == 'refs/heads/main' && (github.event_name == 'push' || github.event_name == 'workflow_dispatch')
+    runs-on: ubuntu-latest
+    steps:
+      - name: Execute Remote Deployment via SSH
+        uses: appleboy/ssh-action@v1.2.0
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USERNAME }}
+          key: ${{ secrets.SSH_KEY }}
+          port: ${{ secrets.SSH_PORT || 22 }}
+          script_stop: true
+          script: |
+            # 1. Pindah ke direktori proyek di server
+            cd ${{ secrets.WORK_DIR || '/var/www/projects/SCP_SMK_UKK' }}
+
+            echo "🚀 [Deploy] Memulai deployment di server..."
+
+            # 2. Tarik kode terbaru dari branch main
+            echo "📥 [Deploy] Menarik pembaruan Git terbaru..."
+            git pull origin main
+
+            # 3. Install composer dependencies (production mode)
+            echo "📦 [Deploy] Menginstall Composer dependencies..."
+            composer install --no-dev --prefer-dist --optimize-autoloader --no-interaction
+
+            # 4. Install NPM dan compile asset Vite
+            echo "🎨 [Deploy] Menginstall NPM & building Vite assets..."
+            npm ci || npm install
+            npm run build
+
+            # 5. Install requirements Python (jika tersedia)
+            if [ -f "requirements.txt" ]; then
+              echo "🐍 [Deploy] Menginstall modul Python..."
+              pip3 install -r requirements.txt --quiet || pip install -r requirements.txt --quiet || true
+            fi
+
+            # 6. Migrasi database otomatis
+            echo "🗄️ [Deploy] Menjalankan migrasi database..."
+            php artisan migrate --force
+
+            # 7. Pastikan storage link tersedia
+            echo "🔗 [Deploy] Menautkan storage publik..."
+            php artisan storage:link || true
+
+            # 8. Bersihkan dan optimasi cache Laravel
+            echo "⚡ [Deploy] Mengoptimasi cache Laravel..."
+            php artisan optimize:clear
+            php artisan config:cache
+            php artisan route:cache
+            php artisan view:cache
+            php artisan event:cache
+
+            # 9. Restart queue worker (jika ada)
+            echo "🔄 [Deploy] Merestart antrean queue..."
+            php artisan queue:restart || true
+
+            echo "✅ [Deploy] Deployment aplikasi SCP SMK berhasil selesai!"
