@@ -24,8 +24,4 @@ Route::post('/journals/upload-realtime-photo', [JournalPhotoUploadController::cl
     ->middleware(['auth'])
     ->name('admin.journals.upload-realtime-photo');
 
-// Redirect legacy /admin URLs to root
-Route::redirect('/admin', '/');
-Route::get('/admin/{any}', function (string $any) {
-    return redirect('/' . $any);
-})->where('any', '.*');
+
