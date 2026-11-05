@@ -15,6 +15,7 @@ use Filament\Http\Middleware\DisableBladeIconComponents;
 use Filament\Http\Middleware\DispatchServingFilamentEvent;
 use Filament\Panel;
 use Filament\PanelProvider;
+use Filament\Support\Assets\Css;
 use Filament\Support\Colors\Color;
 use Illuminate\Cookie\Middleware\AddQueuedCookiesToResponse;
 use Illuminate\Cookie\Middleware\EncryptCookies;
@@ -23,7 +24,7 @@ use Illuminate\Routing\Middleware\SubstituteBindings;
 use Illuminate\Session\Middleware\StartSession;
 use Illuminate\Support\Facades\Route;
 use Illuminate\View\Middleware\ShareErrorsFromSession;
-use Filament\Support\Assets\Css;
+use Saade\FilamentFullCalendar\FilamentFullCalendarPlugin;
 
 class AdminPanelProvider extends PanelProvider
 {
@@ -32,7 +33,7 @@ class AdminPanelProvider extends PanelProvider
         return $panel
             ->default()
             ->id('admin')
-            ->path('admin')
+            ->path('')
             ->spa()
             ->login(Login::class)
             ->passwordReset(OtpPasswordReset::class, SetNewPassword::class)
@@ -52,15 +53,15 @@ class AdminPanelProvider extends PanelProvider
             ])
             ->plugins([
                 FilamentShieldPlugin::make(),
-                \Saade\FilamentFullCalendar\FilamentFullCalendarPlugin::make()
+                FilamentFullCalendarPlugin::make()
                     ->selectable(true)
                     ->editable(true)
                     ->timezone(config('app.timezone', 'Asia/Jakarta'))
                     ->locale('id'),
             ])
             ->assets([
-                Css::make('fullcalendar-styles', asset('css/filament/fullcalendar.css?v=' . (file_exists(public_path('css/filament/fullcalendar.css')) ? filemtime(public_path('css/filament/fullcalendar.css')) : time()))),
-                Css::make('custom-filament-styles', asset('css/filament/custom.css?v=' . (file_exists(public_path('css/filament/custom.css')) ? filemtime(public_path('css/filament/custom.css')) : time()))),
+                Css::make('fullcalendar-styles', asset('css/filament/fullcalendar.css?v='.(file_exists(public_path('css/filament/fullcalendar.css')) ? filemtime(public_path('css/filament/fullcalendar.css')) : time()))),
+                Css::make('custom-filament-styles', asset('css/filament/custom.css?v='.(file_exists(public_path('css/filament/custom.css')) ? filemtime(public_path('css/filament/custom.css')) : time()))),
             ])
             ->discoverResources(in: app_path('Filament/Resources'), for: 'App\Filament\Resources')
             ->discoverPages(in: app_path('Filament/Pages'), for: 'App\Filament\Pages')

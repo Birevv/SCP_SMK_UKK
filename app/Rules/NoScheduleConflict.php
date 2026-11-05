@@ -26,12 +26,12 @@ class NoScheduleConflict implements ValidationRule
             return;
         }
 
+        $startHm = substr(str_replace('.', ':', trim($this->startTime)), 0, 5);
+        $endHm = substr(str_replace('.', ':', trim($this->endTime)), 0, 5);
+
         $query = Schedule::where('day_of_week', $this->dayOfWeek)
             ->where('cycle_type', $this->cycleType)
-            ->where(function ($q) {
-                $q->where('start_time', '<', $this->endTime)
-                    ->where('end_time', '>', $this->startTime);
-            });
+            ->whereRaw('SUBSTR(start_time, 1, 5) < ? AND SUBSTR(end_time, 1, 5) > ?', [$endHm, $startHm]);
 
         if ($this->ignoreId) {
             $query->where('id', '!=', $this->ignoreId);

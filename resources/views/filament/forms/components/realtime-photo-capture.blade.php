@@ -30,19 +30,23 @@
         {{-- Main Container --}}
         <div
             style="border: 1px dashed #d1d5db; background-color: #fafafa; border-radius: 0.75rem; padding: 1.5rem 1rem; text-align: center; position: relative;"
-            class="dark:!border-gray-700 dark:!bg-gray-900/40"
+            class="dark:border-gray-700! dark:bg-gray-900/40!"
         >
             {{-- 1. KONDISI SUDAH ADA FOTO (PREVIEW) --}}
-            <div x-show="hasPhoto && !isCameraActive" x-cloak style="display: flex; flex-direction: column; align-items: center; gap: 0.75rem;">
+            <div
+                x-show="hasPhoto && !isCameraActive"
+                x-cloak
+                style="width: 100%; margin: 0 auto; display: flex; flex-direction: column; align-items: center; justify-content: center;"
+            >
                 <div
-                    style="max-width: 440px; width: 100%; border-radius: 0.5rem; overflow: hidden; position: relative; border: 1px solid #e5e7eb; box-shadow: 0 1px 3px rgba(0,0,0,0.05);"
-                    class="dark:!border-gray-700"
+                    style="width: 100%; max-width: 720px; margin: 0 auto; border-radius: 0.75rem; overflow: hidden; position: relative; border: 1px solid #e5e7eb; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.08); aspect-ratio: 16 / 9; max-height: 420px; background-color: #0f172a;"
+                    class="dark:border-gray-700!"
                 >
                     <template x-if="photoUrl">
-                        <img :src="photoUrl" alt="Bukti Foto Realtime" style="width: 100%; height: 240px; object-fit: cover; display: block;" />
+                        <img :src="photoUrl" alt="Bukti Foto Realtime" style="width: 100%; height: 100%; object-fit: cover; display: block; margin: 0 auto;" />
                     </template>
                     <div
-                        style="position: absolute; top: 0.5rem; left: 0.5rem; display: inline-flex; align-items: center; gap: 0.375rem; padding: 0.25rem 0.5rem; border-radius: 0.375rem; background-color: rgba(16, 185, 129, 0.95); color: #ffffff; font-size: 0.6875rem; font-weight: 600; box-shadow: 0 1px 2px rgba(0,0,0,0.1);"
+                        style="position: absolute; top: 0.75rem; left: 0.75rem; display: inline-flex; align-items: center; gap: 0.375rem; padding: 0.25rem 0.625rem; border-radius: 0.375rem; background-color: rgba(16, 185, 129, 0.95); color: #ffffff; font-size: 0.6875rem; font-weight: 600; box-shadow: 0 1px 3px rgba(0,0,0,0.15);"
                     >
                         <svg style="width: 14px; height: 14px;" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5" />
@@ -51,14 +55,14 @@
                     </div>
                 </div>
 
-                <div style="display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 0.5rem; margin-top: 0.25rem;">
+                <div style="display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 0.625rem; margin-top: 1rem;">
                     <button
                         type="button"
                         @click="retakePhoto()"
-                        style="display: inline-flex; align-items: center; gap: 0.375rem; padding: 0.375rem 0.75rem; border-radius: 0.375rem; font-size: 0.75rem; font-weight: 500; border: 1px solid #d1d5db; background-color: #ffffff; color: #374151; cursor: pointer; box-shadow: 0 1px 2px rgba(0,0,0,0.05);"
-                        class="dark:!bg-gray-800 dark:!text-gray-200 dark:!border-gray-700"
+                        style="display: inline-flex; align-items: center; gap: 0.375rem; padding: 0.5rem 1rem; border-radius: 0.5rem; font-size: 0.8125rem; font-weight: 500; border: 1px solid #d1d5db; background-color: #ffffff; color: #374151; cursor: pointer; box-shadow: 0 1px 2px rgba(0,0,0,0.05);"
+                        class="dark:bg-gray-800! dark:text-gray-200! dark:border-gray-700!"
                     >
-                        <svg style="width: 14px; height: 14px;" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                        <svg style="width: 15px; height: 15px;" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0l3.181 3.183a8.25 8.25 0 0013.803-3.7M4.031 9.865a8.25 8.25 0 0113.803-3.7l3.181 3.182m0-4.991v4.99" />
                         </svg>
                         <span>Ambil Ulang (Kamera)</span>
@@ -67,10 +71,10 @@
                     <button
                         type="button"
                         @click="removePhoto()"
-                        style="display: inline-flex; align-items: center; gap: 0.375rem; padding: 0.375rem 0.75rem; border-radius: 0.375rem; font-size: 0.75rem; font-weight: 500; border: 1px solid #fecaca; background-color: #fef2f2; color: #dc2626; cursor: pointer;"
-                        class="dark:!bg-red-950/40 dark:!text-red-400 dark:!border-red-900/50"
+                        style="display: inline-flex; align-items: center; gap: 0.375rem; padding: 0.5rem 1rem; border-radius: 0.5rem; font-size: 0.8125rem; font-weight: 500; border: 1px solid #fecaca; background-color: #fef2f2; color: #dc2626; cursor: pointer;"
+                        class="dark:bg-red-950/40! dark:text-red-400! dark:border-red-900/50!"
                     >
-                        <svg style="width: 14px; height: 14px;" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                        <svg style="width: 15px; height: 15px;" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0" />
                         </svg>
                         <span>Hapus</span>
@@ -79,21 +83,25 @@
             </div>
 
             {{-- 2. KONDISI KAMERA AKTIF (LIVE STREAM PC) --}}
-            <div x-show="isCameraActive && !hasPhoto" x-cloak style="display: flex; flex-direction: column; align-items: center; gap: 0.75rem;">
+            <div
+                x-show="isCameraActive && !hasPhoto"
+                x-cloak
+                style="width: 100%; margin: 0 auto; display: flex; flex-direction: column; align-items: center; justify-content: center;"
+            >
                 <div
-                    style="max-width: 440px; width: 100%; border-radius: 0.5rem; overflow: hidden; position: relative; background-color: #000000; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);"
+                    style="width: 100%; max-width: 720px; margin: 0 auto; border-radius: 0.75rem; overflow: hidden; position: relative; background-color: #000000; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.15); aspect-ratio: 16 / 9; max-height: 420px;"
                 >
                     <video
                         x-ref="videoElement"
                         autoplay
                         playsinline
                         muted
-                        style="width: 100%; height: 240px; object-fit: cover; display: block; transform: scaleX(-1);"
+                        style="width: 100%; height: 100%; object-fit: cover; display: block; margin: 0 auto; transform: scaleX(-1);"
                     ></video>
 
                     {{-- Live Indicator --}}
                     <div
-                        style="position: absolute; top: 0.5rem; left: 0.5rem; display: inline-flex; align-items: center; gap: 0.375rem; padding: 0.25rem 0.5rem; border-radius: 0.375rem; background-color: rgba(220, 38, 38, 0.9); color: #ffffff; font-size: 0.6875rem; font-weight: 600;"
+                        style="position: absolute; top: 0.75rem; left: 0.75rem; display: inline-flex; align-items: center; gap: 0.375rem; padding: 0.25rem 0.625rem; border-radius: 0.375rem; background-color: rgba(220, 38, 38, 0.9); color: #ffffff; font-size: 0.6875rem; font-weight: 600; box-shadow: 0 1px 3px rgba(0,0,0,0.2);"
                     >
                         <span style="display: inline-block; width: 6px; height: 6px; border-radius: 50%; background-color: #ffffff;"></span>
                         <span>LIVE KAMERA REALTIME</span>
@@ -101,16 +109,16 @@
                 </div>
 
                 {{-- Action Shutter Button --}}
-                <div style="margin-top: 0.25rem;">
+                <div style="margin-top: 1rem; width: 100%; display: flex; align-items: center; justify-content: center;">
                     <button
                         type="button"
                         @click="takeSnapshot()"
                         :disabled="isUploading"
-                        style="display: inline-flex; align-items: center; justify-content: center; gap: 0.5rem; padding: 0.5rem 1.25rem; border-radius: 0.5rem; font-size: 0.8125rem; font-weight: 600; background-color: #2563eb; color: #ffffff; border: none; cursor: pointer; box-shadow: 0 2px 4px rgba(37,99,235,0.2);"
+                        style="display: inline-flex; align-items: center; justify-content: center; gap: 0.5rem; padding: 0.625rem 1.75rem; border-radius: 0.5rem; font-size: 0.875rem; font-weight: 600; background-color: #2563eb; color: #ffffff; border: none; cursor: pointer; box-shadow: 0 2px 4px rgba(37,99,235,0.25);"
                     >
                         <template x-if="!isUploading">
                             <span style="display: inline-flex; align-items: center; gap: 0.5rem;">
-                                <svg style="width: 16px; height: 16px;" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                                <svg style="width: 18px; height: 18px;" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
                                     <path stroke-linecap="round" stroke-linejoin="round" d="M6.827 6.175A2.31 2.31 0 015.186 7.23c-.38.054-.757.112-1.134.175C2.999 7.58 2.25 8.507 2.25 9.574V18a2.25 2.25 0 002.25 2.25h15A2.25 2.25 0 0021.75 18V9.574c0-1.067-.75-1.994-1.802-2.169a47.865 47.865 0 00-1.134-.175 2.31 2.31 0 01-1.64-1.055l-.822-1.316a2.192 2.192 0 00-1.736-1.039 48.774 48.774 0 00-5.232 0 2.192 2.192 0 00-1.736 1.039l-.821 1.316z" />
                                     <path stroke-linecap="round" stroke-linejoin="round" d="M16.5 12.75a4.5 4.5 0 11-9 0 4.5 4.5 0 019 0zM18.75 10.5h.008v.008h-.008V10.5z" />
                                 </svg>
@@ -132,7 +140,7 @@
                 {{-- Clean Circular Icon --}}
                 <div
                     style="width: 48px; height: 48px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-bottom: 0.75rem; background-color: #f3f4f6;"
-                    class="dark:!bg-gray-800"
+                    class="dark:bg-gray-800!"
                 >
                     <template x-if="streamError">
                         <svg style="width: 24px; height: 24px; color: #d97706;" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor">
@@ -150,7 +158,7 @@
                 {{-- Heading Text --}}
                 <p
                     style="font-size: 0.875rem; font-weight: 600; color: #1f2937; margin: 0 0 0.25rem 0;"
-                    class="dark:!text-gray-100"
+                    class="dark:text-gray-100!"
                     x-text="streamError ? 'Kamera Belum Dapat Diakses' : 'Kamera Realtime (Web Browser)'"
                 ></p>
 
@@ -159,7 +167,7 @@
                     <template x-if="streamError">
                         <div
                             style="display: flex; align-items: flex-start; gap: 0.5rem; padding: 0.5rem 0.75rem; border-radius: 0.375rem; background-color: #fffbeb; border: 1px solid #fef3c7; color: #92400e; font-size: 0.75rem; text-align: left; line-height: 1.4;"
-                            class="dark:!bg-amber-950/40 dark:!border-amber-900/50 dark:!text-amber-300"
+                            class="dark:bg-amber-950/40! dark:border-amber-900/50! dark:text-amber-300!"
                         >
                             <svg style="width: 16px; height: 16px; flex-shrink: 0; margin-top: 1px;" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z" />
@@ -170,7 +178,7 @@
                     <template x-if="!streamError">
                         <p
                             style="font-size: 0.75rem; color: #6b7280; line-height: 1.4; margin: 0;"
-                            class="dark:!text-gray-400"
+                            class="dark:text-gray-400!"
                         >
                             Nyalakan kamera web browser PC/laptop Anda untuk mengambil foto bukti kelas secara realtime.
                         </p>

@@ -165,6 +165,622 @@
             outline-offset: -2px;
         }
 
+        /* ==========================================================================
+           RESPONSIVE LIGHT / DARK MODE DESIGN SYSTEM
+           ========================================================================== */
+
+        /* 1. Header & Tabs */
+        .scp-cal-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            padding-bottom: 8px;
+            border-bottom: 1px solid #e5e7eb;
+            flex-wrap: wrap;
+        }
+        .dark .scp-cal-header {
+            border-bottom-color: #1f2937;
+        }
+        .scp-cal-title {
+            font-size: 1.15rem;
+            font-weight: 700;
+            color: #111827;
+            margin: 0;
+        }
+        .dark .scp-cal-title {
+            color: #f9fafb;
+        }
+        .scp-cal-icon-box {
+            width: 32px;
+            height: 32px;
+            border-radius: 8px;
+            background-color: #eff6ff;
+            color: #2563eb;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .dark .scp-cal-icon-box {
+            background-color: rgba(37, 99, 235, 0.2);
+            color: #60a5fa;
+        }
+        .scp-cal-tabs {
+            display: inline-flex;
+            align-items: center;
+            padding: 4px;
+            gap: 8px;
+            background: #f3f4f6;
+            border-radius: 12px;
+        }
+        .dark .scp-cal-tabs {
+            background: #1f2937;
+        }
+        .scp-cal-tab-btn {
+            padding: 6px 12px;
+            font-size: 0.8125rem;
+            font-weight: 600;
+            border-radius: 8px;
+            border: none;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            transition: all 0.15s ease-in-out;
+            background: transparent;
+            color: #6b7280;
+        }
+        .dark .scp-cal-tab-btn {
+            color: #9ca3af;
+        }
+        .scp-cal-tab-btn.active {
+            background: #ffffff;
+            color: #2563eb;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+        }
+        .dark .scp-cal-tab-btn.active {
+            background: #111827;
+            color: #60a5fa;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+        }
+        .scp-cal-tab-badge {
+            padding: 1px 6px;
+            font-size: 0.65rem;
+            border-radius: 9999px;
+            background: #e5e7eb;
+            color: #374151;
+            font-weight: 700;
+        }
+        .dark .scp-cal-tab-badge {
+            background: #374151;
+            color: #d1d5db;
+        }
+
+        /* 2. Toolbar Filter Card */
+        .scp-cal-toolbar-card {
+            background: #ffffff;
+            border-radius: 12px;
+            border: 1px solid #e5e7eb;
+            padding: 10px 16px;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.03);
+        }
+        .dark .scp-cal-toolbar-card {
+            background: #111827;
+            border-color: #1f2937;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.25);
+        }
+        .scp-cal-label {
+            font-size: 0.75rem;
+            font-weight: 700;
+            color: #6b7280;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            white-space: nowrap;
+        }
+        .dark .scp-cal-label {
+            color: #9ca3af;
+        }
+        .scp-cal-select {
+            border: 1px solid #d1d5db;
+            border-radius: 8px;
+            padding: 6px 32px 6px 12px;
+            font-size: 0.875rem;
+            color: #111827;
+            background-color: #ffffff;
+            outline: none;
+            appearance: none;
+            -webkit-appearance: none;
+            background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e");
+            background-position: right 0.65rem center;
+            background-repeat: no-repeat;
+            background-size: 1.25em 1.25em;
+            cursor: pointer;
+        }
+        .dark .scp-cal-select {
+            border-color: #374151;
+            background-color: #1f2937;
+            color: #f9fafb;
+            background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%239ca3af' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e");
+            background-position: right 0.65rem center;
+            background-repeat: no-repeat;
+            background-size: 1.25em 1.25em;
+        }
+        .scp-cal-btn-secondary {
+            padding: 8px 14px;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            white-space: nowrap;
+            border-radius: 8px;
+            border: 1px solid #d1d5db;
+            background: #ffffff;
+            color: #374151;
+            font-size: 0.875rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background 0.15s ease-in-out;
+        }
+        .dark .scp-cal-btn-secondary {
+            border-color: #374151;
+            background: #1f2937;
+            color: #e5e7eb;
+        }
+        .dark .scp-cal-btn-secondary:hover {
+            background: #374151;
+        }
+
+        /* 3. Main Calendar Card */
+        .scp-cal-main-card {
+            background: #ffffff;
+            border-radius: 12px;
+            border: 1px solid #e5e7eb;
+            padding: 20px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+        }
+        .dark .scp-cal-main-card {
+            background: #111827;
+            border-color: #1f2937;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.25);
+        }
+        .scp-cal-nav-group {
+            display: inline-flex;
+            border: 1px solid #d1d5db;
+            border-radius: 8px;
+            overflow: hidden;
+            background: #ffffff;
+        }
+        .dark .scp-cal-nav-group {
+            border-color: #374151;
+            background: #1f2937;
+        }
+        .scp-cal-nav-btn {
+            padding: 6px 12px;
+            border: none;
+            background: transparent;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            color: #4b5563;
+        }
+        .dark .scp-cal-nav-btn {
+            color: #9ca3af;
+        }
+        .scp-cal-month-heading {
+            font-size: 1.35rem;
+            font-weight: 700;
+            color: #1f2937;
+            margin: 0;
+        }
+        .dark .scp-cal-month-heading {
+            color: #f9fafb;
+        }
+        .scp-cal-search-input {
+            border: 1px solid #d1d5db;
+            border-radius: 8px;
+            padding: 6px 12px;
+            font-size: 0.875rem;
+            width: 170px;
+            outline: none;
+            background: #ffffff;
+            color: #111827;
+        }
+        .dark .scp-cal-search-input {
+            border-color: #374151;
+            background: #1f2937;
+            color: #f9fafb;
+        }
+        .scp-cal-view-switcher {
+            display: inline-flex;
+            border: 1px solid #d1d5db;
+            border-radius: 8px;
+            padding: 2px;
+            background: #f3f4f6;
+        }
+        .dark .scp-cal-view-switcher {
+            border-color: #374151;
+            background: #1f2937;
+        }
+        .scp-cal-view-btn {
+            padding: 4px 12px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            border-radius: 6px;
+            border: none;
+            cursor: pointer;
+            background: transparent;
+            color: #4b5563;
+        }
+        .dark .scp-cal-view-btn {
+            color: #9ca3af;
+        }
+        .scp-cal-view-btn.active {
+            background: #2563eb;
+            color: #ffffff;
+        }
+
+        /* 4. Calendar Grid Table */
+        .scp-cal-grid-wrapper {
+            overflow-x: auto;
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+            user-select: none;
+            -webkit-user-select: none;
+            position: relative;
+        }
+        .dark .scp-cal-grid-wrapper {
+            border-color: #1f2937;
+        }
+        .scp-cal-thead tr {
+            background-color: #f9fafb;
+        }
+        .dark .scp-cal-thead tr {
+            background-color: #1a2234;
+        }
+        .scp-cal-th {
+            border: 1px solid #e5e7eb;
+            height: auto;
+            vertical-align: middle;
+            padding: 10px;
+            text-align: center;
+            font-size: 0.8125rem;
+            font-weight: 700;
+            color: #374151;
+            width: 14.285%;
+        }
+        .dark .scp-cal-th {
+            border-color: #1f2937;
+            color: #cbd5e1;
+        }
+        .scp-cal-th-weekend {
+            color: #ef4444;
+        }
+        .dark .scp-cal-th-weekend {
+            color: #f87171;
+        }
+        .scp-cal-td {
+            border: 1px solid #e5e7eb;
+            height: 105px;
+            min-height: 105px;
+            vertical-align: top;
+            padding: 6px 0;
+            position: relative;
+        }
+        .dark .scp-cal-td {
+            border-color: #1f2937;
+        }
+        .scp-day-current {
+            background-color: #ffffff;
+        }
+        .dark .scp-day-current {
+            background-color: #111827;
+        }
+        .scp-day-today {
+            background-color: #eff6ff;
+        }
+        .dark .scp-day-today {
+            background-color: rgba(30, 58, 138, 0.25);
+        }
+        .scp-day-other {
+            background-color: #f9fafb;
+        }
+        .dark .scp-day-other {
+            background-color: rgba(15, 23, 42, 0.45);
+        }
+        .scp-day-weekend {
+            background-color: #fef8f8;
+        }
+        .dark .scp-day-weekend {
+            background-color: rgba(153, 27, 27, 0.12);
+        }
+        .scp-day-num {
+            font-size: 0.875rem;
+            font-weight: 600;
+            color: #1f2937;
+        }
+        .dark .scp-day-num {
+            color: #e2e8f0;
+        }
+        .scp-day-num-today {
+            color: #2563eb;
+            font-weight: 800;
+        }
+        .dark .scp-day-num-today {
+            color: #60a5fa;
+            font-weight: 800;
+        }
+        .scp-day-num-weekend {
+            color: #ef4444;
+            font-weight: 800;
+        }
+        .dark .scp-day-num-weekend {
+            color: #f87171;
+            font-weight: 800;
+        }
+        .scp-day-num-weekend-other {
+            color: #fca5a5;
+        }
+        .dark .scp-day-num-weekend-other {
+            color: rgba(248, 113, 113, 0.4);
+        }
+        .scp-day-num-other {
+            color: #9ca3af;
+        }
+        .dark .scp-day-num-other {
+            color: #64748b;
+        }
+        .scp-day-event-btn {
+            width: calc(100% - 12px);
+            margin: 0 6px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            text-align: left;
+            font-size: 0.75rem;
+            font-weight: 500;
+            color: #1f2937;
+            padding: 2px 4px;
+            border-radius: 4px;
+            border: none;
+            background: transparent;
+            cursor: pointer;
+        }
+        .dark .scp-day-event-btn {
+            color: #e2e8f0;
+        }
+        .dark .scp-day-event-btn:hover {
+            background-color: rgba(255, 255, 255, 0.05);
+        }
+        .scp-cal-popover {
+            position: absolute;
+            z-index: 50;
+            left: 50%;
+            transform: translateX(-50%);
+            bottom: calc(100% + 6px);
+            width: 250px;
+            padding: 12px;
+            background: #ffffff;
+            border-radius: 12px;
+            box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1);
+            border: 1px solid #e5e7eb;
+            font-size: 0.75rem;
+            color: #1f2937;
+            pointer-events: none;
+        }
+        .dark .scp-cal-popover {
+            background: #1e293b;
+            border-color: #334155;
+            color: #f1f5f9;
+            box-shadow: 0 10px 15px -3px rgba(0,0,0,0.5);
+        }
+        .dark .scp-cal-popover-title {
+            color: #f8fafc !important;
+        }
+        .dark .scp-cal-popover-sub {
+            color: #94a3b8 !important;
+            border-top-color: #334155 !important;
+        }
+        .dark .scp-cal-popover-desc {
+            color: #cbd5e1 !important;
+        }
+
+        /* 5. List View Styles */
+        .scp-cal-list-container {
+            border: 1px solid #e5e7eb;
+            border-radius: 12px;
+            padding: 16px;
+        }
+        .dark .scp-cal-list-container {
+            border-color: #1f2937;
+        }
+        .scp-cal-list-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border-bottom: 1px solid #f3f4f6;
+            padding-bottom: 8px;
+        }
+        .dark .scp-cal-list-header {
+            border-bottom-color: #1f2937;
+        }
+        .scp-cal-list-card {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 12px;
+            border-radius: 8px;
+            border: 1px solid #e5e7eb;
+            background: #fafafa;
+        }
+        .dark .scp-cal-list-card {
+            background: #1a2234;
+            border-color: #1f2937;
+        }
+        .scp-cal-date-badge {
+            width: 48px;
+            text-align: center;
+            padding: 6px;
+            background: #ffffff;
+            border-radius: 8px;
+            border: 1px solid #d1d5db;
+            flex-shrink: 0;
+        }
+        .dark .scp-cal-date-badge {
+            background: #111827;
+            border-color: #374151;
+        }
+        .dark .scp-cal-date-badge-month {
+            color: #94a3b8 !important;
+        }
+        .dark .scp-cal-date-badge-day {
+            color: #f8fafc !important;
+        }
+
+        /* 6. Modal Styles */
+        .scp-cal-modal-card {
+            background: #ffffff;
+            border-radius: 12px;
+            width: 100%;
+            max-width: 600px;
+            max-height: 90vh;
+            overflow-y: auto;
+            padding: 24px;
+            box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1);
+            display: flex;
+            flex-direction: column;
+        }
+        .dark .scp-cal-modal-card {
+            background: #111827;
+            border: 1px solid #1f2937;
+            box-shadow: 0 20px 25px -5px rgba(0,0,0,0.4);
+        }
+        .scp-cal-modal-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding-bottom: 16px;
+            border-bottom: 1px solid #e5e7eb;
+            margin-bottom: 20px;
+        }
+        .dark .scp-cal-modal-header {
+            border-bottom-color: #1f2937;
+        }
+        .scp-cal-modal-title {
+            font-size: 1.125rem;
+            font-weight: 700;
+            color: #111827;
+            margin: 0;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .dark .scp-cal-modal-title {
+            color: #f9fafb;
+        }
+        .scp-cal-form-label {
+            display: block;
+            font-size: 0.75rem;
+            font-weight: 700;
+            color: #374151;
+        }
+        .dark .scp-cal-form-label {
+            color: #cbd5e1;
+        }
+        .scp-cal-form-input {
+            width: 100%;
+            border: 1px solid #d1d5db;
+            border-radius: 8px;
+            padding: 8px 12px;
+            font-size: 0.875rem;
+            margin-top: 4px;
+            outline: none;
+            background-color: #ffffff;
+            color: #111827;
+            box-sizing: border-box;
+        }
+        .dark .scp-cal-form-input {
+            border-color: #374151;
+            background-color: #1f2937;
+            color: #f9fafb;
+        }
+        select.scp-cal-form-input {
+            appearance: none !important;
+            -webkit-appearance: none !important;
+            background-color: #ffffff !important;
+            background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e") !important;
+            background-position: right 0.75rem center !important;
+            background-repeat: no-repeat !important;
+            background-size: 1.25rem 1.25rem !important;
+            padding-right: 2.5rem !important;
+            cursor: pointer;
+        }
+        .dark select.scp-cal-form-input {
+            background-color: #1f2937 !important;
+            border-color: #374151 !important;
+            color: #f9fafb !important;
+            background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%239ca3af' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e") !important;
+            background-position: right 0.75rem center !important;
+            background-repeat: no-repeat !important;
+            background-size: 1.25rem 1.25rem !important;
+        }
+        .scp-cal-impact-box {
+            background: #f9fafb;
+            padding: 12px;
+            border-radius: 8px;
+            border: 1px solid #e5e7eb;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        .dark .scp-cal-impact-box {
+            background: #1a2234;
+            border-color: #1f2937;
+        }
+        .scp-cal-checkbox-label {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.8125rem;
+            font-weight: 500;
+            color: #1f2937;
+            cursor: pointer;
+        }
+        .dark .scp-cal-checkbox-label {
+            color: #e2e8f0;
+        }
+        .scp-cal-modal-footer {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding-top: 16px;
+            border-top: 1px solid #e5e7eb;
+            margin-top: 20px;
+        }
+        .dark .scp-cal-modal-footer {
+            border-top-color: #1f2937;
+        }
+        .scp-cal-modal-backdrop {
+            position: fixed !important;
+            top: 0 !important;
+            left: 0 !important;
+            right: 0 !important;
+            bottom: 0 !important;
+            width: 100vw !important;
+            height: 100vh !important;
+            margin: 0 !important;
+            padding: 16px !important;
+            background-color: rgba(15, 23, 42, 0.65) !important;
+            backdrop-filter: blur(2px);
+            -webkit-backdrop-filter: blur(2px);
+            z-index: 99999 !important;
+            display: flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            box-sizing: border-box !important;
+        }
+        .dark .scp-cal-modal-backdrop {
+            background-color: rgba(3, 7, 18, 0.75) !important;
+        }
+
         /* Print Settings */
         @media print {
             body * {
@@ -198,23 +814,23 @@
     <div class="space-y-4">
         
         <!-- 1. COMPACT HEADER & TABS (SATU BARIS RINGKAS) -->
-        <div style="display: flex; align-items: center; justify-content: space-between; gap: 12px; padding-bottom: 8px; border-bottom: 1px solid #e5e7eb; flex-wrap: wrap;" class="no-print">
+        <div class="scp-cal-header no-print">
             <div style="display: flex; align-items: center; gap: 16px; flex-wrap: wrap;">
                 <div style="display: flex; align-items: center; gap: 8px;">
-                    <div style="width: 32px; height: 32px; border-radius: 8px; background-color: #eff6ff; color: #2563eb; display: flex; align-items: center; justify-content: center;">
+                    <div class="scp-cal-icon-box">
                         <x-filament::icon icon="heroicon-o-calendar-days" class="w-5 h-5" />
                     </div>
-                    <h1 style="font-size: 1.15rem; font-weight: 700; color: #111827; margin: 0;">
+                    <h1 class="scp-cal-title">
                         Kalender Akademik
                     </h1>
                 </div>
 
-                <!-- Navigasi Tab (gap-2 dan px-3 py-1.5) -->
-                <div style="display: inline-flex; align-items: center; padding: 4px; gap: 8px; background: #f3f4f6; border-radius: 12px;">
+                <!-- Navigasi Tab -->
+                <div class="scp-cal-tabs">
                     <button
                         type="button"
                         wire:click="switchTab('calendar')"
-                        style="padding: 6px 12px; font-size: 0.8125rem; font-weight: 600; border-radius: 8px; border: none; cursor: pointer; display: flex; align-items: center; gap: 6px; transition: all 0.15s; {{ $currentViewTab === 'calendar' ? 'background: #ffffff; color: #2563eb; box-shadow: 0 1px 2px rgba(0,0,0,0.05);' : 'background: transparent; color: #6b7280;' }}">
+                        class="scp-cal-tab-btn {{ $currentViewTab === 'calendar' ? 'active' : '' }}">
                         <x-filament::icon icon="heroicon-o-calendar" class="w-4 h-4" />
                         <span>Kalender Akademik</span>
                     </button>
@@ -222,10 +838,10 @@
                     <button
                         type="button"
                         wire:click="switchTab('years')"
-                        style="padding: 6px 12px; font-size: 0.8125rem; font-weight: 600; border-radius: 8px; border: none; cursor: pointer; display: flex; align-items: center; gap: 6px; transition: all 0.15s; {{ $currentViewTab === 'years' ? 'background: #ffffff; color: #2563eb; box-shadow: 0 1px 2px rgba(0,0,0,0.05);' : 'background: transparent; color: #6b7280;' }}">
+                        class="scp-cal-tab-btn {{ $currentViewTab === 'years' ? 'active' : '' }}">
                         <x-filament::icon icon="heroicon-o-table-cells" class="w-4 h-4" />
                         <span>Data Tahun Ajaran</span>
-                        <span style="padding: 1px 6px; font-size: 0.65rem; border-radius: 9999px; background: #e5e7eb; color: #374151; font-weight: 700;">
+                        <span class="scp-cal-tab-badge">
                             {{ $this->academicYears->count() }}
                         </span>
                     </button>
@@ -255,18 +871,19 @@
             <div class="space-y-4">
                 
                 <!-- 2. SATU BARIS TOOLBAR (FILTER DI KIRI & TOMBOL AKSI DI KANAN) -->
-                <div style="background: #ffffff; border-radius: 12px; border: 1px solid #e5e7eb; padding: 10px 16px; box-shadow: 0 1px 2px rgba(0,0,0,0.03);" class="no-print">
+                <div class="scp-cal-toolbar-card no-print">
                     <div style="display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap;">
                         <!-- Sisi Kiri: Filter Dropdowns -->
                         <div style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
-                            <!-- Dropdown Tahun Ajaran / Semester (Tanpa Bintang) -->
+                            <!-- Dropdown Tahun Ajaran / Semester -->
                             <div style="display: flex; align-items: center; gap: 8px;">
-                                <label style="font-size: 0.75rem; font-weight: 700; color: #6b7280; text-transform: uppercase; letter-spacing: 0.05em; white-space: nowrap;">
+                                <label class="scp-cal-label">
                                     Tahun Ajaran / Semester:
                                 </label>
                                 <select
                                     wire:model.live="selectedYearId"
-                                    style="border: 1px solid #d1d5db; border-radius: 8px; padding: 6px 12px; font-size: 0.875rem; font-weight: 600; color: #111827; background: #ffffff; outline: none;">
+                                    class="scp-cal-select"
+                                    style="font-weight: 600;">
                                     @foreach ($this->academicYears as $year)
                                         <option value="{{ $year->id }}">
                                             {{ $year->name }} {{ $year->is_active ? '(Aktif)' : '' }}
@@ -277,12 +894,13 @@
 
                             <!-- Dropdown Target Tingkat Siswa -->
                             <div style="display: flex; align-items: center; gap: 8px;">
-                                <label style="font-size: 0.75rem; font-weight: 700; color: #6b7280; text-transform: uppercase; letter-spacing: 0.05em; white-space: nowrap;">
+                                <label class="scp-cal-label">
                                     Target Tingkat Siswa:
                                 </label>
                                 <select
                                     wire:model.live="selectedGrade"
-                                    style="border: 1px solid #d1d5db; border-radius: 8px; padding: 6px 12px; font-size: 0.875rem; font-weight: 500; color: #111827; background: #ffffff; outline: none;">
+                                    class="scp-cal-select"
+                                    style="font-weight: 500;">
                                     <option value="">Semua Tingkat</option>
                                     <option value="X">Khusus Kelas X</option>
                                     <option value="XI">Khusus Kelas XI</option>
@@ -291,9 +909,9 @@
                             </div>
                         </div>
 
-                        <!-- Sisi Kanan: Action Buttons (dengan padding dan gaya eksplisit) -->
+                        <!-- Sisi Kanan: Action Buttons -->
                         <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
-                            <span style="font-size: 0.75rem; color: #6b7280; display: inline-flex; align-items: center; gap: 4px; margin-right: 4px;" class="hidden md:inline-flex">
+                            <span style="font-size: 0.75rem; color: #6b7280; display: inline-flex; align-items: center; gap: 4px; margin-right: 4px;" class="hidden md:inline-flex dark:text-gray-400">
                                 <x-filament::icon icon="heroicon-m-cursor-arrow-rays" class="w-3.5 h-3.5 text-primary-500" />
                                 <span>Geser / swipe tanggal untuk agenda multi-hari</span>
                             </span>
@@ -302,7 +920,7 @@
                                 <button
                                     type="button"
                                     wire:click="openSyncModal"
-                                    style="padding: 8px 14px; display: inline-flex; align-items: center; gap: 6px; white-space: nowrap; border-radius: 8px; border: 1px solid #d1d5db; background: #ffffff; color: #374151; font-size: 0.875rem; font-weight: 500; cursor: pointer;">
+                                    class="scp-cal-btn-secondary">
                                     <x-filament::icon icon="heroicon-o-arrow-path" class="w-4 h-4 text-primary-500" />
                                     <span>Tarik Libur Nasional</span>
                                 </button>
@@ -321,42 +939,45 @@
                     </div>
                 </div>
 
-                <!-- 3. CONTAINER CARD PUTIH MENYATU (FULLCALENDAR CLEAN CARD LAYOUT) -->
-                <div id="scp-calendar-print-area" style="background: #ffffff; border-radius: 12px; border: 1px solid #e5e7eb; padding: 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.05);" class="space-y-4">
+                <!-- 3. CONTAINER CARD UTAMA -->
+                <div id="scp-calendar-print-area" class="scp-cal-main-card space-y-4">
                     
                     <!-- 1. TOOLBAR NAVIGASI BULAN SEJAJAR 1 BARIS (KIRI - TENGAH - KANAN) -->
                     <div style="display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-bottom: 16px;" class="no-print">
                         
                         <!-- Kiri: Grup tombol < > dan Hari Ini -->
                         <div style="display: flex; align-items: center; gap: 8px;">
-                            <div style="display: inline-flex; border: 1px solid #d1d5db; border-radius: 8px; overflow: hidden; background: #ffffff;">
+                            <div class="scp-cal-nav-group">
                                 <button
                                     type="button"
                                     wire:click="prevMonth"
                                     title="Bulan Sebelumnya"
-                                    style="padding: 6px 12px; border: none; border-right: 1px solid #d1d5db; background: transparent; cursor: pointer; display: flex; align-items: center;">
-                                    <x-filament::icon icon="heroicon-m-chevron-left" class="w-4 h-4 text-gray-600" />
+                                    class="scp-cal-nav-btn"
+                                    style="border-right: 1px solid #d1d5db;"
+                                    class="dark:border-r-gray-700!">
+                                    <x-filament::icon icon="heroicon-m-chevron-left" class="w-4 h-4" />
                                 </button>
                                 <button
                                     type="button"
                                     wire:click="nextMonth"
                                     title="Bulan Berikutnya"
-                                    style="padding: 6px 12px; border: none; background: transparent; cursor: pointer; display: flex; align-items: center;">
-                                    <x-filament::icon icon="heroicon-m-chevron-right" class="w-4 h-4 text-gray-600" />
+                                    class="scp-cal-nav-btn">
+                                    <x-filament::icon icon="heroicon-m-chevron-right" class="w-4 h-4" />
                                 </button>
                             </div>
 
                             <button
                                 type="button"
                                 wire:click="goToToday"
-                                style="padding: 6px 14px; border: 1px solid #d1d5db; border-radius: 8px; background: #ffffff; font-size: 0.875rem; font-weight: 600; color: #374151; cursor: pointer;">
+                                class="scp-cal-btn-secondary"
+                                style="padding: 6px 14px; font-weight: 600;">
                                 Hari Ini
                             </button>
                         </div>
 
                         <!-- Tengah: Judul Bulan dan Tahun -->
                         <div style="text-align: center;">
-                            <h2 style="font-size: 1.35rem; font-weight: 700; color: #1f2937; margin: 0;">
+                            <h2 class="scp-cal-month-heading">
                                 {{ \Carbon\Carbon::create($currentYear, $currentMonth, 1)->locale('id')->translatedFormat('F Y') }}
                             </h2>
                         </div>
@@ -369,7 +990,7 @@
                                     type="text"
                                     wire:model.live.debounce.250ms="searchQuery"
                                     placeholder="Cari agenda..."
-                                    style="border: 1px solid #d1d5db; border-radius: 8px; padding: 6px 12px; font-size: 0.875rem; width: 170px; outline: none; background: #ffffff;" />
+                                    class="scp-cal-search-input" />
                                 @if (filled($searchQuery))
                                     <button
                                         type="button"
@@ -381,23 +1002,23 @@
                             </div>
 
                             <!-- Switcher Bulan | Minggu | Daftar Agenda -->
-                            <div style="display: inline-flex; border: 1px solid #d1d5db; border-radius: 8px; padding: 2px; background: #f3f4f6;">
+                            <div class="scp-cal-view-switcher">
                                 <button
                                     type="button"
                                     wire:click="$set('viewMode', 'month')"
-                                    style="padding: 4px 12px; font-size: 0.75rem; font-weight: 600; border-radius: 6px; border: none; cursor: pointer; {{ $viewMode === 'month' ? 'background: #2563eb; color: #ffffff;' : 'background: transparent; color: #4b5563;' }}">
+                                    class="scp-cal-view-btn {{ $viewMode === 'month' ? 'active' : '' }}">
                                     Bulan
                                 </button>
                                 <button
                                     type="button"
                                     wire:click="$set('viewMode', 'week')"
-                                    style="padding: 4px 12px; font-size: 0.75rem; font-weight: 600; border-radius: 6px; border: none; cursor: pointer; {{ $viewMode === 'week' ? 'background: #2563eb; color: #ffffff;' : 'background: transparent; color: #4b5563;' }}">
+                                    class="scp-cal-view-btn {{ $viewMode === 'week' ? 'active' : '' }}">
                                     Minggu
                                 </button>
                                 <button
                                     type="button"
                                     wire:click="$set('viewMode', 'list')"
-                                    style="padding: 4px 12px; font-size: 0.75rem; font-weight: 600; border-radius: 6px; border: none; cursor: pointer; {{ $viewMode === 'list' ? 'background: #2563eb; color: #ffffff;' : 'background: transparent; color: #4b5563;' }}">
+                                    class="scp-cal-view-btn {{ $viewMode === 'list' ? 'active' : '' }}">
                                     Daftar Agenda
                                 </button>
                             </div>
@@ -407,11 +1028,11 @@
                     <!-- 5. TAMPILAN UTAMA KALENDER (BULAN / MINGGU / DAFTAR AGENDA) -->
                     @if ($viewMode === 'list')
                         <!-- LIST VIEW: DAFTAR AGENDA BULAN INI -->
-                        <div style="border: 1px solid #e5e7eb; border-radius: 12px; padding: 16px;" class="space-y-3">
-                            <div style="display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid #f3f4f6; padding-bottom: 8px;">
-                                <h3 style="font-size: 0.875rem; font-weight: 700; color: #111827; margin: 0;">
+                        <div class="scp-cal-list-container space-y-3">
+                            <div class="scp-cal-list-header">
+                                <h3 class="scp-cal-title" style="font-size: 0.875rem;">
                                     Agenda Bulan {{ \Carbon\Carbon::create($currentYear, $currentMonth, 1)->locale('id')->translatedFormat('F Y') }}
-                                    <span style="font-size: 0.75rem; color: #6b7280; font-weight: 400;">({{ $this->monthEvents->count() }} agenda ditemukan)</span>
+                                    <span style="font-size: 0.75rem; color: #6b7280; font-weight: 400;" class="dark:text-gray-400">({{ $this->monthEvents->count() }} agenda ditemukan)</span>
                                 </h3>
                             </div>
 
@@ -426,11 +1047,11 @@
                                         @php
                                             $isMultiDay = $item->start_date->ne($item->end_date);
                                         @endphp
-                                        <div style="display: flex; align-items: center; justify-content: space-between; padding: 12px; border-radius: 8px; border: 1px solid #e5e7eb; background: #fafafa;">
+                                        <div class="scp-cal-list-card">
                                             <div style="display: flex; align-items: center; gap: 12px;">
-                                                <div style="width: 48px; text-align: center; padding: 6px; background: #ffffff; border-radius: 8px; border: 1px solid #d1d5db; flex-shrink: 0;">
-                                                    <div style="font-size: 0.625rem; font-weight: 700; color: #9ca3af; text-transform: uppercase;">{{ $item->start_date->translatedFormat('M') }}</div>
-                                                    <div style="font-size: 1.125rem; font-weight: 800; color: #111827; line-height: 1.2;">{{ $item->start_date->day }}</div>
+                                                <div class="scp-cal-date-badge">
+                                                    <div style="font-size: 0.625rem; font-weight: 700; color: #9ca3af; text-transform: uppercase;" class="scp-cal-date-badge-month">{{ $item->start_date->translatedFormat('M') }}</div>
+                                                    <div style="font-size: 1.125rem; font-weight: 800; color: #111827; line-height: 1.2;" class="scp-cal-date-badge-day">{{ $item->start_date->day }}</div>
                                                 </div>
 
                                                 <div class="space-y-1">
@@ -439,22 +1060,22 @@
                                                             {{ $item->category instanceof \App\Enums\AcademicEventCategory ? $item->category->getShortLabel() : $item->category }}
                                                         </span>
                                                         @if ($item->target_grades)
-                                                            <span style="padding: 2px 8px; font-size: 0.625rem; font-weight: 600; background: #e5e7eb; color: #374151; border-radius: 4px;">
+                                                            <span style="padding: 2px 8px; font-size: 0.625rem; font-weight: 600; border-radius: 4px;" class="bg-gray-200 dark:bg-gray-800 text-gray-700 dark:text-gray-300">
                                                                 Kelas {{ implode(', ', $item->target_grades) }}
                                                             </span>
                                                         @endif
-                                                        <span style="font-size: 0.75rem; color: #6b7280;">
+                                                        <span style="font-size: 0.75rem; color: #6b7280;" class="dark:text-gray-400">
                                                             {{ $item->start_date->format('d M Y') }}
                                                             @if ($isMultiDay)
                                                                 s/d {{ $item->end_date->format('d M Y') }}
                                                             @endif
                                                         </span>
                                                     </div>
-                                                    <h4 style="font-size: 0.875rem; font-weight: 700; color: #111827; margin: 0;">
+                                                    <h4 style="font-size: 0.875rem; font-weight: 700; margin: 0;" class="text-gray-900 dark:text-gray-100">
                                                         {{ $item->title }}
                                                     </h4>
                                                     @if ($item->description)
-                                                        <p style="font-size: 0.75rem; color: #6b7280; margin: 0;">
+                                                        <p style="font-size: 0.75rem; color: #6b7280; margin: 0;" class="dark:text-gray-400">
                                                             {{ $item->description }}
                                                         </p>
                                                     @endif
@@ -545,17 +1166,17 @@
                             @mouseup.window="endDrag()"
                             @touchmove="handleTouchMove($event)"
                             @touchend="handleTouchEnd($event)"
-                            style="overflow-x: auto; border: 1px solid #e5e7eb; border-radius: 8px; user-select: none; -webkit-user-select: none; position: relative;">
+                            class="scp-cal-grid-wrapper">
                             <table style="width: 100%; border-collapse: collapse; table-layout: fixed;">
-                                <thead>
-                                    <tr style="background-color: #f9fafb;">
-                                        <th style="border: 1px solid #e5e7eb; height: auto; vertical-align: middle; padding: 10px; text-align: center; font-size: 0.8125rem; font-weight: 700; color: #374151; width: 14.285%;">Senin</th>
-                                        <th style="border: 1px solid #e5e7eb; height: auto; vertical-align: middle; padding: 10px; text-align: center; font-size: 0.8125rem; font-weight: 700; color: #374151; width: 14.285%;">Selasa</th>
-                                        <th style="border: 1px solid #e5e7eb; height: auto; vertical-align: middle; padding: 10px; text-align: center; font-size: 0.8125rem; font-weight: 700; color: #374151; width: 14.285%;">Rabu</th>
-                                        <th style="border: 1px solid #e5e7eb; height: auto; vertical-align: middle; padding: 10px; text-align: center; font-size: 0.8125rem; font-weight: 700; color: #374151; width: 14.285%;">Kamis</th>
-                                        <th style="border: 1px solid #e5e7eb; height: auto; vertical-align: middle; padding: 10px; text-align: center; font-size: 0.8125rem; font-weight: 700; color: #374151; width: 14.285%;">Jumat</th>
-                                        <th style="border: 1px solid #e5e7eb; height: auto; vertical-align: middle; padding: 10px; text-align: center; font-size: 0.8125rem; font-weight: 700; color: #ef4444; width: 14.285%;">Sabtu</th>
-                                        <th style="border: 1px solid #e5e7eb; height: auto; vertical-align: middle; padding: 10px; text-align: center; font-size: 0.8125rem; font-weight: 700; color: #ef4444; width: 14.285%;">Minggu</th>
+                                <thead class="scp-cal-thead">
+                                    <tr>
+                                        <th class="scp-cal-th">Senin</th>
+                                        <th class="scp-cal-th">Selasa</th>
+                                        <th class="scp-cal-th">Rabu</th>
+                                        <th class="scp-cal-th">Kamis</th>
+                                        <th class="scp-cal-th">Jumat</th>
+                                        <th class="scp-cal-th scp-cal-th-weekend">Sabtu</th>
+                                        <th class="scp-cal-th scp-cal-th-weekend">Minggu</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -563,13 +1184,22 @@
                                         <tr>
                                             @foreach ($week['days'] as $day)
                                                 @php
-                                                    $cellBgStyle = 'background-color: #ffffff;';
+                                                    $cellBgClass = 'scp-day-current';
                                                     if ($day['is_today']) {
-                                                        $cellBgStyle = 'background-color: #eff6ff;'; // Soft blue highlight untuk Hari Ini
+                                                        $cellBgClass = 'scp-day-today';
                                                     } elseif (! $day['is_current_month']) {
-                                                        $cellBgStyle = 'background-color: #f9fafb;'; // Redup untuk tanggal di luar bulan
+                                                        $cellBgClass = 'scp-day-other';
                                                     } elseif ($day['is_weekend']) {
-                                                        $cellBgStyle = 'background-color: #fef8f8;'; // Soft subtle tint untuk hari libur akhir pekan (Sabtu & Minggu)
+                                                        $cellBgClass = 'scp-day-weekend';
+                                                    }
+
+                                                    $numClass = 'scp-day-num';
+                                                    if ($day['is_today']) {
+                                                        $numClass = 'scp-day-num-today';
+                                                    } elseif ($day['is_weekend']) {
+                                                        $numClass = $day['is_current_month'] ? 'scp-day-num-weekend' : 'scp-day-num-weekend-other';
+                                                    } elseif (! $day['is_current_month']) {
+                                                        $numClass = 'scp-day-num-other';
                                                     }
                                                 @endphp
                                                 <td
@@ -581,12 +1211,11 @@
                                                         @touchstart="startDrag('{{ $day['date'] }}', $event)"
                                                     @endif
                                                     :class="isInRange('{{ $day['date'] }}') ? 'scp-calendar-cell-selected' : ''"
-                                                    style="border: 1px solid #e5e7eb; height: 105px; min-height: 105px; vertical-align: top; padding: 6px 0; position: relative; {{ $cellBgStyle }}"
-                                                    class="align-top transition duration-150 hover:bg-blue-50/40 cursor-pointer">
+                                                    class="scp-cal-td {{ $cellBgClass }} align-top transition duration-150 hover:bg-blue-50/40 dark:hover:bg-gray-800/50 cursor-pointer">
                                                     
-                                                    <!-- Top Row: Angka Tanggal Saja di Pojok Kanan Atas (Tanda + SUDAH DIHAPUS SEPENUHNYA DARI KODE) -->
+                                                    <!-- Top Row: Angka Tanggal Saja di Pojok Kanan Atas -->
                                                     <div style="display: flex; justify-content: flex-end; margin-bottom: 4px; padding: 0 8px; pointer-events: none;">
-                                                        <span style="font-size: 0.875rem; font-weight: 600; {{ $day['is_today'] ? 'color: #2563eb; font-weight: 800;' : ($day['is_weekend'] ? ($day['is_current_month'] ? 'color: #ef4444; font-weight: 800;' : 'color: #fca5a5;') : ($day['is_current_month'] ? 'color: #1f2937;' : 'color: #9ca3af;')) }}">
+                                                        <span class="{{ $numClass }}">
                                                             {{ $day['day_number'] }}
                                                         </span>
                                                     </div>
@@ -646,10 +1275,10 @@
                                                                     <button
                                                                         type="button"
                                                                         wire:click.stop="openEditEventModal({{ $event->id }})"
-                                                                        style="width: calc(100% - 12px); margin: 0 6px; display: flex; align-items: center; gap: 6px; text-align: left; font-size: 0.75rem; font-weight: 500; color: #1f2937; padding: 2px 4px; border-radius: 4px; border: none; background: transparent; cursor: pointer;">
+                                                                        class="scp-day-event-btn">
                                                                         <span class="w-2 h-2 rounded-full shrink-0 scp-dot-{{ $event->category instanceof \App\Enums\AcademicEventCategory ? $event->category->value : $event->category }}"></span>
                                                                         @if ($event->target_grades)
-                                                                            <span style="font-size: 0.625rem; font-weight: 700; color: #6b7280; flex-shrink: 0;">[{{ implode(',', $event->target_grades) }}]</span>
+                                                                            <span style="font-size: 0.625rem; font-weight: 700; color: #6b7280; flex-shrink: 0;" class="dark:text-gray-400">[{{ implode(',', $event->target_grades) }}]</span>
                                                                         @endif
                                                                         <span class="truncate">{{ $event->title }}</span>
                                                                     </button>
@@ -665,12 +1294,11 @@
                                                                     x-transition:leave-start="opacity-100 scale-100"
                                                                     x-transition:leave-end="opacity-0 scale-95"
                                                                     x-cloak
-                                                                    style="position: absolute; z-index: 50; left: 50%; transform: translateX(-50%); bottom: calc(100% + 6px); width: 250px; padding: 12px; background: #ffffff; border-radius: 12px; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1); border: 1px solid #e5e7eb; font-size: 0.75rem; color: #1f2937; pointer-events: none;"
-                                                                    class="no-print">
-                                                                    <div style="font-weight: 700; font-size: 0.875rem; color: #111827; margin-bottom: 4px; line-height: 1.25;">
+                                                                    class="scp-cal-popover no-print">
+                                                                    <div class="scp-cal-popover-title" style="font-weight: 700; font-size: 0.875rem; color: #111827; margin-bottom: 4px; line-height: 1.25;">
                                                                         {{ $event->title }}
                                                                     </div>
-                                                                    <div style="display: flex; align-items: center; gap: 6px; font-size: 0.6875rem; color: #6b7280; margin-bottom: 8px;">
+                                                                    <div class="scp-cal-popover-sub" style="display: flex; align-items: center; gap: 6px; font-size: 0.6875rem; color: #6b7280; margin-bottom: 8px;">
                                                                         <x-filament::icon icon="heroicon-o-calendar" class="w-3.5 h-3.5 text-primary-500" />
                                                                         <span>
                                                                             {{ $event->start_date->format('d M Y') }}
@@ -681,28 +1309,28 @@
                                                                     </div>
                                                                     <div style="display: flex; flex-direction: column; gap: 4px; font-size: 0.6875rem;">
                                                                         <div>
-                                                                            <span style="color: #6b7280;">Kategori:</span>
-                                                                            <span style="font-weight: 600;">{{ $event->category instanceof \App\Enums\AcademicEventCategory ? $event->category->getLabel() : $event->category }}</span>
+                                                                            <span style="color: #6b7280;" class="dark:text-gray-400">Kategori:</span>
+                                                                            <span style="font-weight: 600;" class="text-gray-800 dark:text-gray-200">{{ $event->category instanceof \App\Enums\AcademicEventCategory ? $event->category->getLabel() : $event->category }}</span>
                                                                         </div>
                                                                         @if ($event->target_grades)
                                                                             <div>
-                                                                                <span style="color: #6b7280;">Target Siswa:</span>
-                                                                                <span style="font-weight: 600;">Kelas {{ implode(', ', $event->target_grades) }}</span>
+                                                                                <span style="color: #6b7280;" class="dark:text-gray-400">Target Siswa:</span>
+                                                                                <span style="font-weight: 600;" class="text-gray-800 dark:text-gray-200">Kelas {{ implode(', ', $event->target_grades) }}</span>
                                                                             </div>
                                                                         @endif
-                                                                        <div style="display: flex; flex-wrap: wrap; gap: 4px; margin-top: 6px; padding-top: 4px; border-top: 1px solid #f3f4f6;">
+                                                                        <div style="display: flex; flex-wrap: wrap; gap: 4px; margin-top: 6px; padding-top: 4px; border-top: 1px solid #f3f4f6;" class="dark:border-t-gray-700">
                                                                             @if ($event->is_holiday)
-                                                                                <span style="padding: 2px 6px; border-radius: 4px; font-size: 0.625rem; background: #fee2e2; color: #b91c1c; font-weight: 700;">Libur</span>
+                                                                                <span style="padding: 2px 6px; border-radius: 4px; font-size: 0.625rem; font-weight: 700;" class="bg-red-100 text-red-700 dark:bg-red-950/60 dark:text-red-300">Libur</span>
                                                                             @endif
                                                                             @if ($event->disable_kbm)
-                                                                                <span style="padding: 2px 6px; border-radius: 4px; font-size: 0.625rem; background: #fef3c7; color: #b45309; font-weight: 700;">KBM Nonaktif</span>
+                                                                                <span style="padding: 2px 6px; border-radius: 4px; font-size: 0.625rem; font-weight: 700;" class="bg-amber-100 text-amber-700 dark:bg-amber-950/60 dark:text-amber-300">KBM Nonaktif</span>
                                                                             @endif
                                                                             @if ($event->requires_attendance)
-                                                                                <span style="padding: 2px 6px; border-radius: 4px; font-size: 0.625rem; background: #dbeafe; color: #1d4ed8; font-weight: 700;">Wajib Presensi</span>
+                                                                                <span style="padding: 2px 6px; border-radius: 4px; font-size: 0.625rem; font-weight: 700;" class="bg-blue-100 text-blue-700 dark:bg-blue-950/60 dark:text-blue-300">Wajib Presensi</span>
                                                                             @endif
                                                                         </div>
                                                                         @if ($event->description)
-                                                                            <div style="margin-top: 6px; color: #4b5563; font-style: italic; font-size: 0.6875rem;">
+                                                                            <div class="scp-cal-popover-desc" style="margin-top: 6px; color: #4b5563; font-style: italic; font-size: 0.6875rem;">
                                                                                 "{{ Str::limit($event->description, 90) }}"
                                                                             </div>
                                                                         @endif
@@ -723,193 +1351,196 @@
             </div>
         @endif
 
-        <!-- 3, 4, 5. MODAL POPUP TAMBAH / EDIT AGENDA AKADEMIK (BORDER EKSPLISIT) -->
+        <x-filament-actions::modals />
+    </div>
+
+    <!-- 3, 4, 5. MODAL POPUP TAMBAH / EDIT AGENDA AKADEMIK -->
         @if ($showEventModal)
             <div
-                style="position: fixed; inset: 0; background-color: rgba(15, 23, 42, 0.5); z-index: 9999; display: flex; align-items: center; justify-content: center; padding: 16px;"
-                class="no-print"
+                class="scp-cal-modal-backdrop no-print"
+                style="position: fixed !important; top: 0 !important; left: 0 !important; right: 0 !important; bottom: 0 !important; width: 100vw !important; height: 100vh !important; margin: 0 !important; padding: 16px !important; z-index: 99999 !important; display: flex !important; align-items: center !important; justify-content: center !important; box-sizing: border-box !important;"
                 wire:click.self="closeEventModal">
-                <div
-                    style="background: #ffffff; border-radius: 12px; width: 100%; max-width: 600px; max-height: 90vh; overflow-y: auto; padding: 24px; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1); display: flex; flex-direction: column;">
+                <div class="scp-cal-modal-card">
                         
-                        <!-- Header Modal -->
-                        <div style="display: flex; align-items: center; justify-content: space-between; padding-bottom: 16px; border-bottom: 1px solid #e5e7eb; margin-bottom: 20px;">
-                            <h3 style="font-size: 1.125rem; font-weight: 700; color: #111827; margin: 0; display: flex; align-items: center; gap: 8px;">
-                                <x-filament::icon icon="heroicon-o-calendar" class="w-5 h-5 text-primary-500" />
-                                <span>{{ $editingEventId ? 'Edit Agenda Akademik' : 'Tambah Agenda Akademik Baru' }}</span>
-                            </h3>
+                    <!-- Header Modal -->
+                    <div class="scp-cal-modal-header">
+                        <h3 class="scp-cal-modal-title">
+                            <x-filament::icon icon="heroicon-o-calendar" class="w-5 h-5 text-primary-500" />
+                            <span>{{ $editingEventId ? 'Edit Agenda Akademik' : 'Tambah Agenda Akademik Baru' }}</span>
+                        </h3>
+                        <button
+                            type="button"
+                            wire:click="closeEventModal"
+                            style="border: none; background: transparent; color: #9ca3af; cursor: pointer; display: flex; align-items: center;">
+                            <x-filament::icon icon="heroicon-m-x-mark" class="w-5 h-5" />
+                        </button>
+                    </div>
+
+                    <!-- Isi Form Modal -->
+                    <div style="display: flex; flex-direction: column; gap: 16px; flex: 1;">
+                        <!-- Judul Agenda -->
+                        <div>
+                            <label class="scp-cal-form-label">
+                                Judul Agenda <span style="color: #ef4444;">*</span>
+                            </label>
+                            <input
+                                type="text"
+                                wire:model="eventTitle"
+                                placeholder="Contoh: Praktik Kerja Lapangan (PKL) Gelombang 1"
+                                class="scp-cal-form-input" />
+                            @error('eventTitle')
+                                <p style="color: #ef4444; font-size: 0.75rem; margin-top: 4px;">{{ $message }}</p>
+                            @enderror
+                        </div>
+
+                        <!-- Kategori Agenda -->
+                        <div>
+                            <label class="scp-cal-form-label">
+                                Kategori Agenda <span style="color: #ef4444;">*</span>
+                            </label>
+                            <select
+                                wire:model.live="eventCategory"
+                                class="scp-cal-form-input">
+                                @foreach (\App\Enums\AcademicEventCategory::cases() as $cat)
+                                    <option value="{{ $cat->value }}">{{ $cat->getLabel() }}</option>
+                                @endforeach
+                            </select>
+                            @error('eventCategory')
+                                <p style="color: #ef4444; font-size: 0.75rem; margin-top: 4px;">{{ $message }}</p>
+                            @enderror
+                        </div>
+
+                        <!-- Target Tingkat Siswa -->
+                        <div>
+                            <label class="scp-cal-form-label">
+                                Target Tingkat Siswa (Kosongkan jika berlaku untuk semua kelas)
+                            </label>
+                            <div style="display: flex; align-items: center; gap: 16px; margin-top: 8px;">
+                                @foreach (['X', 'XI', 'XII'] as $grade)
+                                    <label class="scp-cal-checkbox-label">
+                                        <input
+                                            type="checkbox"
+                                            value="{{ $grade }}"
+                                            wire:model="eventTargetGrades"
+                                            style="border-radius: 4px; border: 1px solid #d1d5db;"
+                                            class="dark:border-gray-700!" />
+                                        <span>Kelas {{ $grade }}</span>
+                                    </label>
+                                @endforeach
+                            </div>
+                        </div>
+
+                        <!-- Rentang Tanggal -->
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+                            <div>
+                                <label class="scp-cal-form-label">
+                                    Tanggal Mulai <span style="color: #ef4444;">*</span>
+                                </label>
+                                <input
+                                    type="date"
+                                    wire:model="eventStartDate"
+                                    class="scp-cal-form-input" />
+                                @error('eventStartDate')
+                                    <p style="color: #ef4444; font-size: 0.75rem; margin-top: 4px;">{{ $message }}</p>
+                                @enderror
+                            </div>
+
+                            <div>
+                                <label class="scp-cal-form-label">
+                                    Tanggal Selesai <span style="color: #ef4444;">*</span>
+                                </label>
+                                <input
+                                    type="date"
+                                    wire:model="eventEndDate"
+                                    class="scp-cal-form-input" />
+                                @error('eventEndDate')
+                                    <p style="color: #ef4444; font-size: 0.75rem; margin-top: 4px;">{{ $message }}</p>
+                                @enderror
+                            </div>
+                        </div>
+
+                        <!-- Pengaturan Status & Dampak Operasional -->
+                        <div class="scp-cal-impact-box">
+                            <label class="scp-cal-label">
+                                Dampak Operasional Sekolah:
+                            </label>
+                            
+                            <label class="scp-cal-checkbox-label">
+                                <input
+                                    type="checkbox"
+                                    wire:model="eventIsHoliday" />
+                                <span>Tanggal Merah / Libur Resmi</span>
+                            </label>
+
+                            <label class="scp-cal-checkbox-label">
+                                <input
+                                    type="checkbox"
+                                    wire:model="eventDisableKbm" />
+                                <span>Nonaktifkan KBM (Kegiatan Belajar Mengajar Ditiadakan)</span>
+                            </label>
+
+                            <label class="scp-cal-checkbox-label">
+                                <input
+                                    type="checkbox"
+                                    wire:model="eventRequiresAttendance" />
+                                <span>Wajib Presensi Kehadiran Siswa</span>
+                            </label>
+                        </div>
+
+                        <!-- Deskripsi Agenda -->
+                        <div>
+                            <label class="scp-cal-form-label">
+                                Deskripsi / Catatan Tambahan
+                            </label>
+                            <textarea
+                                wire:model="eventDescription"
+                                rows="3"
+                                placeholder="Tuliskan keterangan detail terkait agenda..."
+                                class="scp-cal-form-input"></textarea>
+                        </div>
+                    </div>
+
+                    <!-- Footer Action Modal -->
+                    <div class="scp-cal-modal-footer">
+                        <div>
+                            @if ($editingEventId)
+                                <button
+                                    type="button"
+                                    wire:click="mountAction('deleteEvent', { id: {{ $editingEventId }} })"
+                                    style="padding: 8px 14px; border: none; background: transparent; color: #ef4444; font-size: 0.875rem; font-weight: 600; cursor: pointer;">
+                                    Hapus
+                                </button>
+                            @endif
+                        </div>
+
+                        <div style="display: flex; align-items: center; gap: 10px;">
                             <button
                                 type="button"
                                 wire:click="closeEventModal"
-                                style="border: none; background: transparent; color: #9ca3af; cursor: pointer; display: flex; align-items: center;">
-                                <x-filament::icon icon="heroicon-m-x-mark" class="w-5 h-5" />
+                                class="scp-cal-btn-secondary">
+                                Batal
                             </button>
-                        </div>
-
-                        <!-- Isi Form Modal (Input dengan border eksplisit) -->
-                        <div style="display: flex; flex-direction: column; gap: 16px; flex: 1;">
-                            <!-- Judul Agenda -->
-                            <div>
-                                <label style="display: block; font-size: 0.75rem; font-weight: 700; color: #374151;">
-                                    Judul Agenda <span style="color: #ef4444;">*</span>
-                                </label>
-                                <input
-                                    type="text"
-                                    wire:model="eventTitle"
-                                    placeholder="Contoh: Praktik Kerja Lapangan (PKL) Gelombang 1"
-                                    style="width: 100%; border: 1px solid #d1d5db; border-radius: 8px; padding: 8px 12px; font-size: 0.875rem; margin-top: 4px; outline: none; background: #ffffff; color: #111827; box-sizing: border-box;" />
-                                @error('eventTitle')
-                                    <p style="color: #ef4444; font-size: 0.75rem; margin-top: 4px;">{{ $message }}</p>
-                                @enderror
-                            </div>
-
-                            <!-- Kategori Agenda -->
-                            <div>
-                                <label style="display: block; font-size: 0.75rem; font-weight: 700; color: #374151;">
-                                    Kategori Agenda <span style="color: #ef4444;">*</span>
-                                </label>
-                                <select
-                                    wire:model.live="eventCategory"
-                                    style="width: 100%; border: 1px solid #d1d5db; border-radius: 8px; padding: 8px 12px; font-size: 0.875rem; margin-top: 4px; outline: none; background: #ffffff; color: #111827; box-sizing: border-box;">
-                                    @foreach (\App\Enums\AcademicEventCategory::cases() as $cat)
-                                        <option value="{{ $cat->value }}">{{ $cat->getLabel() }}</option>
-                                    @endforeach
-                                </select>
-                                @error('eventCategory')
-                                    <p style="color: #ef4444; font-size: 0.75rem; margin-top: 4px;">{{ $message }}</p>
-                                @enderror
-                            </div>
-
-                            <!-- Target Tingkat Siswa -->
-                            <div>
-                                <label style="display: block; font-size: 0.75rem; font-weight: 700; color: #374151;">
-                                    Target Tingkat Siswa (Kosongkan jika berlaku untuk semua kelas)
-                                </label>
-                                <div style="display: flex; align-items: center; gap: 16px; margin-top: 8px;">
-                                    @foreach (['X', 'XI', 'XII'] as $grade)
-                                        <label style="display: inline-flex; align-items: center; gap: 6px; font-size: 0.8125rem; font-weight: 600; color: #374151; cursor: pointer;">
-                                            <input
-                                                type="checkbox"
-                                                value="{{ $grade }}"
-                                                wire:model="eventTargetGrades"
-                                                style="border-radius: 4px; border: 1px solid #d1d5db;" />
-                                            <span>Kelas {{ $grade }}</span>
-                                        </label>
-                                    @endforeach
-                                </div>
-                            </div>
-
-                            <!-- 4. Rentang Tanggal (Grid 1fr 1fr dengan gap 16px) -->
-                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
-                                <div>
-                                    <label style="display: block; font-size: 0.75rem; font-weight: 700; color: #374151;">
-                                        Tanggal Mulai <span style="color: #ef4444;">*</span>
-                                    </label>
-                                    <input
-                                        type="date"
-                                        wire:model="eventStartDate"
-                                        style="width: 100%; border: 1px solid #d1d5db; border-radius: 8px; padding: 8px 12px; font-size: 0.875rem; margin-top: 4px; outline: none; background: #ffffff; color: #111827; box-sizing: border-box;" />
-                                    @error('eventStartDate')
-                                        <p style="color: #ef4444; font-size: 0.75rem; margin-top: 4px;">{{ $message }}</p>
-                                    @enderror
-                                </div>
-
-                                <div>
-                                    <label style="display: block; font-size: 0.75rem; font-weight: 700; color: #374151;">
-                                        Tanggal Selesai <span style="color: #ef4444;">*</span>
-                                    </label>
-                                    <input
-                                        type="date"
-                                        wire:model="eventEndDate"
-                                        style="width: 100%; border: 1px solid #d1d5db; border-radius: 8px; padding: 8px 12px; font-size: 0.875rem; margin-top: 4px; outline: none; background: #ffffff; color: #111827; box-sizing: border-box;" />
-                                    @error('eventEndDate')
-                                        <p style="color: #ef4444; font-size: 0.75rem; margin-top: 4px;">{{ $message }}</p>
-                                    @enderror
-                                </div>
-                            </div>
-
-                            <!-- Pengaturan Status & Dampak Operasional -->
-                            <div style="background: #f9fafb; padding: 12px; border-radius: 8px; border: 1px solid #e5e7eb; display: flex; flex-direction: column; gap: 8px;">
-                                <label style="display: block; font-size: 0.6875rem; font-weight: 700; color: #6b7280; text-transform: uppercase; letter-spacing: 0.05em;">
-                                    Dampak Operasional Sekolah:
-                                </label>
-                                
-                                <label style="display: flex; align-items: center; gap: 8px; font-size: 0.8125rem; font-weight: 500; color: #1f2937; cursor: pointer;">
-                                    <input
-                                        type="checkbox"
-                                        wire:model="eventIsHoliday" />
-                                    <span>Tanggal Merah / Libur Resmi</span>
-                                </label>
-
-                                <label style="display: flex; align-items: center; gap: 8px; font-size: 0.8125rem; font-weight: 500; color: #1f2937; cursor: pointer;">
-                                    <input
-                                        type="checkbox"
-                                        wire:model="eventDisableKbm" />
-                                    <span>Nonaktifkan KBM (Kegiatan Belajar Mengajar Ditiadakan)</span>
-                                </label>
-
-                                <label style="display: flex; align-items: center; gap: 8px; font-size: 0.8125rem; font-weight: 500; color: #1f2937; cursor: pointer;">
-                                    <input
-                                        type="checkbox"
-                                        wire:model="eventRequiresAttendance" />
-                                    <span>Wajib Presensi Kehadiran Siswa</span>
-                                </label>
-                            </div>
-
-                            <!-- Deskripsi Agenda -->
-                            <div>
-                                <label style="display: block; font-size: 0.75rem; font-weight: 700; color: #374151;">
-                                    Deskripsi / Catatan Tambahan
-                                </label>
-                                <textarea
-                                    wire:model="eventDescription"
-                                    rows="3"
-                                    placeholder="Tuliskan keterangan detail terkait agenda..."
-                                    style="width: 100%; border: 1px solid #d1d5db; border-radius: 8px; padding: 8px 12px; font-size: 0.875rem; margin-top: 4px; outline: none; background: #ffffff; color: #111827; box-sizing: border-box;"></textarea>
-                            </div>
-                        </div>
-
-                        <!-- 5. Footer Action Modal (Padding tombol Simpan Agenda eksplisit) -->
-                        <div style="display: flex; align-items: center; justify-content: space-between; padding-top: 16px; border-top: 1px solid #e5e7eb; margin-top: 20px;">
-                            <div>
-                                @if ($editingEventId)
-                                    <button
-                                        type="button"
-                                        wire:click="mountAction('deleteEvent', { id: {{ $editingEventId }} })"
-                                        style="padding: 8px 14px; border: none; background: transparent; color: #ef4444; font-size: 0.875rem; font-weight: 600; cursor: pointer;">
-                                        Hapus
-                                    </button>
-                                @endif
-                            </div>
-
-                            <div style="display: flex; align-items: center; gap: 10px;">
-                                <button
-                                    type="button"
-                                    wire:click="closeEventModal"
-                                    style="padding: 8px 16px; border: 1px solid #d1d5db; border-radius: 8px; background: #ffffff; color: #374151; font-size: 0.875rem; font-weight: 500; cursor: pointer;">
-                                    Batal
-                                </button>
-                                <button
-                                    type="button"
-                                    wire:click="saveEvent"
-                                    style="padding: 8px 16px; display: inline-flex; align-items: center; gap: 6px; white-space: nowrap; border-radius: 8px; background-color: #2563eb; color: #ffffff; font-size: 0.875rem; font-weight: 600; border: none; cursor: pointer;">
-                                    <span>{{ $editingEventId ? 'Perbarui Agenda' : 'Simpan Agenda' }}</span>
-                                </button>
-                            </div>
+                            <button
+                                type="button"
+                                wire:click="saveEvent"
+                                style="padding: 8px 16px; display: inline-flex; align-items: center; gap: 6px; white-space: nowrap; border-radius: 8px; background-color: #2563eb; color: #ffffff; font-size: 0.875rem; font-weight: 600; border: none; cursor: pointer;">
+                                <span>{{ $editingEventId ? 'Perbarui Agenda' : 'Simpan Agenda' }}</span>
+                            </button>
                         </div>
                     </div>
                 </div>
+            </div>
         @endif
 
         <!-- 7. MODAL TARIK LIBUR NASIONAL -->
         @if ($showSyncModal)
             <div
-                style="position: fixed; inset: 0; background-color: rgba(15, 23, 42, 0.5); z-index: 9999; display: flex; align-items: center; justify-content: center; padding: 16px;"
-                class="no-print"
+                class="scp-cal-modal-backdrop no-print"
+                style="position: fixed !important; top: 0 !important; left: 0 !important; right: 0 !important; bottom: 0 !important; width: 100vw !important; height: 100vh !important; margin: 0 !important; padding: 16px !important; z-index: 99999 !important; display: flex !important; align-items: center !important; justify-content: center !important; box-sizing: border-box !important;"
                 wire:click.self="closeSyncModal">
-                <div style="background: #ffffff; border-radius: 12px; width: 100%; max-width: 450px; overflow: hidden; padding: 24px; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1);">
-                    <div style="display: flex; align-items: center; justify-content: space-between; padding-bottom: 16px; border-bottom: 1px solid #e5e7eb; margin-bottom: 16px;">
-                        <h3 style="font-size: 1.125rem; font-weight: 700; color: #111827; margin: 0; display: flex; align-items: center; gap: 8px;">
+                <div class="scp-cal-modal-card" style="max-width: 450px;">
+                    <div class="scp-cal-modal-header">
+                        <h3 class="scp-cal-modal-title">
                             <x-filament::icon icon="heroicon-o-arrow-path" class="w-5 h-5 text-primary-500" />
                             <span>Tarik Libur Nasional Otomatis</span>
                         </h3>
@@ -922,8 +1553,8 @@
                     </div>
 
                     <div style="display: flex; flex-direction: column; gap: 16px; margin-bottom: 20px;">
-                        <div style="padding: 12px; background: #eff6ff; color: #1e40af; border-radius: 8px; font-size: 0.8125rem; display: flex; align-items: flex-start; gap: 10px; border: 1px solid #bfdbfe;">
-                            <x-filament::icon icon="heroicon-o-information-circle" class="w-5 h-5 text-blue-600 shrink-0 mt-0.5" />
+                        <div style="padding: 12px; border-radius: 8px; font-size: 0.8125rem; display: flex; align-items: flex-start; gap: 10px;" class="bg-blue-50 dark:bg-blue-950/40 text-blue-800 dark:text-blue-300 border border-blue-200 dark:border-blue-900/50">
+                            <x-filament::icon icon="heroicon-o-information-circle" class="w-5 h-5 text-blue-600 dark:text-blue-400 shrink-0 mt-0.5" />
                             <div class="space-y-1">
                                 <p style="font-weight: 700; margin: 0;">Sinkronisasi Resmi SKB 3 Menteri</p>
                                 <p style="font-size: 0.75rem; margin: 0; line-height: 1.4;">
@@ -933,21 +1564,21 @@
                         </div>
 
                         <div>
-                            <label style="display: block; font-size: 0.75rem; font-weight: 700; color: #374151;">
+                            <label class="scp-cal-form-label">
                                 Tahun Kalender Sinkronisasi
                             </label>
                             <input
                                 type="number"
                                 wire:model="syncYear"
-                                style="width: 100%; border: 1px solid #d1d5db; border-radius: 8px; padding: 8px 12px; font-size: 0.875rem; margin-top: 4px; outline: none; background: #ffffff; color: #111827; box-sizing: border-box;" />
+                                class="scp-cal-form-input" />
                         </div>
                     </div>
 
-                    <div style="display: flex; align-items: center; justify-content: flex-end; gap: 10px; padding-top: 16px; border-top: 1px solid #e5e7eb;">
+                    <div style="display: flex; align-items: center; justify-content: flex-end; gap: 10px; padding-top: 16px; border-top: 1px solid #e5e7eb;" class="dark:border-t-gray-800">
                         <button
                             type="button"
                             wire:click="closeSyncModal"
-                            style="padding: 8px 16px; border: 1px solid #d1d5db; border-radius: 8px; background: #ffffff; color: #374151; font-size: 0.875rem; font-weight: 500; cursor: pointer;">
+                            class="scp-cal-btn-secondary">
                             Batal
                         </button>
                         <button
@@ -964,8 +1595,4 @@
                 </div>
             </div>
         @endif
-
-        <x-filament-actions::modals />
-
-    </div>
 </x-filament-panels::page>

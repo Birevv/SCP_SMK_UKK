@@ -2,16 +2,18 @@
 
 namespace Tests\Feature;
 
+use App\Filament\Pages\Auth\OtpPasswordReset;
+use App\Filament\Pages\Auth\VerifyOtp;
 use App\Models\User;
 use App\Notifications\ResetPasswordOtpNotification;
 use App\Services\PasswordResetOtpService;
-use Carbon\Carbon;
 use Illuminate\Foundation\Testing\LazilyRefreshDatabase;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Facades\URL;
 use Illuminate\Validation\ValidationException;
+use Livewire\Livewire;
 use Tests\TestCase;
 
 class PasswordResetOtpTest extends TestCase
@@ -30,7 +32,7 @@ class PasswordResetOtpTest extends TestCase
 
     public function test_user_can_access_filament_otp_reset_password_page(): void
     {
-        $response = $this->get('/admin/password-reset/request');
+        $response = $this->get(route('filament.admin.auth.password-reset.request'));
 
         $response->assertSuccessful();
         $response->assertSee('Lupa Kata Sandi');
@@ -39,7 +41,7 @@ class PasswordResetOtpTest extends TestCase
 
     public function test_user_can_access_verify_otp_page(): void
     {
-        $response = $this->get('/admin/password-reset/verify-otp?email=guru.test@smk.sch.id');
+        $response = $this->get(route('filament.admin.auth.password-reset.verify-otp', ['email' => 'guru.test@smk.sch.id']));
 
         $response->assertSuccessful();
         $response->assertSee('Verifikasi OTP');
@@ -54,7 +56,7 @@ class PasswordResetOtpTest extends TestCase
         Notification::fake();
         $user = $this->createUser();
 
-        \Livewire\Livewire::test(\App\Filament\Pages\Auth\OtpPasswordReset::class)
+        Livewire::test(OtpPasswordReset::class)
             ->set('data.email', $user->email)
             ->call('request')
             ->assertRedirect(route('filament.admin.auth.password-reset.verify-otp', ['email' => $user->email]));
@@ -69,7 +71,7 @@ class PasswordResetOtpTest extends TestCase
             ['token' => Hash::make('123456'), 'created_at' => now()]
         );
 
-        \Livewire\Livewire::test(\App\Filament\Pages\Auth\VerifyOtp::class, ['email' => $user->email])
+        Livewire::test(VerifyOtp::class, ['email' => $user->email])
             ->set('data.otp', '123456')
             ->call('request')
             ->assertRedirect();
@@ -224,6 +226,7 @@ class PasswordResetOtpTest extends TestCase
         $capturedOtp = null;
         Notification::assertSentTo($user, ResetPasswordOtpNotification::class, function ($notification) use (&$capturedOtp) {
             $capturedOtp = $notification->otp;
+
             return true;
         });
 

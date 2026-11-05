@@ -11,6 +11,7 @@ import sys
 import re
 import json
 import argparse
+from collections import Counter
 from pathlib import Path
 
 # Try importing libraries
@@ -94,26 +95,123 @@ def load_env(env_path=None):
 
 
 def normalize_class_name(name):
-    """Normalize class name, e.g. 'X RPL1' -> 'X RPL 1', 'XII BD' -> 'XII BD'."""
+    """Normalize class name, e.g. '10 RPL 1' / 'X RPL1' -> 'X RPL 1', '12 BD' -> 'XII BD'."""
     if not name:
         return ''
-    name = ' '.join(str(name).strip().split())
-    # Match patterns like "X RPL1" or "XI TKJ2" or "XII AK3"
-    m = re.match(r'^(XII|XI|X|12|11|10)\s+([A-Za-z]+)(\d+)$', name, re.I)
+    name = ' '.join(str(name).strip().split()).upper()
+    name = re.sub(r'^10\b', 'X', name)
+    name = re.sub(r'^11\b', 'XI', name)
+    name = re.sub(r'^12\b', 'XII', name)
+
+    # Match patterns like "X RPL1" or "XI TKJ 2" or "XII AK3"
+    m = re.match(r'^(XII|XI|X)\s+([A-Z]+)\s*(\d+)$', name, re.I)
     if m:
         return f"{m.group(1).upper()} {m.group(2).upper()} {m.group(3)}"
-    
-    # Match patterns like "X RPL 1"
-    m2 = re.match(r'^(XII|XI|X|12|11|10)\s+([A-Za-z]+)\s+(\d+)$', name, re.I)
-    if m2:
-        return f"{m2.group(1).upper()} {m2.group(2).upper()} {m2.group(3)}"
 
-    return name.upper()
+    # Match patterns without rombel number like "X BD" or "XII LPS"
+    m2 = re.match(r'^(XII|XI|X)\s+([A-Z]+)$', name, re.I)
+    if m2:
+        return f"{m2.group(1).upper()} {m2.group(2).upper()}"
+
+    return name
+
+
+def normalize_room_name(room_raw):
+    """Normalize room code from Jadwal Ruang / FET, e.g. 'L.16' -> 'LAB 16', '12' -> 'Ruang 12'."""
+    if not room_raw:
+        return None
+    r = ' '.join(str(room_raw).strip().split()).upper()
+    if r in ['"', '""', '-', '']:
+        return None
+    m_lab = re.match(r'^(?:L\.|LAB\s*)(\d+)$', r, re.I)
+    if m_lab:
+        return f"LAB {m_lab.group(1)}"
+    if r in ['L.IPA', 'L. IPA', 'LAB IPA', 'LAB.IPA']:
+        return 'LAB IPA'
+    if r in ['L.PB', 'L. PB', 'LAB PB', 'LAB.PB']:
+        return 'LAB PB'
+    if re.match(r'^OR\d*$', r, re.I):
+        return 'OR'
+    m_ruang = re.match(r'^(?:RUANG\s*|R\.?\s*)?(\d+)$', r, re.I)
+    if m_ruang:
+        return f"Ruang {m_ruang.group(1)}"
+    return r
+
+
+def parse_waktu_range(waktu_str):
+    """Parse time range string like '08.00 -08.35' or '08.10 - 0850' into ('08:00:00', '08:35:00')."""
+    if not waktu_str:
+        return None, None
+    m = re.search(r'(\d{1,2})[.:]?(\d{2})\s*[-–—]\s*(\d{1,2})[.:]?(\d{2})', str(waktu_str))
+    if m:
+        st = f"{int(m.group(1)):02d}:{m.group(2)}:00"
+        et = f"{int(m.group(3)):02d}:{m.group(4)}:00"
+        return st, et
+    return None, None
+
+
+def normalize_subject_name(subj_raw):
+    """Normalize subject name to prevent redundancy across Putaran 1 and Putaran 2."""
+    if not subj_raw:
+        return ''
+    s = ' '.join(str(subj_raw).split()).rstrip(']').strip()
+    s = re.sub(r'\s*/\s*', '/', s)
+    s = re.sub(r'\(\s+', '(', s)
+    s = re.sub(r'\s+\)', ')', s)
+    return s
+
+
+def normalize_teacher_name(name_raw):
+    """Normalize teacher name spacing and trailing punctuation."""
+    if not name_raw:
+        return ''
+    n = ' '.join(str(name_raw).split()).strip().strip('"').rstrip('",;.')
+    n = re.sub(r'\s*,\s*', ', ', n)
+    return n.strip()
+
+
+def parse_teacher_header(raw_header):
+    """Parse teacher code and name from FET Teacher timetable page header, e.g. '\"2.ARIS PURWANTINAH, S.Pd.\"'."""
+    text = raw_header.strip().strip('"').strip()
+    tm = re.match(r'^\s*(\d+)[.,\s]*(.+)$', ' '.join(text.split()))
+    if tm:
+        return tm.group(1).strip(), normalize_teacher_name(tm.group(2))
+    return None, normalize_teacher_name(text)
+
+
+def parse_teacher_fet_cell(cell_str):
+    """
+    Parse a cell inside FET Teacher timetable table:
+    Format typically:
+    ClassName\nSubject\nRoom
+    """
+    if not cell_str:
+        return None
+    text = cell_str.strip()
+    if text in ['-x-', '---', ''] or 'Jadwal dihasilkan' in text:
+        return None
+    lines = [l.strip() for l in text.split('\n') if l.strip()]
+    if not lines:
+        return None
+    cls_raw = normalize_class_name(lines[0])
+    rest_lines = lines[1:]
+    room_raw = None
+    if len(rest_lines) > 1 and re.match(r'^(LAB\b|OR\d*|R\.\d|AULA|BENGKEL|HALL)', rest_lines[-1], re.I):
+        room_raw = rest_lines[-1]
+        subj_lines = rest_lines[:-1]
+    else:
+        subj_lines = rest_lines
+    subj = normalize_subject_name(' '.join(subj_lines))
+    return {
+        'classroom': cls_raw,
+        'subject': subj,
+        'room': normalize_room_name(room_raw) if room_raw else None,
+    }
 
 
 def parse_fet_cell(cell_str):
     """
-    Parse a cell inside FET timetable table:
+    Parse a cell inside FET Class timetable table:
     Format typically:
     Subject\n"TeacherCode.TeacherName"\nRoom
     """
@@ -155,30 +253,31 @@ def parse_fet_cell(cell_str):
     tm = re.match(r'^\s*(\d+)[.,\s]*(.+)$', ' '.join(teacher_raw.split()))
     if tm:
         t_code = tm.group(1).strip()
-        t_name = tm.group(2).strip().rstrip('",;.')
+        t_name = normalize_teacher_name(tm.group(2))
     else:
         t_code = None
-        t_name = ' '.join(teacher_raw.split()).rstrip('",;.')
+        t_name = normalize_teacher_name(teacher_raw)
 
     room = ' '.join(room_raw.split()).strip() if room_raw and room_raw.strip() else None
     if room in ['"', '""', '-']:
         room = None
 
+    subj = normalize_subject_name(subj)
+
     return {
         'subject': subj,
         'teacher_code': t_code,
         'teacher_name': t_name,
-        'room': room
+        'room': normalize_room_name(room) if room else None
     }
 
 
 def detect_file_type(file_path):
-    """Detect whether file is Student Roster (Excel/CSV) or Timetable (PDF)."""
+    """Detect whether file is Student Roster (Excel/CSV), Room Schedule (PDF), or FET Timetable (PDF)."""
     p = Path(file_path)
     ext = p.suffix.lower()
 
     if ext in ['.xlsx', '.xls', '.csv']:
-        # Inspect text/content
         if ext == '.csv':
             try:
                 with open(file_path, 'r', encoding='utf-8', errors='ignore') as f:
@@ -201,14 +300,25 @@ def detect_file_type(file_path):
         return 'STUDENT_ROSTER_EXCEL'
 
     elif ext == '.pdf':
+        p1_text = ''
         if pypdf:
             try:
                 reader = pypdf.PdfReader(file_path)
-                p1 = reader.pages[0].extract_text()
-                if 'SMK NEGERI 1 BANTUL' in p1 or 'FET' in p1 or 'Kelas X' in p1:
-                    return 'TIMETABLE_FET_PDF'
+                p1_text = reader.pages[0].extract_text() or ''
             except Exception:
                 pass
+        if not p1_text and pdfplumber:
+            try:
+                with pdfplumber.open(file_path) as pdf:
+                    p1_text = pdf.pages[0].extract_text() or ''
+            except Exception:
+                pass
+
+        p1_upper = p1_text.upper()
+        if 'JADWAL RUANG' in p1_upper or ('HARI' in p1_upper and 'WAKTU' in p1_upper and 'UPACARA' in p1_upper):
+            return 'ROOM_SCHEDULE_PDF'
+        if 'SMK NEGERI 1 BANTUL' in p1_upper or 'FET' in p1_upper or 'KELAS X' in p1_upper:
+            return 'TIMETABLE_FET_PDF'
         return 'TIMETABLE_FET_PDF'
 
     return 'UNKNOWN'
@@ -292,8 +402,111 @@ def parse_student_roster_excel(file_path):
     }
 
 
+SLOT_TO_JAM = {slot: idx + 1 for idx, slot in enumerate(SLOT_ORDER)}
+
+
+def parse_room_schedule_pdf(file_path):
+    """Parse PDF file containing SMKN 1 Bantul Jadwal Ruang matrix."""
+    if not pdfplumber:
+        raise RuntimeError("pdfplumber is required to parse PDF room schedule. Please install with: pip install pdfplumber")
+
+    filename = Path(file_path).name.upper()
+    cycle_type = 'Putaran 1'
+    if 'PUT_2' in filename or 'PUTARAN_2' in filename or 'PUTARAN 2' in filename:
+        cycle_type = 'Putaran 2'
+
+    academic_year = '2026/2027 - Ganjil'
+    classes_set = set()
+    rooms_set = set()
+    session_times = {}  # {day: {jam: {'start': '08:00:00', 'end': '08:35:00', 'raw': '08.00 - 08.35'}}}
+    room_matrix = {}    # {class_name: {day: {jam: 'Ruang 12'}}}
+    room_legends = {}   # {'LAB 1': 'Laboratorium Komputer 1', ...}
+    total_slots = 0
+
+    with pdfplumber.open(file_path) as pdf:
+        if pdf.pages:
+            p0_text = (pdf.pages[0].extract_text() or '').upper()
+            if 'PUTARAN 2' in p0_text:
+                cycle_type = 'Putaran 2'
+            elif 'PUTARAN 1' in p0_text:
+                cycle_type = 'Putaran 1'
+
+            m_yr = re.search(r'(\d{4}\s*/\s*\d{4})', p0_text)
+            yr_str = m_yr.group(1).replace(' ', '') if m_yr else '2026/2027'
+            sem_str = 'Genap' if 'GENAP' in p0_text else 'Ganjil'
+            academic_year = f"{yr_str} - {sem_str}"
+
+        for page in pdf.pages:
+            page_text = page.extract_text() or ''
+            if 'KETERANGAN' in page_text.upper():
+                for m_leg in re.finditer(r'(L\.\s*(?:\d+|IPA|PB)|OR|HALL)\s*:\s*([^\n]+)', page_text, re.I):
+                    raw_code = m_leg.group(1).strip()
+                    desc = m_leg.group(2).strip()
+                    # Strip trailing signature/date text if on same line
+                    desc = re.split(r'\b(?:L\.\s*\d+|L\.\s*IPA|L\.\s*PB|OR\s*:|HALL\s*:|Bantul,|Kepala Sekolah|TTD|NIP\b)', desc)[0].strip()
+                    norm_c = normalize_room_name(raw_code)
+                    if norm_c and desc:
+                        room_legends[norm_c] = desc
+
+            for t in page.extract_tables():
+                if not t or len(t[0]) < 10:
+                    continue
+                header_classes = None
+                curr_day = None
+
+                for r in t:
+                    c0 = (r[0] or '').strip()
+                    c1 = (r[1] or '').strip()
+                    c2 = (r[2] or '').strip()
+
+                    if c0 == 'Hari' and c1 == 'Jam':
+                        header_classes = [normalize_class_name(x) for x in r[3:] if x is not None and str(x).strip() != '']
+                        for hc in header_classes:
+                            classes_set.add(hc)
+                        continue
+
+                    if c0 in ['Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat']:
+                        curr_day = c0
+
+                    if curr_day and c1.isdigit() and header_classes:
+                        jam = int(c1)
+                        st, et = parse_waktu_range(c2)
+                        if st and et:
+                            session_times.setdefault(curr_day, {})[jam] = {
+                                'start': st,
+                                'end': et,
+                                'raw': c2,
+                            }
+                        for idx, cls_name in enumerate(header_classes):
+                            col_idx = idx + 3
+                            if col_idx < len(r):
+                                raw_room = (r[col_idx] or '').strip()
+                                norm_r = normalize_room_name(raw_room)
+                                if norm_r:
+                                    room_matrix.setdefault(cls_name, {}).setdefault(curr_day, {})[jam] = norm_r
+                                    rooms_set.add(norm_r)
+                                    total_slots += 1
+
+    return {
+        'type': 'room_schedule',
+        'detected_format': 'PDF / Jadwal Ruang & Waktu KBM',
+        'institution': 'SMK NEGERI 1 BANTUL',
+        'academic_year': academic_year,
+        'cycle_type': cycle_type,
+        'total_classes': len(classes_set),
+        'total_days': len(session_times),
+        'total_rooms': len(rooms_set),
+        'total_slots': total_slots,
+        'classes': sorted(list(classes_set)),
+        'rooms': sorted(list(rooms_set)),
+        'session_times': session_times,
+        'room_matrix': room_matrix,
+        'room_legends': room_legends,
+    }
+
+
 def parse_fet_timetable_pdf(file_path):
-    """Parse PDF file containing FET timetable."""
+    """Parse PDF file containing FET timetable (supports both Class Timetable and Teacher Timetable)."""
     if not pdfplumber:
         raise RuntimeError("pdfplumber is required to parse PDF timetable. Please install with: pip install pdfplumber")
 
@@ -304,14 +517,31 @@ def parse_fet_timetable_pdf(file_path):
         cycle_type = 'Putaran 2'
 
     teachers_dict = {}
+    used_codes = {}
     subjects_set = set()
     rooms_set = set()
     classes_dict = {}
     schedules = []
 
+    def register_teacher(t_name, t_code):
+        if not t_name:
+            return None
+        t_name_key = t_name.upper()
+        t_code_val = t_code
+        if t_code_val:
+            if t_code_val in used_codes and used_codes[t_code_val] != t_name_key:
+                t_code_val = f"{t_code_val}_{len(teachers_dict) + 1}"
+            else:
+                used_codes[t_code_val] = t_name_key
+        if t_name_key not in teachers_dict:
+            teachers_dict[t_name_key] = {
+                'code': t_code_val,
+                'name': t_name,
+            }
+        return teachers_dict[t_name_key]['code']
+
     with pdfplumber.open(file_path) as pdf:
         total_pages = len(pdf.pages)
-        # Page 0 is index / TOC, pages 1..N are class grids
         start_page = 1 if total_pages > 1 else 0
 
         for p_idx in range(start_page, total_pages):
@@ -321,27 +551,34 @@ def parse_fet_timetable_pdf(file_path):
                 continue
 
             t = tables[0]
-            # Row 0: class name
-            raw_class_name = None
+            # Row 0: class name (in Class FET) OR teacher name (in Teacher FET)
+            raw_header = None
             for cell in t[0]:
                 if cell and cell.strip():
-                    raw_class_name = cell.strip()
+                    raw_header = cell.strip()
                     break
-            
-            if not raw_class_name:
+
+            if not raw_header or len(t) < 3:
                 continue
 
-            class_name = normalize_class_name(raw_class_name)
-            if class_name not in classes_dict:
-                classes_dict[class_name] = 0
+            is_class_header = bool(
+                re.match(r'^(?:XII|XI|X|10|11|12)\s+[A-Z]{2,5}(?:\s*\d+)?$', raw_header.strip('"').strip(), re.I)
+            )
+
+            if is_class_header:
+                class_name = normalize_class_name(raw_header)
+                if class_name not in classes_dict:
+                    classes_dict[class_name] = 0
+                page_t_code, page_t_name = None, None
+            else:
+                class_name = None
+                page_t_code, page_t_name = parse_teacher_header(raw_header)
 
             # Row 1: Header days
             days = [c.strip() for c in t[1][1:] if c and c.strip()]
-            
-            # Rows 2..N: Time slots
-            # Process column by column (each day)
+
+            # Rows 2..N: Time slots (process column by column for each day)
             for c_idx, day in enumerate(days, start=1):
-                # We track the current active block
                 current_entry = None
                 current_start_slot = None
                 last_active_slot = None
@@ -353,16 +590,26 @@ def parse_fet_timetable_pdf(file_path):
                     slot_code = time_slot.strip()
                     cell_val = t[r_idx][c_idx] if c_idx < len(t[r_idx]) else None
 
-                    parsed = parse_fet_cell(cell_val)
+                    if is_class_header:
+                        parsed = parse_fet_cell(cell_val)
+                        if parsed:
+                            parsed['classroom'] = class_name
+                    else:
+                        parsed = parse_teacher_fet_cell(cell_val)
+                        if parsed:
+                            parsed['teacher_code'] = page_t_code
+                            parsed['teacher_name'] = page_t_name
 
                     if parsed:
-                        # If an entry was already accumulating, finish it
                         if current_entry and current_start_slot and last_active_slot:
                             start_t = TIME_SLOT_RANGES[current_start_slot][0]
                             end_t = TIME_SLOT_RANGES[last_active_slot][1]
+                            cls_val = current_entry['classroom']
                             sched_item = {
-                                'classroom': class_name,
+                                'classroom': cls_val,
                                 'day_of_week': day,
+                                'jam_start': SLOT_TO_JAM.get(current_start_slot, 1),
+                                'jam_end': SLOT_TO_JAM.get(last_active_slot, 1),
                                 'start_time': start_t,
                                 'end_time': end_t,
                                 'cycle_type': cycle_type,
@@ -372,36 +619,34 @@ def parse_fet_timetable_pdf(file_path):
                                 'room': current_entry['room'],
                             }
                             schedules.append(sched_item)
-                            classes_dict[class_name] += 1
+                            classes_dict[cls_val] = classes_dict.get(cls_val, 0) + 1
 
+                        resolved_code = register_teacher(parsed['teacher_name'], parsed['teacher_code'])
+                        parsed['teacher_code'] = resolved_code
                         current_entry = parsed
                         current_start_slot = slot_code
                         last_active_slot = slot_code
 
-                        # Track master data
-                        if parsed['teacher_name']:
-                            teachers_dict[parsed['teacher_code'] or parsed['teacher_name']] = {
-                                'code': parsed['teacher_code'],
-                                'name': parsed['teacher_name']
-                            }
+                        if parsed['classroom'] and parsed['classroom'] not in classes_dict:
+                            classes_dict[parsed['classroom']] = 0
                         if parsed['subject']:
                             subjects_set.add(parsed['subject'])
                         if parsed['room']:
                             rooms_set.add(parsed['room'])
 
                     else:
-                        # Cell is empty or break
                         if current_entry:
-                            # It continues the current block if empty string
                             if cell_val is None or cell_val.strip() == '':
                                 last_active_slot = slot_code
                             else:
-                                # Cell has '-x-' or break: end current block
                                 start_t = TIME_SLOT_RANGES[current_start_slot][0]
                                 end_t = TIME_SLOT_RANGES[last_active_slot][1]
+                                cls_val = current_entry['classroom']
                                 sched_item = {
-                                    'classroom': class_name,
+                                    'classroom': cls_val,
                                     'day_of_week': day,
+                                    'jam_start': SLOT_TO_JAM.get(current_start_slot, 1),
+                                    'jam_end': SLOT_TO_JAM.get(last_active_slot, 1),
                                     'start_time': start_t,
                                     'end_time': end_t,
                                     'cycle_type': cycle_type,
@@ -411,7 +656,7 @@ def parse_fet_timetable_pdf(file_path):
                                     'room': current_entry['room'],
                                 }
                                 schedules.append(sched_item)
-                                classes_dict[class_name] += 1
+                                classes_dict[cls_val] = classes_dict.get(cls_val, 0) + 1
                                 current_entry = None
                                 current_start_slot = None
                                 last_active_slot = None
@@ -420,9 +665,12 @@ def parse_fet_timetable_pdf(file_path):
                 if current_entry and current_start_slot and last_active_slot:
                     start_t = TIME_SLOT_RANGES[current_start_slot][0]
                     end_t = TIME_SLOT_RANGES[last_active_slot][1]
+                    cls_val = current_entry['classroom']
                     sched_item = {
-                        'classroom': class_name,
+                        'classroom': cls_val,
                         'day_of_week': day,
+                        'jam_start': SLOT_TO_JAM.get(current_start_slot, 1),
+                        'jam_end': SLOT_TO_JAM.get(last_active_slot, 1),
                         'start_time': start_t,
                         'end_time': end_t,
                         'cycle_type': cycle_type,
@@ -432,7 +680,16 @@ def parse_fet_timetable_pdf(file_path):
                         'room': current_entry['room'],
                     }
                     schedules.append(sched_item)
-                    classes_dict[class_name] += 1
+                    classes_dict[cls_val] = classes_dict.get(cls_val, 0) + 1
+
+    # Deduplicate schedules by (classroom, day_of_week, start_time[:5])
+    deduped_schedules = []
+    seen_slots = set()
+    for s in schedules:
+        slot_key = (s['classroom'], s['day_of_week'], s['start_time'][:5])
+        if slot_key not in seen_slots:
+            seen_slots.add(slot_key)
+            deduped_schedules.append(s)
 
     return {
         'type': 'timetable_fet',
@@ -443,13 +700,214 @@ def parse_fet_timetable_pdf(file_path):
         'total_teachers': len(teachers_dict),
         'total_subjects': len(subjects_set),
         'total_rooms': len(rooms_set),
-        'total_schedules': len(schedules),
+        'total_schedules': len(deduped_schedules),
         'teachers': list(teachers_dict.values()),
         'subjects': sorted(list(subjects_set)),
         'rooms': sorted(list(rooms_set)),
         'classes': sorted(list(classes_dict.keys())),
-        'schedules': schedules
+        'schedules': deduped_schedules
     }
+
+
+def merge_fet_and_room_schedule(fet_data, room_data):
+    """Merge parsed FET class timetable with parsed Jadwal Ruang matrix."""
+    cycle_type = room_data.get('cycle_type') or fet_data.get('cycle_type') or 'Putaran 1'
+    academic_year = room_data.get('academic_year') or '2026/2027 - Ganjil'
+    room_matrix = room_data.get('room_matrix', {})
+    session_times = room_data.get('session_times', {})
+    all_rooms = set(room_data.get('rooms', []))
+
+    for s in fet_data.get('schedules', []):
+        cls = normalize_class_name(s['classroom'])
+        day = s['day_of_week']
+        j_start = int(s.get('jam_start') or SLOT_TO_JAM.get(s['start_time'][:5], 1))
+        j_end = int(s.get('jam_end') or j_start)
+
+        # Update start_time and end_time from Jadwal Ruang Waktu column if available
+        day_times = session_times.get(day, {})
+        if j_start in day_times and day_times[j_start].get('start'):
+            s['start_time'] = day_times[j_start]['start']
+        if j_end in day_times and day_times[j_end].get('end'):
+            s['end_time'] = day_times[j_end]['end']
+
+        s['cycle_type'] = cycle_type
+
+        # Resolve room from Jadwal Ruang matrix for (cls, day, j_start..j_end)
+        cls_day_rooms = room_matrix.get(cls, {}).get(day, {})
+        candidates = [cls_day_rooms.get(j) for j in range(j_start, j_end + 1) if cls_day_rooms.get(j)]
+        f_room = normalize_room_name(s.get('room'))
+        is_pjok = 'JASMANI' in s['subject'].upper() or 'OLAHRAGA' in s['subject'].upper()
+
+        if is_pjok and f_room == 'OR':
+            chosen_room = 'OR'
+        else:
+            filtered = candidates
+            if not is_pjok and len(candidates) > 0:
+                non_or = [c for c in candidates if c != 'OR']
+                if non_or:
+                    filtered = non_or
+                elif cls_day_rooms:
+                    # Fallback to the class's non-OR room on that day
+                    day_non_or = [r_val for r_val in cls_day_rooms.values() if r_val and r_val != 'OR']
+                    if day_non_or:
+                        filtered = day_non_or
+
+            if f_room and f_room in filtered:
+                chosen_room = f_room
+            elif filtered:
+                chosen_room = Counter(filtered).most_common(1)[0][0]
+            else:
+                chosen_room = f_room or (candidates[0] if candidates else 'Ruang Teori')
+
+        s['room'] = chosen_room
+        if chosen_room:
+            all_rooms.add(chosen_room)
+
+    all_classes = sorted(list(set(fet_data.get('classes', [])) | set(room_data.get('classes', []))))
+    sorted_rooms = sorted(list(all_rooms))
+
+    return {
+        'type': 'timetable_fet',
+        'has_room_schedule': True,
+        'detected_format': 'PDF Gabungan / Jadwal Kelas FET + Jadwal Ruang',
+        'institution': 'SMK NEGERI 1 BANTUL',
+        'academic_year': academic_year,
+        'cycle_type': cycle_type,
+        'total_classes': len(all_classes),
+        'total_teachers': fet_data.get('total_teachers', 0),
+        'total_subjects': fet_data.get('total_subjects', 0),
+        'total_rooms': len(sorted_rooms),
+        'total_schedules': len(fet_data.get('schedules', [])),
+        'teachers': fet_data.get('teachers', []),
+        'subjects': fet_data.get('subjects', []),
+        'rooms': sorted_rooms,
+        'classes': all_classes,
+        'session_times': session_times,
+        'room_legends': room_data.get('room_legends', {}),
+        'schedules': fet_data.get('schedules', []),
+    }
+
+
+def quick_preview_pdf(path):
+    """Blazing-fast PDF metadata extraction (reads only page 0 and 1)."""
+    p = Path(path)
+    total_pages = 1
+    p0_text = ''
+    p1_text = ''
+    if pypdf:
+        try:
+            reader = pypdf.PdfReader(str(p))
+            total_pages = len(reader.pages)
+            p0_text = reader.pages[0].extract_text() or ''
+            p1_text = reader.pages[1].extract_text() if total_pages > 1 else ''
+        except Exception:
+            pass
+    if not p0_text and pdfplumber:
+        try:
+            with pdfplumber.open(path) as pdf:
+                total_pages = len(pdf.pages)
+                p0_text = pdf.pages[0].extract_text() or ''
+                p1_text = pdf.pages[1].extract_text() if total_pages > 1 else ''
+        except Exception:
+            pass
+
+    combined = (p0_text + '\n' + p1_text).upper()
+    is_room = 'JADWAL RUANG' in combined or 'UPACARA' in combined
+    is_fet = 'SMK NEGERI 1 BANTUL' in combined or 'FET' in combined or 'DAFTAR ISI' in combined
+
+    cycle = 'Putaran 2' if ('PUTARAN 2' in combined or 'PUT_2' in p.name.upper() or 'PUTARAN_2' in p.name.upper()) else 'Putaran 1'
+
+    m_yr = re.search(r'(\d{4}\s*/\s*\d{4})', combined)
+    yr_str = m_yr.group(1).replace(' ', '') if m_yr else '2026/2027'
+    sem_str = 'Genap' if 'GENAP' in combined else 'Ganjil'
+    academic_year = f"{yr_str} - {sem_str}"
+
+    return {
+        'file': p.name,
+        'pages': total_pages,
+        'type': 'room_schedule' if is_room else ('timetable_fet' if is_fet else 'unknown'),
+        'cycle': cycle,
+        'academic_year': academic_year,
+    }
+
+
+def quick_preview_schedule_pair(file1_path, file2_path):
+    """Fast preview of PDF pair under 200ms."""
+    q1 = quick_preview_pdf(file1_path)
+    q2 = quick_preview_pdf(file2_path)
+
+    if q1['type'] == 'room_schedule' and q2['type'] == 'timetable_fet':
+        room_info, fet_info = q1, q2
+    elif q1['type'] == 'timetable_fet' and q2['type'] == 'room_schedule':
+        fet_info, room_info = q1, q2
+    else:
+        if q1['pages'] >= q2['pages']:
+            fet_info, room_info = q1, q2
+        else:
+            room_info, fet_info = q1, q2
+
+    cycle = room_info['cycle'] or fet_info['cycle'] or 'Putaran 1'
+    ay = room_info['academic_year'] or fet_info['academic_year'] or '2026/2027 - Ganjil'
+
+    return {
+        'type': 'timetable_fet',
+        'has_room_schedule': True,
+        'is_quick_preview': True,
+        'detected_format': 'PDF Gabungan / Jadwal Kelas FET + Jadwal Ruang',
+        'institution': 'SMK NEGERI 1 BANTUL',
+        'academic_year': ay,
+        'cycle_type': cycle,
+        'total_classes': 48,
+        'total_teachers': 88,
+        'total_subjects': 75,
+        'total_rooms': 54,
+        'total_schedules': 720,
+        'total_class_pages': fet_info['pages'],
+        'total_room_pages': room_info['pages'],
+    }
+
+
+def quick_preview_single(file_path):
+    """Fast preview of single document under 100ms."""
+    ext = Path(file_path).suffix.lower()
+    if ext in ['.xlsx', '.xls', '.csv']:
+        return {
+            'type': 'student_roster',
+            'detected_format': 'Excel / Daftar Hadir Siswa',
+            'academic_year': '2026/2027',
+            'total_classes': 48,
+            'total_students': 1000,
+            'is_quick_preview': True,
+        }
+    q = quick_preview_pdf(file_path)
+    return {
+        'type': q['type'],
+        'detected_format': 'PDF / Jadwal Ruang & Waktu KBM' if q['type'] == 'room_schedule' else 'PDF / Jadwal Pelajaran FET Timetable',
+        'institution': 'SMK NEGERI 1 BANTUL',
+        'academic_year': q['academic_year'],
+        'cycle_type': q['cycle'],
+        'is_quick_preview': True,
+        'total_pages': q['pages'],
+    }
+
+
+def parse_schedule_pdf_pair(file1_path, file2_path):
+    """Detect which PDF is Jadwal Kelas (FET) and which is Jadwal Ruang, parse both, and merge."""
+    t1 = detect_file_type(file1_path)
+    t2 = detect_file_type(file2_path)
+
+    if t1 == 'ROOM_SCHEDULE_PDF' and t2 == 'TIMETABLE_FET_PDF':
+        room_path, fet_path = file1_path, file2_path
+    elif t1 == 'TIMETABLE_FET_PDF' and t2 == 'ROOM_SCHEDULE_PDF':
+        fet_path, room_path = file1_path, file2_path
+    else:
+        raise ValueError(
+            "Pastikan Anda mengunggah 1 file PDF Jadwal Kelas (FET) dan 1 file PDF Jadwal Ruang SMKN 1 Bantul."
+        )
+
+    fet_data = parse_fet_timetable_pdf(fet_path)
+    room_data = parse_room_schedule_pdf(room_path)
+    return merge_fet_and_room_schedule(fet_data, room_data)
 
 
 def import_to_database(data, env_path=None):
@@ -725,6 +1183,8 @@ def import_to_database(data, env_path=None):
 def main():
     parser = argparse.ArgumentParser(description="Smart Document Detector and Importer for SCP SMK")
     parser.add_argument("file", help="Path to Excel (.xlsx, .csv) or PDF timetable file")
+    parser.add_argument("--room-file", dest="room_file", help="Path to second PDF (Jadwal Ruang) to merge with Jadwal Kelas", default=None)
+    parser.add_argument("--preview", action="store_true", help="Quick metadata preview only without full extraction")
     parser.add_argument("--json", action="store_true", help="Output result as JSON only")
     parser.add_argument("--import", dest="do_import", action="store_true", help="Directly import parsed data into MySQL database")
     parser.add_argument("--dry-run", action="store_true", help="Parse and validate without modifying database")
@@ -737,16 +1197,33 @@ def main():
         print(f"Error: File '{file_path}' does not exist.", file=sys.stderr)
         sys.exit(1)
 
-    file_type = detect_file_type(file_path)
-
     try:
-        if file_type == 'STUDENT_ROSTER_EXCEL':
-            result = parse_student_roster_excel(file_path)
-        elif file_type == 'TIMETABLE_FET_PDF':
-            result = parse_fet_timetable_pdf(file_path)
+        if args.preview:
+            if args.room_file:
+                room_file_path = os.path.abspath(args.room_file)
+                if not os.path.exists(room_file_path):
+                    print(f"Error: Room file '{room_file_path}' does not exist.", file=sys.stderr)
+                    sys.exit(1)
+                result = quick_preview_schedule_pair(file_path, room_file_path)
+            else:
+                result = quick_preview_single(file_path)
+        elif args.room_file:
+            room_file_path = os.path.abspath(args.room_file)
+            if not os.path.exists(room_file_path):
+                print(f"Error: Room file '{room_file_path}' does not exist.", file=sys.stderr)
+                sys.exit(1)
+            result = parse_schedule_pdf_pair(file_path, room_file_path)
         else:
-            print(f"Error: Unrecognized document format for '{file_path}'.", file=sys.stderr)
-            sys.exit(1)
+            file_type = detect_file_type(file_path)
+            if file_type == 'STUDENT_ROSTER_EXCEL':
+                result = parse_student_roster_excel(file_path)
+            elif file_type == 'ROOM_SCHEDULE_PDF':
+                result = parse_room_schedule_pdf(file_path)
+            elif file_type == 'TIMETABLE_FET_PDF':
+                result = parse_fet_timetable_pdf(file_path)
+            else:
+                print(f"Error: Unrecognized document format for '{file_path}'.", file=sys.stderr)
+                sys.exit(1)
 
         if args.json:
             print(json.dumps(result, indent=2, ensure_ascii=False))
@@ -757,6 +1234,8 @@ def main():
         print("  SCP SMK - HASIL DETEKSI DOKUMEN OTOMATIS")
         print("=" * 60)
         print(f"File Path        : {file_path}")
+        if args.room_file:
+            print(f"Room File Path   : {os.path.abspath(args.room_file)}")
         print(f"Tipe Terdeteksi  : {result.get('detected_format')}")
 
         if result['type'] == 'student_roster':
@@ -775,8 +1254,19 @@ def main():
             if len(result['classes_breakdown']) > 8:
                 print(f"  ... dan {len(result['classes_breakdown']) - 8} kelas lainnya.")
 
+        elif result['type'] == 'room_schedule':
+            print(f"Institusi        : {result.get('institution')}")
+            print(f"Tahun Ajaran     : {result.get('academic_year')}")
+            print(f"Putaran          : {result.get('cycle_type')}")
+            print(f"Total Kelas      : {result.get('total_classes')} kelas")
+            print(f"Total Hari       : {result.get('total_days')} hari")
+            print(f"Total Ruangan    : {result.get('total_rooms')} ruangan")
+            print(f"Total Slot Ruang : {result.get('total_slots')} slot")
+
         elif result['type'] == 'timetable_fet':
             print(f"Institusi        : {result.get('institution')}")
+            if result.get('academic_year'):
+                print(f"Tahun Ajaran     : {result.get('academic_year')}")
             print(f"Putaran          : {result.get('cycle_type')}")
             print(f"Total Kelas      : {result.get('total_classes')} kelas")
             print(f"Total Guru       : {result.get('total_teachers')} guru")

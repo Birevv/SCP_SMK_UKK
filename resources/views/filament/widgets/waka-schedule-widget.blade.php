@@ -1,14 +1,16 @@
 <x-filament-widgets::widget>
     <x-filament::section>
         <x-slot name="heading">
-            <div class="flex items-center gap-2">
-                <x-filament::icon icon="heroicon-o-calendar-days" class="h-5 w-5 text-gray-500" />
-                <span>Monitoring Jadwal Mengajar per Jurusan & Tingkat</span>
+            <div class="flex items-center justify-between gap-2 w-full">
+                <div class="flex items-center gap-2">
+                    <x-filament::icon icon="heroicon-o-calendar-days" class="h-5 w-5 text-gray-500" />
+                    <span>Monitoring Jadwal & Jurnal Mengajar</span>
+                </div>
             </div>
         </x-slot>
 
         <x-slot name="description">
-            Filter jadwal mengajar guru berdasarkan program keahlian, jenjang kelas, dan hari KBM aktif.
+            Filter jadwal dan status pengisian jurnal mengajar berdasarkan tanggal, jurusan, tingkat, dan kelas.
         </x-slot>
 
         <style>
@@ -389,9 +391,20 @@
             <div class="scp-filter-section">
                 {{-- Major Tabs/Pills --}}
                 <div>
-                    <label class="scp-filter-label">
-                        Program keahlian (jurusan)
-                    </label>
+                    <div class="flex items-center justify-between gap-2 mb-2">
+                        <label class="scp-filter-label" style="margin-bottom: 0;">
+                            Program keahlian (jurusan)
+                        </label>
+                        <button
+                            type="button"
+                            wire:click="resetFilters"
+                            class="scp-major-tab"
+                            style="padding: 0.25rem 0.65rem; font-size: 0.7rem;"
+                            title="Reset semua filter ke default hari ini"
+                        >
+                            Reset Filter
+                        </button>
+                    </div>
                     <div class="scp-major-tabs">
                         <button
                             type="button"
@@ -413,8 +426,20 @@
                     </div>
                 </div>
 
-                {{-- Secondary Filters: Tingkat, Hari, Putaran (No redundant Jurusan dropdown) --}}
+                {{-- Secondary Filters: Tanggal, Tingkat, Kelas, Hari, Putaran, Status Jurnal --}}
                 <div class="scp-filter-grid">
+                    {{-- Filter Tanggal --}}
+                    <div>
+                        <label class="scp-filter-label">
+                            Tanggal jurnal
+                        </label>
+                        <input
+                            type="date"
+                            wire:model.live="selectedDate"
+                            class="scp-select"
+                        />
+                    </div>
+
                     {{-- Tingkat Kelas --}}
                     <div>
                         <label class="scp-filter-label">
@@ -424,6 +449,19 @@
                             <option value="ALL">Semua Tingkat (X, XI, XII)</option>
                             @foreach ($grades as $g)
                                 <option value="{{ $g->name }}">Kelas {{ $g->name }} ({{ $g->description }})</option>
+                            @endforeach
+                        </select>
+                    </div>
+
+                    {{-- Filter Kelas Spesifik --}}
+                    <div>
+                        <label class="scp-filter-label">
+                            Kelas
+                        </label>
+                        <select wire:model.live="selectedClassroom" class="scp-select">
+                            <option value="ALL">Semua Kelas</option>
+                            @foreach ($classrooms as $c)
+                                <option value="{{ $c->id }}">{{ $c->name }}</option>
                             @endforeach
                         </select>
                     </div>
@@ -448,6 +486,19 @@
                         <select wire:model.live="selectedCycle" class="scp-select">
                             <option value="Putaran 1">Putaran 1</option>
                             <option value="Putaran 2">Putaran 2</option>
+                        </select>
+                    </div>
+
+                    {{-- Filter Status Jurnal --}}
+                    <div>
+                        <label class="scp-filter-label">
+                            Status jurnal
+                        </label>
+                        <select wire:model.live="selectedStatus" class="scp-select">
+                            <option value="ALL">Semua Status Jurnal</option>
+                            <option value="filled">Sudah Diisi</option>
+                            <option value="unfilled">Belum Diisi</option>
+                            <option value="overdue">Terlambat &gt;45m</option>
                         </select>
                     </div>
                 </div>

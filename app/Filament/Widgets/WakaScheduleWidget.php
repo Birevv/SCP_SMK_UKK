@@ -3,6 +3,7 @@
 namespace App\Filament\Widgets;
 
 use App\Models\ClassLevel;
+use App\Models\Classroom;
 use App\Models\Major;
 use App\Models\Schedule;
 use App\Models\SystemConfiguration;
@@ -10,7 +11,6 @@ use App\Models\User;
 use Carbon\Carbon;
 use Filament\Facades\Filament;
 use Filament\Widgets\Widget;
-use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Auth;
 use Spatie\Permission\Models\Permission;
 
@@ -26,9 +26,15 @@ class WakaScheduleWidget extends Widget
 
     public ?string $selectedGrade = 'ALL';
 
+    public ?string $selectedClassroom = 'ALL';
+
+    public ?string $selectedDate = null;
+
     public ?string $selectedDay = null;
 
     public ?string $selectedCycle = null;
+
+    public ?string $selectedStatus = 'ALL';
 
     public static function canView(): bool
     {
@@ -53,6 +59,7 @@ class WakaScheduleWidget extends Widget
     {
         $config = SystemConfiguration::current();
         $this->selectedCycle = $config->active_cycle ?? 'Putaran 1';
+        $this->selectedDate = Carbon::today()->toDateString();
 
         $dayIndex = Carbon::now()->dayOfWeekIso;
         $this->selectedDay = match ($dayIndex) {
@@ -68,11 +75,40 @@ class WakaScheduleWidget extends Widget
     public function setMajor(string $major): void
     {
         $this->selectedMajor = $major;
+        $this->selectedClassroom = 'ALL';
     }
 
     public function setGrade(string $grade): void
     {
         $this->selectedGrade = $grade;
+        $this->selectedClassroom = 'ALL';
+    }
+
+    public function updatedSelectedGrade(): void
+    {
+        $this->selectedClassroom = 'ALL';
+    }
+
+    public function updatedSelectedDate(?string $date): void
+    {
+        if (filled($date)) {
+            try {
+                $dayIndex = Carbon::parse($date)->dayOfWeekIso;
+                $mappedDay = match ($dayIndex) {
+                    1 => 'Senin',
+                    2 => 'Selasa',
+                    3 => 'Rabu',
+                    4 => 'Kamis',
+                    5 => 'Jumat',
+                    default => null,
+                };
+                if ($mappedDay) {
+                    $this->selectedDay = $mappedDay;
+                }
+            } catch (\Throwable) {
+                // Ignore invalid date input
+            }
+        }
     }
 
     public function setDay(string $day): void
@@ -80,16 +116,51 @@ class WakaScheduleWidget extends Widget
         $this->selectedDay = $day;
     }
 
+    public function setStatus(string $status): void
+    {
+        $this->selectedStatus = $status;
+    }
+
+    public function resetFilters(): void
+    {
+        $this->selectedMajor = 'ALL';
+        $this->selectedGrade = 'ALL';
+        $this->selectedClassroom = 'ALL';
+        $this->selectedStatus = 'ALL';
+        $this->mount();
+    }
+
     protected function getViewData(): array
     {
         $config = SystemConfiguration::current();
-        $today = Carbon::today();
+        $targetDate = filled($this->selectedDate)
+            ? Carbon::parse($this->selectedDate)->startOfDay()
+            : Carbon::today();
+        $isToday = $targetDate->isToday();
+        $isPastDate = $targetDate->isBefore(Carbon::today());
         $now = Carbon::now();
 
         $majors = Major::orderBy('code')->get();
         $grades = ClassLevel::orderBy('level')->get();
 
-        $query = Schedule::with(['subject', 'classroom.major', 'classroom.classLevel', 'classroom.rombel', 'teacher', 'room'])
+        $classroomsQuery = Classroom::query()->orderBy('name');
+        if ($this->selectedMajor && $this->selectedMajor !== 'ALL') {
+            $classroomsQuery->forMajor($this->selectedMajor);
+        }
+        if ($this->selectedGrade && $this->selectedGrade !== 'ALL') {
+            $classroomsQuery->forGrade($this->selectedGrade);
+        }
+        $classrooms = $classroomsQuery->get();
+
+        $query = Schedule::with([
+            'subject',
+            'classroom.major',
+            'classroom.classLevel',
+            'classroom.rombel',
+            'teacher',
+            'room',
+            'journals' => fn ($q) => $q->whereDate('date', $targetDate),
+        ])
             ->where('day_of_week', $this->selectedDay ?? 'Senin')
             ->where('cycle_type', $this->selectedCycle ?? $config->active_cycle);
 
@@ -101,13 +172,19 @@ class WakaScheduleWidget extends Widget
             $query->forGrade($this->selectedGrade);
         }
 
-        $schedules = $query->orderBy('start_time')->get()->map(function (Schedule $schedule) use ($today, $now) {
-            $hasJournal = $schedule->journals()->whereDate('date', $today)->exists();
+        if ($this->selectedClassroom && $this->selectedClassroom !== 'ALL') {
+            $query->where('classroom_id', $this->selectedClassroom);
+        }
+
+        $allSchedules = $query->orderBy('start_time')->get()->map(function (Schedule $schedule) use ($isToday, $isPastDate, $now) {
+            $journal = $schedule->journals->first();
+            $hasJournal = $journal !== null;
             $endTime = Carbon::parse($schedule->end_time);
-            $isOverdue = ! $hasJournal && $now->greaterThan($endTime->copy()->addMinutes(45));
+            $isOverdue = ! $hasJournal && ($isPastDate || ($isToday && $now->greaterThan($endTime->copy()->addMinutes(45))));
 
             return [
                 'id' => $schedule->id,
+                'journal_id' => $journal?->id,
                 'start_time' => substr($schedule->start_time, 0, 5),
                 'end_time' => substr($schedule->end_time, 0, 5),
                 'subject_name' => $schedule->subject?->name ?? '-',
@@ -116,6 +193,7 @@ class WakaScheduleWidget extends Widget
                 'major_code' => $schedule->classroom?->major?->code ?? '-',
                 'grade_name' => $schedule->classroom?->classLevel?->name ?? '-',
                 'room_name' => $schedule->room?->name ?? '-',
+                'teaching_material' => $journal?->teaching_material,
                 'has_journal' => $hasJournal,
                 'is_overdue' => $isOverdue,
             ];
@@ -135,21 +213,30 @@ class WakaScheduleWidget extends Widget
             ];
         });
 
-        $totalSchedules = $schedules->count();
-        $filledCount = $schedules->where('has_journal', true)->count();
+        $totalSchedules = $allSchedules->count();
+        $filledCount = $allSchedules->where('has_journal', true)->count();
         $unfilledCount = $totalSchedules - $filledCount;
-        $overdueCount = $schedules->where('is_overdue', true)->count();
+        $overdueCount = $allSchedules->where('is_overdue', true)->count();
+
+        $schedules = match ($this->selectedStatus) {
+            'filled' => $allSchedules->where('has_journal', true)->values(),
+            'unfilled' => $allSchedules->where('has_journal', false)->values(),
+            'overdue' => $allSchedules->where('is_overdue', true)->values(),
+            default => $allSchedules,
+        };
 
         return [
             'schedules' => $schedules,
             'majors' => $majors,
             'grades' => $grades,
+            'classrooms' => $classrooms,
             'majorStats' => $majorStats,
             'totalSchedules' => $totalSchedules,
             'filledCount' => $filledCount,
             'unfilledCount' => $unfilledCount,
             'overdueCount' => $overdueCount,
             'activeCycle' => $config->active_cycle,
+            'formattedDate' => $targetDate->translatedFormat('d M Y'),
         ];
     }
 }

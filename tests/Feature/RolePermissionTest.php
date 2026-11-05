@@ -2,21 +2,29 @@
 
 namespace Tests\Feature;
 
+use App\Filament\Pages\AttendanceReport;
 use App\Filament\Resources\AcademicYears\AcademicYearResource;
 use App\Filament\Resources\Classrooms\ClassroomResource;
 use App\Filament\Resources\Journals\JournalResource;
+use App\Filament\Resources\LeaveRequests\LeaveRequestResource;
 use App\Filament\Resources\Rooms\RoomResource;
+use App\Filament\Resources\Schedules\ScheduleResource;
 use App\Filament\Resources\Subjects\SubjectResource;
 use App\Filament\Resources\SystemConfigurations\SystemConfigurationResource;
 use App\Filament\Resources\Users\UserResource;
 use App\Filament\Widgets\SystemConfigWidget;
+use App\Models\AcademicYear;
 use App\Models\Journal;
+use App\Models\LeaveRequest;
 use App\Models\Role;
 use App\Models\Schedule;
+use App\Models\SystemConfiguration;
 use App\Models\User;
 use BezhanSalleh\FilamentShield\Resources\Roles\RoleResource;
+use Database\Seeders\ShieldSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Gate;
+use Spatie\Permission\PermissionRegistrar;
 use Tests\TestCase;
 
 class RolePermissionTest extends TestCase
@@ -26,7 +34,7 @@ class RolePermissionTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        $this->seed(\Database\Seeders\ShieldSeeder::class);
+        $this->seed(ShieldSeeder::class);
     }
 
     public function test_only_super_admin_can_manage_roles(): void
@@ -235,33 +243,33 @@ class RolePermissionTest extends TestCase
 
         // 1. Guru TIDAK BISA mengakses AttendanceReport maupun route print
         $this->actingAs($guru);
-        $this->assertFalse(\App\Filament\Pages\AttendanceReport::canAccess());
-        $this->get('/admin/attendance-report/print')->assertForbidden();
+        $this->assertFalse(AttendanceReport::canAccess());
+        $this->get(route('attendance-report.print'))->assertForbidden();
 
         // 2. Siswa TIDAK BISA mengakses AttendanceReport maupun route print
         $this->actingAs($siswa);
-        $this->assertFalse(\App\Filament\Pages\AttendanceReport::canAccess());
-        $this->get('/admin/attendance-report/print')->assertForbidden();
+        $this->assertFalse(AttendanceReport::canAccess());
+        $this->get(route('attendance-report.print'))->assertForbidden();
 
         // 3. Waka Kurikulum BISA mengakses AttendanceReport & route print
         $this->actingAs($waka);
-        $this->assertTrue(\App\Filament\Pages\AttendanceReport::canAccess());
-        $this->get('/admin/attendance-report/print')->assertSuccessful();
+        $this->assertTrue(AttendanceReport::canAccess());
+        $this->get(route('attendance-report.print'))->assertSuccessful();
 
         // 4. Wali Kelas BISA mengakses AttendanceReport & route print
         $this->actingAs($wali);
-        $this->assertTrue(\App\Filament\Pages\AttendanceReport::canAccess());
-        $this->get('/admin/attendance-report/print')->assertSuccessful();
+        $this->assertTrue(AttendanceReport::canAccess());
+        $this->get(route('attendance-report.print'))->assertSuccessful();
 
         // 5. Guru BK BISA mengakses AttendanceReport & route print
         $this->actingAs($bk);
-        $this->assertTrue(\App\Filament\Pages\AttendanceReport::canAccess());
-        $this->get('/admin/attendance-report/print')->assertSuccessful();
+        $this->assertTrue(AttendanceReport::canAccess());
+        $this->get(route('attendance-report.print'))->assertSuccessful();
 
         // 6. Super Admin BISA mengakses AttendanceReport & route print
         $this->actingAs($superAdmin);
-        $this->assertTrue(\App\Filament\Pages\AttendanceReport::canAccess());
-        $this->get('/admin/attendance-report/print')->assertSuccessful();
+        $this->assertTrue(AttendanceReport::canAccess());
+        $this->get(route('attendance-report.print'))->assertSuccessful();
     }
 
     public function test_student_can_delete_own_leave_request_but_not_others(): void
@@ -274,7 +282,7 @@ class RolePermissionTest extends TestCase
         $student2 = User::factory()->create(['role_id' => $siswaRole->id]);
         $student2->assignRole('Siswa');
 
-        $leaveRequest1 = \App\Models\LeaveRequest::create([
+        $leaveRequest1 = LeaveRequest::create([
             'student_id' => $student1->id,
             'submitted_by' => $student1->id,
             'start_date' => now()->toDateString(),
@@ -284,7 +292,7 @@ class RolePermissionTest extends TestCase
             'description' => 'Keperluan keluarga',
         ]);
 
-        $leaveRequest2 = \App\Models\LeaveRequest::create([
+        $leaveRequest2 = LeaveRequest::create([
             'student_id' => $student2->id,
             'submitted_by' => $student2->id,
             'start_date' => now()->toDateString(),
@@ -297,11 +305,11 @@ class RolePermissionTest extends TestCase
         // Student 1 BISA menghapus izin miliknya sendiri via Gate dan Resource
         $this->actingAs($student1);
         $this->assertTrue(Gate::forUser($student1)->allows('delete', $leaveRequest1));
-        $this->assertTrue(\App\Filament\Resources\LeaveRequests\LeaveRequestResource::canDelete($leaveRequest1));
+        $this->assertTrue(LeaveRequestResource::canDelete($leaveRequest1));
 
         // Student 1 TIDAK BISA menghapus izin milik student 2
         $this->assertFalse(Gate::forUser($student1)->allows('delete', $leaveRequest2));
-        $this->assertFalse(\App\Filament\Resources\LeaveRequests\LeaveRequestResource::canDelete($leaveRequest2));
+        $this->assertFalse(LeaveRequestResource::canDelete($leaveRequest2));
 
         // Test API endpoint: Student 1 tidak bisa menghapus leave request milik Student 2
         $this->actingAs($student1, 'sanctum');
@@ -325,23 +333,23 @@ class RolePermissionTest extends TestCase
 
         // Secara default Waka tidak memiliki permission ViewAny:AcademicYear
         $this->assertFalse(AcademicYearResource::canViewAny());
-        $this->assertFalse(Gate::forUser($waka)->allows('viewAny', \App\Models\AcademicYear::class));
+        $this->assertFalse(Gate::forUser($waka)->allows('viewAny', AcademicYear::class));
 
         // Simulasi perubahan permission lewat UI Shield (memberikan ViewAny:AcademicYear ke Waka)
         $wakaRole->givePermissionTo('ViewAny:AcademicYear');
-        app()[\Spatie\Permission\PermissionRegistrar::class]->forgetCachedPermissions();
+        app()[PermissionRegistrar::class]->forgetCachedPermissions();
 
         // Waka SEKARANG BISA mengakses AcademicYearResource secara dinamis tanpa hardcode
         $this->assertTrue(AcademicYearResource::canViewAny());
-        $this->assertTrue(Gate::forUser($waka)->allows('viewAny', \App\Models\AcademicYear::class));
+        $this->assertTrue(Gate::forUser($waka)->allows('viewAny', AcademicYear::class));
 
         // Cabut kembali permission
         $wakaRole->revokePermissionTo('ViewAny:AcademicYear');
-        app()[\Spatie\Permission\PermissionRegistrar::class]->forgetCachedPermissions();
+        app()[PermissionRegistrar::class]->forgetCachedPermissions();
 
         // Waka kembali TIDAK BISA mengakses
         $this->assertFalse(AcademicYearResource::canViewAny());
-        $this->assertFalse(Gate::forUser($waka)->allows('viewAny', \App\Models\AcademicYear::class));
+        $this->assertFalse(Gate::forUser($waka)->allows('viewAny', AcademicYear::class));
     }
 
     public function test_locked_schedule_prevents_waka_and_guru_from_adding_or_modifying_schedules(): void
@@ -359,7 +367,7 @@ class RolePermissionTest extends TestCase
         $guru = User::factory()->create(['role_id' => $guruRole->id]);
         $guru->assignRole('Guru');
 
-        $config = \App\Models\SystemConfiguration::firstOrCreate([], [
+        $config = SystemConfiguration::firstOrCreate([], [
             'active_cycle' => 'Putaran 1',
             'is_schedule_locked' => false,
         ]);
@@ -371,30 +379,28 @@ class RolePermissionTest extends TestCase
         $this->actingAs($waka, 'web');
         $this->assertTrue(Gate::forUser($waka)->allows('viewAny', Schedule::class));
         $this->assertFalse(Gate::forUser($waka)->allows('create', Schedule::class));
-        $this->assertFalse(\App\Filament\Resources\Schedules\ScheduleResource::canCreate());
+        $this->assertFalse(ScheduleResource::canCreate());
 
         // Guru: BISA melihat jadwal, TIDAK BISA menambah jadwal
         $this->actingAs($guru, 'web');
         $this->assertTrue(Gate::forUser($guru)->allows('viewAny', Schedule::class));
         $this->assertFalse(Gate::forUser($guru)->allows('create', Schedule::class));
-        $this->assertFalse(\App\Filament\Resources\Schedules\ScheduleResource::canCreate());
+        $this->assertFalse(ScheduleResource::canCreate());
 
         // Super Admin: TETAP BISA menambah jadwal
         $this->actingAs($superAdmin, 'web');
         $this->assertTrue(Gate::forUser($superAdmin)->allows('create', Schedule::class));
-        $this->assertTrue(\App\Filament\Resources\Schedules\ScheduleResource::canCreate());
+        $this->assertTrue(ScheduleResource::canCreate());
 
         // 2. KETIKA JADWAL DIBUKA (is_schedule_locked = false)
         $config->update(['is_schedule_locked' => false]);
 
         $this->actingAs($waka, 'web');
         $this->assertTrue(Gate::forUser($waka)->allows('create', Schedule::class));
-        $this->assertTrue(\App\Filament\Resources\Schedules\ScheduleResource::canCreate());
+        $this->assertTrue(ScheduleResource::canCreate());
 
         $this->actingAs($guru, 'web');
         $this->assertTrue(Gate::forUser($guru)->allows('create', Schedule::class));
-        $this->assertTrue(\App\Filament\Resources\Schedules\ScheduleResource::canCreate());
+        $this->assertTrue(ScheduleResource::canCreate());
     }
 }
-
-

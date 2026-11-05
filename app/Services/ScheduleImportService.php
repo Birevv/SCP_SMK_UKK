@@ -179,6 +179,9 @@ class ScheduleImportService
             }
 
             // 4. Check for identical duplicate schedule
+            $startHm = substr($startTime, 0, 5);
+            $endHm = substr($endTime, 0, 5);
+
             $existing = Schedule::where([
                 'academic_year_id' => $academicYear->id,
                 'teacher_id' => $teacher->id,
@@ -186,10 +189,8 @@ class ScheduleImportService
                 'room_id' => $room->id,
                 'subject_id' => $subject->id,
                 'day_of_week' => $dayOfWeek,
-                'start_time' => $startTime,
-                'end_time' => $endTime,
                 'cycle_type' => $cycleType,
-            ])->first();
+            ])->whereRaw('SUBSTR(start_time, 1, 5) = ? AND SUBSTR(end_time, 1, 5) = ?', [$startHm, $endHm])->first();
 
             if ($existing) {
                 $skipped++;
@@ -197,13 +198,11 @@ class ScheduleImportService
                 continue;
             }
 
-            // 5. Check conflict: same teacher, same room, or same class during this time
-            $conflict = Schedule::where('day_of_week', $dayOfWeek)
+            // 5. Check conflict: same teacher, same room, or same class during this time in the same academic year & cycle
+            $conflict = Schedule::where('academic_year_id', $academicYear->id)
+                ->where('day_of_week', $dayOfWeek)
                 ->where('cycle_type', $cycleType)
-                ->where(function ($q) use ($startTime, $endTime) {
-                    $q->where('start_time', '<', $endTime)
-                        ->where('end_time', '>', $startTime);
-                })
+                ->whereRaw('SUBSTR(start_time, 1, 5) < ? AND SUBSTR(end_time, 1, 5) > ?', [$endHm, $startHm])
                 ->where(function ($q) use ($teacher, $classroom, $room) {
                     $q->where('teacher_id', $teacher->id)
                         ->orWhere('classroom_id', $classroom->id)

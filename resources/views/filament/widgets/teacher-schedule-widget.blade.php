@@ -119,7 +119,7 @@
                             @endif
 
                             <a
-                                href="{{ url('/admin/journals/create?schedule_id='.$s['id']) }}"
+                                href="{{ \App\Filament\Resources\Journals\JournalResource::getUrl('create', ['schedule_id' => $s['id']]) }}"
                                 class="inline-flex items-center gap-1 text-xs font-semibold text-primary-600 dark:text-primary-400 hover:underline"
                             >
                                 <span>{{ $s['has_journal'] ? 'Lihat Jurnal' : 'Isi Jurnal' }}</span>

@@ -3,10 +3,8 @@
 namespace App\Filament\Resources\Schedules\Pages;
 
 use App\Filament\Resources\Schedules\ScheduleResource;
-use App\Models\AcademicYear;
 use App\Models\Schedule;
 use App\Services\DocumentParserService;
-use App\Services\ScheduleImportService;
 use App\Services\SmartImportDetectorService;
 use Filament\Actions\Action;
 use Filament\Actions\CreateAction;
@@ -19,7 +17,6 @@ use Filament\Schemas\Components\Tabs\Tab;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\HtmlString;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
@@ -27,50 +24,90 @@ class ListSchedules extends ListRecords
 {
     protected static string $resource = ScheduleResource::class;
 
+    protected function refreshScheduleDetectionPreview(
+        callable $get,
+        callable $set,
+        SmartImportDetectorService $detector
+    ): void {
+        $classFilePath = $detector->resolveUploadedFilePath($get('class_schedule_file'), 'local');
+        $roomFilePath = $detector->resolveUploadedFilePath($get('room_schedule_file'), 'local');
+
+        if (! $classFilePath && ! $roomFilePath) {
+            $set('detected_info', null);
+
+            return;
+        }
+
+        try {
+            if ($classFilePath && $roomFilePath) {
+                $preview = $detector->quickPreviewSchedulePair($classFilePath, $roomFilePath);
+                $set('detected_info', $preview);
+                if (! empty($preview['cycle_type'])) {
+                    $set('cycle_type', $preview['cycle_type']);
+                }
+
+                return;
+            }
+
+            $singlePath = $classFilePath ?: $roomFilePath;
+            $preview = $detector->quickPreview($singlePath);
+            $preview['partial_upload'] = true;
+            $preview['missing_file'] = $classFilePath
+                ? 'File PDF Jadwal Ruang belum diunggah.'
+                : 'File PDF Jadwal Kelas (FET) belum diunggah.';
+            $set('detected_info', $preview);
+
+            if (! empty($preview['cycle_type'])) {
+                $set('cycle_type', $preview['cycle_type']);
+            }
+        } catch (\Throwable $e) {
+            $set('detected_info', ['error' => $e->getMessage()]);
+        }
+    }
+
     protected function getHeaderActions(): array
     {
         return [
             CreateAction::make(),
             Action::make('import_schedule')
-                ->label('Import Cerdas (Excel / PDF / CSV)')
+                ->label('Import Jadwal (2 PDF Wajib)')
                 ->icon('heroicon-o-arrow-up-tray')
                 ->color('success')
                 ->visible(fn () => Auth::user()?->can('create', Schedule::class) ?? false)
-                ->modalHeading('Import Dokumen Sekolah Otomatis')
-                ->modalDescription('Unggah dokumen Excel daftar hadir siswa atau file PDF jadwal mengajar FET SMKN 1 Bantul. Sistem akan otomatis mendeteksi format, mendaftarkan guru/siswa, dan menginputkan seluruh data.')
-                ->modalSubmitActionLabel('Deteksi & Import')
+                ->modalHeading('Import Jadwal Mengajar & Jadwal Ruang (PDF)')
+                ->modalDescription('Unggah kedua dokumen PDF wajib: (1) File PDF Jadwal Kelas / Mengajar FET dan (2) File PDF Jadwal Ruang SMKN 1 Bantul. Sistem akan otomatis menggabungkan mata pelajaran, guru pengajar, ruangan, dan jam sesi.')
+                ->modalSubmitActionLabel('Deteksi & Import Jadwal')
                 ->form([
-                    FileUpload::make('file')
-                        ->label('Pilih / Drop File (Excel .xlsx/.csv atau PDF Jadwal)')
+                    FileUpload::make('class_schedule_file')
+                        ->label('1. File PDF Jadwal Kelas / Mengajar (FET)')
                         ->disk('local')
                         ->directory('imports/schedules')
+                        ->preserveFilenames()
                         ->acceptedFileTypes([
-                            'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-                            'application/vnd.ms-excel',
-                            'text/csv',
-                            'text/plain',
                             'application/pdf',
                         ])
                         ->required()
-                        ->live()
-                        ->afterStateUpdated(function ($state, $set, SmartImportDetectorService $detector) {
-                            $filePath = $detector->resolveUploadedFilePath($state, 'local');
-                            if (! $filePath) {
-                                $set('detected_info', null);
-
-                                return;
-                            }
-                            try {
-                                $parsed = $detector->detectAndParse($filePath);
-                                $set('detected_info', $parsed);
-                                if (! empty($parsed['cycle_type'])) {
-                                    $set('cycle_type', $parsed['cycle_type']);
-                                }
-                            } catch (\Throwable $e) {
-                                $set('detected_info', ['error' => $e->getMessage()]);
-                            }
+                        ->live(debounce: 500)
+                        ->afterStateUpdated(function ($state, callable $get, callable $set, SmartImportDetectorService $detector) {
+                            $this->refreshScheduleDetectionPreview($get, $set, $detector);
                         })
-                        ->helperText('Mendukung: 1) File Excel Daftar Hadir Siswa SMKN 1 Bantul, 2) File PDF Jadwal Kelas FET, atau 3) CSV jadwal.'),
+                        ->helperText('Wajib diisi. Unggah dokumen PDF Jadwal Kelas hasil FET (contoh: JADWAL_KELAS_PUT_1.pdf).'),
+
+                    FileUpload::make('room_schedule_file')
+                        ->label('2. File PDF Jadwal Ruang')
+                        ->disk('local')
+                        ->directory('imports/schedules')
+                        ->preserveFilenames()
+                        ->acceptedFileTypes([
+                            'application/pdf',
+                        ])
+                        ->required()
+                        ->live(debounce: 500)
+                        ->afterStateUpdated(function ($state, callable $get, callable $set, SmartImportDetectorService $detector) {
+                            $this->refreshScheduleDetectionPreview($get, $set, $detector);
+                        })
+                        ->helperText('Wajib diisi. Unggah dokumen PDF Jadwal Ruang (contoh: JADWAL_RUANG_PUT_1_REVISI_SEPT.pdf).'),
+
                     Placeholder::make('detected_preview')
                         ->label('Hasil Deteksi Otomatis')
                         ->visible(fn ($get) => filled($get('detected_info')))
@@ -88,28 +125,45 @@ class ListSchedules extends ListRecords
                                 );
                             }
 
+                            $partialBanner = '';
+                            if (! empty($info['partial_upload']) && ! empty($info['missing_file'])) {
+                                $partialBanner = '<div class="mt-2 p-2.5 bg-amber-50 dark:bg-amber-950/50 border border-amber-200 dark:border-amber-800 rounded-md text-xs text-amber-800 dark:text-amber-200 font-medium">'
+                                    .'⚠️ '.e($info['missing_file']).' Kedua file PDF wajib diisi sebelum melakukan import.'
+                                    .'</div>';
+                            }
+
                             $type = $info['type'] ?? '';
-                            if ($type === 'student_roster') {
+                            if ($type === 'room_schedule') {
                                 return new HtmlString(
                                     '<div class="p-4 bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-800 rounded-lg text-sm text-emerald-900 dark:text-emerald-100 space-y-2">'
                                     .'<div class="flex items-center gap-2 font-semibold text-emerald-700 dark:text-emerald-300">'
-                                    .'<span class="inline-block w-2.5 h-2.5 rounded-full bg-emerald-500"></span> Dokumen Terdeteksi: '.e($info['detected_format'] ?? 'Excel Absen')
+                                    .'<span class="inline-block w-2.5 h-2.5 rounded-full bg-emerald-500"></span> Dokumen Terdeteksi: '.e($info['detected_format'] ?? 'PDF Jadwal Ruang')
                                     .'</div>'
                                     .'<div class="grid grid-cols-2 gap-2 text-xs text-gray-600 dark:text-gray-300 pt-1 border-t border-emerald-100 dark:border-emerald-900">'
                                     .'<div>• <b>Tahun Ajaran:</b> '.e($info['academic_year'] ?? '-').'</div>'
-                                    .'<div>• <b>Total Siswa:</b> '.number_format((float) ($info['total_students'] ?? 0)).' siswa</div>'
-                                    .'<div>• <b>Total Rombel:</b> '.($info['total_classes'] ?? 0).' kelas</div>'
-                                    .'<div>• <b>Status:</b> Siap diimpor ke database</div>'
+                                    .'<div>• <b>Putaran:</b> '.e($info['cycle_type'] ?? 'Putaran 1').'</div>'
+                                    .'<div>• <b>Total Kelas:</b> '.($info['total_classes'] ?? 0).' kelas</div>'
+                                    .'<div>• <b>Total Ruangan:</b> '.($info['total_rooms'] ?? 0).' ruangan</div>'
                                     .'</div>'
+                                    .$partialBanner
                                     .'</div>'
                                 );
                             }
 
                             if ($type === 'timetable_fet') {
+                                $isMerged = ! empty($info['has_room_schedule']);
+                                $badgeClass = $isMerged
+                                    ? 'bg-emerald-50 dark:bg-emerald-950/30 border-emerald-200 dark:border-emerald-800 text-emerald-900 dark:text-emerald-100'
+                                    : 'bg-blue-50 dark:bg-blue-950/30 border-blue-200 dark:border-blue-800 text-blue-900 dark:text-blue-100';
+                                $headerClass = $isMerged
+                                    ? 'text-emerald-700 dark:text-emerald-300'
+                                    : 'text-blue-700 dark:text-blue-300';
+                                $dotClass = $isMerged ? 'bg-emerald-500' : 'bg-blue-500';
+
                                 return new HtmlString(
-                                    '<div class="p-4 bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-800 rounded-lg text-sm text-blue-900 dark:text-blue-100 space-y-2">'
-                                    .'<div class="flex items-center gap-2 font-semibold text-blue-700 dark:text-blue-300">'
-                                    .'<span class="inline-block w-2.5 h-2.5 rounded-full bg-blue-500"></span> Dokumen Terdeteksi: '.e($info['detected_format'] ?? 'PDF FET Timetable')
+                                    '<div class="p-4 '.$badgeClass.' border rounded-lg text-sm space-y-2">'
+                                    .'<div class="flex items-center gap-2 font-semibold '.$headerClass.'">'
+                                    .'<span class="inline-block w-2.5 h-2.5 rounded-full '.$dotClass.'"></span> Dokumen Terdeteksi: '.e($info['detected_format'] ?? 'PDF FET Timetable')
                                     .'</div>'
                                     .'<div class="grid grid-cols-2 gap-2 text-xs text-gray-600 dark:text-gray-300 pt-1 border-t border-blue-100 dark:border-blue-900">'
                                     .'<div>• <b>Institusi:</b> '.e($info['institution'] ?? 'SMKN 1 Bantul').'</div>'
@@ -117,93 +171,83 @@ class ListSchedules extends ListRecords
                                     .'<div>• <b>Total Kelas:</b> '.($info['total_classes'] ?? 0).' kelas</div>'
                                     .'<div>• <b>Total Guru:</b> '.($info['total_teachers'] ?? 0).' guru</div>'
                                     .'<div>• <b>Mata Pelajaran:</b> '.($info['total_subjects'] ?? 0).' mapel</div>'
+                                    .'<div>• <b>Total Ruangan:</b> '.($info['total_rooms'] ?? 0).' ruangan</div>'
                                     .'<div>• <b>Slot KBM:</b> '.number_format((float) ($info['total_schedules'] ?? 0)).' jadwal</div>'
+                                    .'<div>• <b>Status:</b> '.($isMerged ? 'Siap diimpor (Kelas + Ruang Sinkron)' : 'Menunggu dokumen kedua').'</div>'
                                     .'</div>'
+                                    .$partialBanner
                                     .'</div>'
                                 );
                             }
 
                             return null;
                         }),
+
                     Select::make('cycle_type')
-                        ->label('Target Putaran Jadwal (Khusus PDF Timetable)')
+                        ->label('Target Putaran Jadwal')
                         ->options([
                             'Putaran 1' => 'Putaran 1',
                             'Putaran 2' => 'Putaran 2',
                         ])
                         ->default('Putaran 1')
-                        ->helperText('Jika file berupa PDF jadwal kelas, Anda dapat menentukan putaran jadwal di sini.'),
+                        ->required()
+                        ->helperText('Otomatis menyesuaikan dengan putaran pada dokumen PDF yang diunggah.'),
                 ])
                 ->action(function (
                     array $data,
-                    SmartImportDetectorService $detector,
-                    DocumentParserService $legacyParser,
-                    ScheduleImportService $legacyImporter
+                    SmartImportDetectorService $detector
                 ) {
-                    $filePath = Storage::disk('local')->path($data['file']);
+                    @set_time_limit(300);
+                    @ini_set('max_execution_time', '300');
 
-                    try {
-                        $parsed = $detector->detectAndParse($filePath);
+                    $classFileRel = $data['class_schedule_file'] ?? null;
+                    $roomFileRel = $data['room_schedule_file'] ?? null;
 
-                        if ($parsed['type'] === 'student_roster' || $parsed['type'] === 'timetable_fet') {
-                            $cycle = $data['cycle_type'] ?? null;
-                            $result = $detector->import($parsed, Auth::user(), $cycle);
-                            @unlink($filePath);
+                    $classFilePath = $detector->resolveUploadedFilePath($classFileRel, 'local');
+                    $roomFilePath = $detector->resolveUploadedFilePath($roomFileRel, 'local');
 
-                            $formatName = $parsed['detected_format'] ?? $parsed['type'];
-                            $statsText = [];
-                            foreach ($result['stats'] as $k => $v) {
-                                $statsText[] = ucwords(str_replace('_', ' ', $k)).': '.(is_array($v) ? count($v) : $v);
-                            }
-
-                            Notification::make()
-                                ->title("Deteksi Berhasil: {$formatName}")
-                                ->body($result['message']."\n".implode(' | ', array_slice($statsText, 0, 4)))
-                                ->success()
-                                ->send();
-
-                            return;
-                        }
-                    } catch (\Throwable $e) {
-                        Log::warning('Smart import parser fallback to legacy: '.$e->getMessage());
-                    }
-
-                    // Fallback to legacy flat CSV parser
-                    $rows = $legacyParser->parse($filePath);
-                    if (empty($rows)) {
+                    if (! $classFilePath || ! $roomFilePath) {
                         Notification::make()
-                            ->title('Gagal Membaca File')
-                            ->body('Dokumen tidak dapat dideteksi sebagai format daftar hadir siswa maupun jadwal FET.')
+                            ->title('Dokumen Belum Lengkap')
+                            ->body('Kedua file PDF (Jadwal Kelas FET dan Jadwal Ruang) wajib diunggah.')
                             ->danger()
                             ->send();
-
-                        @unlink($filePath);
 
                         return;
                     }
 
-                    $result = $legacyImporter->import($rows, Auth::user());
-                    @unlink($filePath);
+                    try {
+                        $parsed = $detector->detectAndParseSchedulePair($classFilePath, $roomFilePath);
+                        $cycle = $data['cycle_type'] ?? ($parsed['cycle_type'] ?? 'Putaran 1');
+                        $result = $detector->import($parsed, Auth::user(), $cycle);
 
-                    $body = "Berhasil mengimpor {$result['imported']} jadwal.";
-                    if ($result['teachers_created'] > 0) {
-                        $body .= " Berhasil mendaftarkan {$result['teachers_created']} guru baru (".implode(', ', $result['teachers_created_names']).').';
-                    }
-                    if ($result['skipped'] > 0) {
-                        $body .= " {$result['skipped']} baris dilewati.";
-                    }
+                        @unlink($classFilePath);
+                        @unlink($roomFilePath);
 
-                    if ($result['imported'] > 0) {
+                        $formatName = $parsed['detected_format'] ?? 'PDF Gabungan Jadwal Kelas & Ruang';
+                        $statsText = [];
+                        foreach ($result['stats'] as $k => $v) {
+                            $statsText[] = ucwords(str_replace('_', ' ', $k)).': '.(is_array($v) ? count($v) : $v);
+                        }
+
                         Notification::make()
-                            ->title('Import Jadwal Berhasil')
-                            ->body($body)
+                            ->title("Import Berhasil: {$formatName}")
+                            ->body($result['message']."\n".implode(' | ', array_slice($statsText, 0, 5)))
                             ->success()
                             ->send();
-                    } else {
+                    } catch (\Throwable $e) {
+                        Log::error('Gagal import pasangan PDF jadwal: '.$e->getMessage());
+                        if ($classFilePath) {
+                            @unlink($classFilePath);
+                        }
+                        if ($roomFilePath) {
+                            @unlink($roomFilePath);
+                        }
+
                         Notification::make()
-                            ->title('Import Jadwal Belum Berhasil')
-                            ->body($body)
-                            ->warning()
+                            ->title('Gagal Mengimpor Jadwal PDF')
+                            ->body($e->getMessage())
+                            ->danger()
                             ->send();
                     }
                 }),

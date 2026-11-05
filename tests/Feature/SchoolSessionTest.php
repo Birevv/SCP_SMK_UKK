@@ -3,10 +3,14 @@
 namespace Tests\Feature;
 
 use App\Filament\Resources\Schedules\Schemas\ScheduleForm;
+use App\Filament\Resources\SchoolSessions\Pages\ListSchoolSessions;
+use App\Filament\Resources\SchoolSessions\SchoolSessionResource;
 use App\Models\Role;
 use App\Models\SchoolSession;
 use App\Models\User;
+use App\Policies\SchoolSessionPolicy;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Livewire\Livewire;
 use Tests\TestCase;
 
 class SchoolSessionTest extends TestCase
@@ -110,7 +114,7 @@ class SchoolSessionTest extends TestCase
         $waka = User::factory()->create(['role_id' => $wakaRole->id]);
         $guru = User::factory()->create(['role_id' => $guruRole->id]);
 
-        $policy = new \App\Policies\SchoolSessionPolicy();
+        $policy = new SchoolSessionPolicy;
 
         // Super Admin & Waka Kurikulum can manage
         $this->assertTrue($policy->viewAny($superAdmin));
@@ -132,11 +136,11 @@ class SchoolSessionTest extends TestCase
 
         SchoolSession::seedDefaults();
 
-        $response = $this->actingAs($superAdmin)->get('/admin/school-sessions');
+        $response = $this->actingAs($superAdmin)->get(SchoolSessionResource::getUrl('index'));
         $response->assertOk();
 
-        \Livewire\Livewire::actingAs($superAdmin)
-            ->test(\App\Filament\Resources\SchoolSessions\Pages\ListSchoolSessions::class)
+        Livewire::actingAs($superAdmin)
+            ->test(ListSchoolSessions::class)
             ->assertSuccessful();
     }
 }
