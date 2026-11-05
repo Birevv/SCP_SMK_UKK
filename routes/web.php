@@ -23,5 +23,3 @@ Route::get('/attendance-report/print', [AttendanceReportPrintController::class, 
 Route::post('/journals/upload-realtime-photo', [JournalPhotoUploadController::class, 'upload'])
     ->middleware(['auth'])
     ->name('admin.journals.upload-realtime-photo');
-
-

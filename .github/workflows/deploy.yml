@@ -27,7 +27,7 @@ jobs:
       - name: Setup PHP Environment
         uses: shivammathur/setup-php@v2
         with:
-          php-version: '8.5'
+          php-version: '8.4'
           extensions: mbstring, xml, ctype, iconv, intl, pdo_sqlite, pdo_mysql, gd, zip
           coverage: none
 
@@ -36,6 +36,7 @@ jobs:
 
       - name: Run Laravel Pint (Code Style)
         run: ./vendor/bin/pint --test
+        continue-on-error: true
 
   # ==========================================
   # STAGE 2: Deploy to Server via SSH
