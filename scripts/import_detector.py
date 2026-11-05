@@ -273,7 +273,7 @@ def parse_fet_cell(cell_str):
 
 
 def detect_file_type(file_path):
-    """Detect whether file is Student Roster (Excel/CSV), Room Schedule (PDF), or FET Timetable (PDF)."""
+    """Detect whether file is Employee Teachers (NIP), Homeroom & Counselor, Student Roster, Room Schedule, or FET Timetable."""
     p = Path(file_path)
     ext = p.suffix.lower()
 
@@ -281,20 +281,41 @@ def detect_file_type(file_path):
         if ext == '.csv':
             try:
                 with open(file_path, 'r', encoding='utf-8', errors='ignore') as f:
-                    content = f.read(4000)
+                    content = f.read(8000).upper()
+                    if 'DATA NOMINATIF GURU' in content or 'NOMINATIF GURU' in content:
+                        return 'EMPLOYEE_TEACHERS'
+                    if ('WALI KELAS' in content or 'WALI_KELAS' in content) and ('GURU BK' in content or 'WALI BK' in content or 'GURU_BK' in content or 'WALI_BK' in content or 'BK' in content):
+                        return 'HOMEROOM_COUNSELOR'
                     if 'DAFTAR HADIR SISWA' in content or 'KELAS :' in content:
                         return 'STUDENT_ROSTER_EXCEL'
+                    if 'NIP' in content and 'NAMA' in content and ('GOLONGAN' in content or 'MAPEL' in content):
+                        return 'EMPLOYEE_TEACHERS'
             except Exception:
                 pass
         elif openpyxl:
             try:
                 wb = openpyxl.load_workbook(file_path, read_only=True, data_only=True)
+                # Check sheet names for GURU
+                for sname in wb.sheetnames:
+                    u_sname = sname.upper()
+                    if 'GURU' in u_sname and 'TU' not in u_sname and 'TATA' not in u_sname:
+                        return 'EMPLOYEE_TEACHERS'
+
                 for sheetname in wb.sheetnames[:3]:
                     sheet = wb[sheetname]
-                    for row in sheet.iter_rows(max_row=10, values_only=True):
+                    sheet_text = ''
+                    for row in sheet.iter_rows(max_row=20, values_only=True):
                         for cell in row:
-                            if cell and ('DAFTAR HADIR SISWA' in str(cell) or 'KELAS :' in str(cell)):
-                                return 'STUDENT_ROSTER_EXCEL'
+                            if cell:
+                                sheet_text += ' ' + str(cell).upper()
+                    if 'DATA NOMINATIF GURU' in sheet_text or 'NOMINATIF GURU' in sheet_text:
+                        return 'EMPLOYEE_TEACHERS'
+                    if ('WALI KELAS' in sheet_text or 'WALI_KELAS' in sheet_text) and ('GURU BK' in sheet_text or 'WALI BK' in sheet_text or 'GURU_BK' in sheet_text or 'WALI_BK' in sheet_text or 'BK' in sheet_text):
+                        return 'HOMEROOM_COUNSELOR'
+                    if 'DAFTAR HADIR SISWA' in sheet_text or 'KELAS :' in sheet_text:
+                        return 'STUDENT_ROSTER_EXCEL'
+                    if 'NIP' in sheet_text and 'NAMA' in sheet_text and ('GOLONGAN' in sheet_text or 'MAPEL' in sheet_text):
+                        return 'EMPLOYEE_TEACHERS'
             except Exception:
                 pass
         return 'STUDENT_ROSTER_EXCEL'
@@ -315,6 +336,10 @@ def detect_file_type(file_path):
                 pass
 
         p1_upper = p1_text.upper()
+        if 'DATA NOMINATIF GURU' in p1_upper or 'NOMINATIF GURU' in p1_upper:
+            return 'EMPLOYEE_TEACHERS'
+        if ('WALI KELAS' in p1_upper or 'WALI_KELAS' in p1_upper) and ('GURU BK' in p1_upper or 'WALI BK' in p1_upper or 'BK' in p1_upper):
+            return 'HOMEROOM_COUNSELOR'
         if 'JADWAL RUANG' in p1_upper or ('HARI' in p1_upper and 'WAKTU' in p1_upper and 'UPACARA' in p1_upper):
             return 'ROOM_SCHEDULE_PDF'
         if 'SMK NEGERI 1 BANTUL' in p1_upper or 'FET' in p1_upper or 'KELAS X' in p1_upper:
@@ -322,6 +347,354 @@ def detect_file_type(file_path):
         return 'TIMETABLE_FET_PDF'
 
     return 'UNKNOWN'
+
+
+def parse_employee_teachers(file_path):
+    """Parse employee teachers list (DATA NOMINATIF GURU), extracting NIP and names while ignoring TU/Outsourcing."""
+    p = Path(file_path)
+    ext = p.suffix.lower()
+    teachers = []
+
+    if ext in ['.csv', '.txt']:
+        with open(file_path, 'r', encoding='utf-8', errors='ignore') as f:
+            lines = [l.strip() for l in f if l.strip()]
+
+        delim = ','
+        for l in lines[:10]:
+            if ';' in l and l.count(';') > l.count(','):
+                delim = ';'
+                break
+
+        in_guru_section = False
+        header_found = False
+        col_nip = None
+        col_nama = None
+        col_gender = None
+        col_mapel = None
+
+        import csv
+        reader = csv.reader(lines, delimiter=delim)
+        for row in reader:
+            if not row or not any(row):
+                continue
+            row_str = " ".join([str(c) for c in row]).upper()
+
+            if 'DATA NOMINATIF GURU' in row_str or 'NOMINATIF GURU' in row_str:
+                in_guru_section = True
+                continue
+
+            # Stop when hitting Tata Usaha, Outsourcing, Satpam, CS, etc.
+            if in_guru_section and any(stop_word in row_str for stop_word in [
+                'DATA NOMINATIF TATA USAHA', 'TATA USAHA', 'SATPAM', 'CS', 'OUTSOURCING', 'TANDA TERIMA'
+            ]):
+                break
+
+            if not in_guru_section and not header_found:
+                u_row = [str(c).upper().strip() for c in row]
+                if 'NIP' in u_row and 'NAMA' in u_row:
+                    in_guru_section = True
+
+            if in_guru_section and not header_found:
+                u_row = [str(c).upper().strip() for c in row]
+                if 'NIP' in u_row and 'NAMA' in u_row:
+                    header_found = True
+                    for idx, val in enumerate(u_row):
+                        if val == 'NIP':
+                            col_nip = idx
+                        elif val == 'NAMA':
+                            col_nama = idx
+                        elif 'KELAMIN' in val:
+                            col_gender = idx
+                        elif 'MAPEL' in val or 'MATA PELAJARAN' in val:
+                            col_mapel = idx
+                    continue
+
+            if in_guru_section and header_found:
+                if len(row) <= max(col_nip, col_nama):
+                    continue
+                raw_nip = row[col_nip].strip()
+                raw_nama = row[col_nama].strip()
+
+                if not raw_nama or len(raw_nama) < 3 or raw_nama.upper() in ['L', 'P']:
+                    continue
+                if raw_nip.upper() == 'NIP' or raw_nama.upper() == 'NAMA':
+                    continue
+
+                clean_nip = re.sub(r'[^0-9]', '', raw_nip)
+                gender = row[col_gender].strip() if col_gender is not None and len(row) > col_gender else None
+                mapel = row[col_mapel].strip() if col_mapel is not None and len(row) > col_mapel else None
+
+                teachers.append({
+                    'nip': clean_nip if clean_nip else raw_nip,
+                    'name': raw_nama,
+                    'gender': gender,
+                    'subject': mapel,
+                })
+
+    elif ext in ['.xlsx', '.xls']:
+        if not openpyxl:
+            raise RuntimeError("openpyxl is required to parse Excel files.")
+        wb = openpyxl.load_workbook(file_path, data_only=True)
+        target_sheet = None
+        for name in wb.sheetnames:
+            u_name = name.upper()
+            if 'GURU' in u_name and 'TU' not in u_name and 'TATA' not in u_name:
+                target_sheet = wb[name]
+                break
+        if target_sheet is None:
+            target_sheet = wb.active
+
+        header_row = None
+        col_nip = None
+        col_nama = None
+        col_gender = None
+        col_mapel = None
+        in_guru = False
+
+        for r in range(1, target_sheet.max_row + 1):
+            row_vals = [target_sheet.cell(row=r, column=c).value for c in range(1, min(15, target_sheet.max_column + 1))]
+            row_str = " ".join([str(v) for v in row_vals if v is not None]).upper()
+
+            if 'DATA NOMINATIF GURU' in row_str or 'NOMINATIF GURU' in row_str:
+                in_guru = True
+                continue
+
+            if in_guru and any(stop_word in row_str for stop_word in [
+                'DATA NOMINATIF TATA USAHA', 'TATA USAHA', 'SATPAM', 'CS', 'OUTSOURCING', 'TANDA TERIMA'
+            ]):
+                break
+
+            if (in_guru or target_sheet.title.upper().startswith('GURU')) and not header_row:
+                u_row = [str(v).upper().strip() for v in row_vals if v is not None]
+                if 'NIP' in u_row and 'NAMA' in u_row:
+                    header_row = r
+                    for c_idx, val in enumerate(row_vals, 1):
+                        v_str = str(val or '').upper().strip()
+                        if v_str == 'NIP':
+                            col_nip = c_idx
+                        elif v_str == 'NAMA':
+                            col_nama = c_idx
+                        elif 'KELAMIN' in v_str:
+                            col_gender = c_idx
+                        elif 'MAPEL' in v_str:
+                            col_mapel = c_idx
+                    continue
+
+            if header_row and r > header_row:
+                v_nip = str(target_sheet.cell(row=r, column=col_nip).value or '').strip()
+                v_nama = str(target_sheet.cell(row=r, column=col_nama).value or '').strip()
+
+                if not v_nama or len(v_nama) < 3 or v_nama.upper() in ['L', 'P']:
+                    continue
+                if v_nip.upper() == 'NIP' or v_nama.upper() == 'NAMA':
+                    continue
+
+                clean_nip = re.sub(r'[^0-9]', '', v_nip)
+                gender = str(target_sheet.cell(row=r, column=col_gender).value or '').strip() if col_gender else None
+                mapel = str(target_sheet.cell(row=r, column=col_mapel).value or '').strip() if col_mapel else None
+
+                teachers.append({
+                    'nip': clean_nip if clean_nip else v_nip,
+                    'name': v_nama,
+                    'gender': gender,
+                    'subject': mapel,
+                })
+
+    return {
+        'type': 'employee_teachers',
+        'detected_format': 'Excel / Data Pegawai Guru (Nominatif NIP)' if ext in ['.xlsx', '.xls'] else 'CSV / Data Pegawai Guru (Nominatif NIP)',
+        'total_teachers': len(teachers),
+        'teachers': teachers,
+    }
+
+
+def parse_homeroom_counselor(file_path):
+    """Parse Homeroom (Wali Kelas) & Counselor (Guru BK / Wali BK) mapping from Excel, CSV, or PDF."""
+    p = Path(file_path)
+    ext = p.suffix.lower()
+
+    academic_year = '2026/2027 - Ganjil'
+    assignments = []
+
+    if ext in ['.xlsx', '.xls']:
+        if not openpyxl:
+            raise RuntimeError("openpyxl is required to parse Excel files.")
+        wb = openpyxl.load_workbook(file_path, data_only=True)
+        ws = wb.active
+        header_row = None
+        col_kelas = None
+        col_wali = None
+        col_bk = None
+
+        for r in range(1, min(40, ws.max_row + 1)):
+            row_vals = [ws.cell(row=r, column=c).value for c in range(1, min(15, ws.max_column + 1))]
+            text_line = " ".join([str(v) for v in row_vals if v is not None]).upper()
+
+            if 'AJARAN' in text_line or 'PELAJARAN' in text_line or 'SEMESTER' in text_line:
+                m = re.search(r'(\d{4}\s*[/ -]\s*\d{4})', text_line)
+                if m:
+                    sem = "Ganjil" if "GANJIL" in text_line else ("Genap" if "GENAP" in text_line else "")
+                    year_clean = re.sub(r'\s+', '', m.group(1)).replace('-', '/')
+                    academic_year = f"{year_clean} - {sem}" if sem else year_clean
+
+            non_empty = [v for v in row_vals if v is not None and str(v).strip()]
+            if len(non_empty) >= 2:
+                u_cells = [str(v).upper().strip() for v in row_vals if v]
+                has_kelas = any('KELAS' in c and 'WALI' not in c for c in u_cells)
+                has_wali = any('WALI' in c for c in u_cells)
+                has_bk = any('BK' in c or 'BIMBINGAN' in c for c in u_cells)
+
+                if has_kelas and (has_wali or has_bk):
+                    header_row = r
+                    for c_idx, val in enumerate(row_vals, 1):
+                        if not val:
+                            continue
+                        v_str = str(val).upper().strip()
+                        if 'KELAS' in v_str and 'WALI' not in v_str:
+                            col_kelas = c_idx
+                        elif 'WALI' in v_str:
+                            col_wali = c_idx
+                        elif 'BK' in v_str or 'BIMBINGAN' in v_str:
+                            col_bk = c_idx
+                    break
+
+        if not header_row or not col_kelas or not col_wali:
+            raise ValueError("Tidak dapat menemukan header kolom KELAS dan NAMA WALI KELAS pada file Excel.")
+
+        for r in range(header_row + 1, ws.max_row + 1):
+            raw_class = ws.cell(row=r, column=col_kelas).value
+            raw_wali = ws.cell(row=r, column=col_wali).value
+            raw_bk = ws.cell(row=r, column=col_bk).value if col_bk else None
+
+            if not raw_class or not raw_wali:
+                continue
+
+            raw_class_str = str(raw_class).strip()
+            if 'KETERANGAN' in raw_class_str.upper() or 'DITETAPKAN' in raw_class_str.upper():
+                break
+
+            norm_class = normalize_class_name(raw_class_str)
+            if not re.match(r'^(X|XI|XII)\b', norm_class):
+                continue
+
+            assignments.append({
+                'classroom': norm_class,
+                'raw_classroom': raw_class_str,
+                'wali_kelas': str(raw_wali).strip(),
+                'guru_bk': str(raw_bk).strip() if raw_bk else '',
+            })
+
+    elif ext in ['.csv', '.txt']:
+        import csv
+        with open(file_path, 'r', encoding='utf-8', errors='ignore') as f:
+            lines = [line.strip() for line in f if line.strip()]
+
+        delimiter = ','
+        for l in lines[:10]:
+            if ';' in l and l.count(';') > l.count(','):
+                delimiter = ';'
+                break
+
+        header_idx = None
+        col_kelas = None
+        col_wali = None
+        col_bk = None
+
+        for idx, line in enumerate(lines[:30]):
+            u_line = line.upper()
+            if 'AJARAN' in u_line or 'PELAJARAN' in u_line or 'SEMESTER' in u_line:
+                m = re.search(r'(\d{4}\s*[/ -]\s*\d{4})', u_line)
+                if m:
+                    sem = "Ganjil" if "GANJIL" in u_line else ("Genap" if "GENAP" in u_line else "")
+                    year_clean = re.sub(r'\s+', '', m.group(1)).replace('-', '/')
+                    academic_year = f"{year_clean} - {sem}" if sem else year_clean
+
+            # Use csv reader to parse columns properly
+            reader = list(csv.reader([line], delimiter=delimiter))
+            if reader:
+                parts = [p.strip().upper() for p in reader[0] if p.strip()]
+                if len(parts) >= 2:
+                    has_kelas = any('KELAS' in c and 'WALI' not in c for c in parts)
+                    has_wali = any('WALI' in c for c in parts)
+                    if has_kelas and has_wali:
+                        header_idx = idx
+                        for c_idx, part in enumerate([p.strip().upper() for p in reader[0]]):
+                            if 'KELAS' in part and 'WALI' not in part:
+                                col_kelas = c_idx
+                            elif 'WALI' in part:
+                                col_wali = c_idx
+                            elif 'BK' in part or 'BIMBINGAN' in part:
+                                col_bk = c_idx
+                        break
+
+        if header_idx is None or col_kelas is None or col_wali is None:
+            raise ValueError("Tidak dapat menemukan header kolom KELAS dan NAMA WALI KELAS pada file CSV.")
+
+        reader = csv.reader(lines[header_idx + 1:], delimiter=delimiter)
+        for parts in reader:
+            if len(parts) <= max(col_kelas, col_wali):
+                continue
+            raw_class_str = parts[col_kelas].strip()
+            if 'KETERANGAN' in raw_class_str.upper() or 'DITETAPKAN' in raw_class_str.upper():
+                break
+            norm_class = normalize_class_name(raw_class_str)
+            if not re.match(r'^(X|XI|XII)\b', norm_class):
+                continue
+            bk_val = parts[col_bk].strip() if col_bk is not None and len(parts) > col_bk else ''
+            assignments.append({
+                'classroom': norm_class,
+                'raw_classroom': raw_class_str,
+                'wali_kelas': parts[col_wali].strip(),
+                'guru_bk': bk_val,
+            })
+
+    elif ext == '.pdf':
+        text = ''
+        if pdfplumber:
+            with pdfplumber.open(file_path) as pdf:
+                for page in pdf.pages:
+                    tables = page.extract_tables()
+                    for table in tables:
+                        for row in table:
+                            row_clean = [str(c or '').strip() for c in row if c is not None]
+                            if len(row_clean) >= 3:
+                                norm_class = normalize_class_name(row_clean[1] if len(row_clean) > 3 else row_clean[0])
+                                if re.match(r'^(X|XI|XII)\b', norm_class):
+                                    assignments.append({
+                                        'classroom': norm_class,
+                                        'raw_classroom': row_clean[1] if len(row_clean) > 3 else row_clean[0],
+                                        'wali_kelas': row_clean[2] if len(row_clean) > 3 else row_clean[1],
+                                        'guru_bk': row_clean[3] if len(row_clean) > 3 else (row_clean[2] if len(row_clean) > 2 else ''),
+                                    })
+                    if not assignments:
+                        text += (page.extract_text() or '') + '\n'
+
+        if not assignments and text:
+            for line in text.split('\n'):
+                m = re.search(r'\b(X|XI|XII)\s+([A-Z0-9\s]+?)\s{2,}([A-Z\s.,]+?)\s{2,}([A-Z\s.,]+)$', line.strip())
+                if m:
+                    norm_class = normalize_class_name(f"{m.group(1)} {m.group(2)}")
+                    assignments.append({
+                        'classroom': norm_class,
+                        'raw_classroom': f"{m.group(1)} {m.group(2)}",
+                        'wali_kelas': m.group(3).strip(),
+                        'guru_bk': m.group(4).strip(),
+                    })
+
+    homeroom_set = set(a['wali_kelas'] for a in assignments if a.get('wali_kelas'))
+    counselor_set = set(a['guru_bk'] for a in assignments if a.get('guru_bk'))
+
+    return {
+        'type': 'homeroom_and_counselor',
+        'detected_format': 'Excel / Daftar Wali Kelas & Guru BK (Wali BK)' if ext in ['.xlsx', '.xls'] else ('CSV / Daftar Wali Kelas & Guru BK (Wali BK)' if ext in ['.csv', '.txt'] else 'PDF / Daftar Wali Kelas & Guru BK'),
+        'academic_year': academic_year,
+        'total_classes': len(assignments),
+        'total_homeroom': len(homeroom_set),
+        'total_counselor': len(counselor_set),
+        'homeroom_teachers': sorted(list(homeroom_set)),
+        'counselor_teachers': sorted(list(counselor_set)),
+        'assignments': assignments,
+    }
 
 
 def parse_student_roster_excel(file_path):
@@ -869,6 +1242,17 @@ def quick_preview_schedule_pair(file1_path, file2_path):
 
 def quick_preview_single(file_path):
     """Fast preview of single document under 100ms."""
+    file_type = detect_file_type(file_path)
+    if file_type == 'EMPLOYEE_TEACHERS':
+        res = parse_employee_teachers(file_path)
+        res['is_quick_preview'] = True
+        return res
+
+    if file_type == 'HOMEROOM_COUNSELOR':
+        res = parse_homeroom_counselor(file_path)
+        res['is_quick_preview'] = True
+        return res
+
     ext = Path(file_path).suffix.lower()
     if ext in ['.xlsx', '.xls', '.csv']:
         return {
@@ -1215,7 +1599,11 @@ def main():
             result = parse_schedule_pdf_pair(file_path, room_file_path)
         else:
             file_type = detect_file_type(file_path)
-            if file_type == 'STUDENT_ROSTER_EXCEL':
+            if file_type == 'EMPLOYEE_TEACHERS':
+                result = parse_employee_teachers(file_path)
+            elif file_type == 'HOMEROOM_COUNSELOR':
+                result = parse_homeroom_counselor(file_path)
+            elif file_type == 'STUDENT_ROSTER_EXCEL':
                 result = parse_student_roster_excel(file_path)
             elif file_type == 'ROOM_SCHEDULE_PDF':
                 result = parse_room_schedule_pdf(file_path)
@@ -1238,7 +1626,29 @@ def main():
             print(f"Room File Path   : {os.path.abspath(args.room_file)}")
         print(f"Tipe Terdeteksi  : {result.get('detected_format')}")
 
-        if result['type'] == 'student_roster':
+        if result['type'] == 'employee_teachers':
+            print(f"Total Guru Terdeteksi: {result.get('total_teachers')} guru")
+            print("Catatan: Data TU, Outsourcing, CS, Satpam diabaikan secara otomatis.")
+            print("-" * 60)
+            print("Sampel Guru & NIP (5 Pertama):")
+            for t in result['teachers'][:5]:
+                print(f"  - NIP: {t['nip']} | {t['name']} ({t.get('subject') or '-'})")
+
+        elif result['type'] == 'homeroom_and_counselor':
+            print(f"Tahun Ajaran     : {result.get('academic_year')}")
+            print(f"Total Kelas      : {result.get('total_classes')} kelas")
+            print(f"Total Wali Kelas : {result.get('total_homeroom')} guru")
+            print(f"Total Guru BK    : {result.get('total_counselor')} guru")
+            print("-" * 60)
+            print("Sampel Data (5 Pertama):")
+            for a in result['assignments'][:5]:
+                print(f"  [{a['classroom']}] Wali: {a['wali_kelas']} | BK: {a['guru_bk']}")
+            print("-" * 60)
+            print("Daftar Guru BK (Wali BK):")
+            for g in result['counselor_teachers']:
+                print(f"  - {g}")
+
+        elif result['type'] == 'student_roster':
             print(f"Tahun Ajaran     : {result.get('academic_year')}")
             print(f"Total Kelas      : {result.get('total_classes')} kelas")
             print(f"Total Siswa      : {result.get('total_students')} siswa")

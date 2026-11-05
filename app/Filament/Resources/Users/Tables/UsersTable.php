@@ -2,8 +2,15 @@
 
 namespace App\Filament\Resources\Users\Tables;
 
+use App\Models\User;
+use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteAction;
+use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
+use Filament\Actions\ForceDeleteAction;
+use Filament\Actions\ForceDeleteBulkAction;
+use Filament\Actions\RestoreAction;
+use Filament\Actions\RestoreBulkAction;
 use Filament\Tables;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Filters\TrashedFilter;
@@ -45,28 +52,12 @@ class UsersTable
                     ->label('Username')
                     ->searchable()
                     ->sortable(),
-                Tables\Columns\TextColumn::make('email')
-                    ->label('Email')
-                    ->placeholder('-')
-                    ->searchable()
-                    ->sortable()
-                    ->toggleable(isToggledHiddenByDefault: false),
                 Tables\Columns\TextColumn::make('phone')
                     ->label('Nomor Telepon')
                     ->placeholder('-')
                     ->searchable()
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
-                Tables\Columns\TextColumn::make('status')
-                    ->label('Status')
-                    ->badge()
-                    ->colors([
-                        'success' => 'Aktif',
-                        'primary' => 'Lulus',
-                        'danger' => 'Keluar',
-                        'warning' => 'DO',
-                    ])
-                    ->sortable(),
                 Tables\Columns\TextColumn::make('created_at')
                     ->label('Dibuat Pada')
                     ->dateTime('d F Y H:i')
@@ -102,6 +93,21 @@ class UsersTable
             ->recordActions([
                 EditAction::make(),
                 DeleteAction::make(),
+                RestoreAction::make(),
+                ForceDeleteAction::make(),
+            ])
+            ->toolbarActions([
+                BulkActionGroup::make([
+                    DeleteBulkAction::make()
+                        ->visible(fn () => auth()->user()?->can('deleteAny', User::class))
+                        ->authorizeIndividualRecords(),
+                    ForceDeleteBulkAction::make()
+                        ->visible(fn () => auth()->user()?->can('forceDeleteAny', User::class))
+                        ->authorizeIndividualRecords(),
+                    RestoreBulkAction::make()
+                        ->visible(fn () => auth()->user()?->can('restoreAny', User::class))
+                        ->authorizeIndividualRecords(),
+                ]),
             ]);
     }
 }

@@ -6,7 +6,6 @@ use App\Filament\Resources\Users\UserResource;
 use App\Models\User;
 use App\Services\DocumentParserService;
 use App\Services\SmartImportDetectorService;
-use App\Services\UserImportService;
 use Filament\Actions\Action;
 use Filament\Actions\CreateAction;
 use Filament\Forms\Components\FileUpload;
@@ -27,19 +26,21 @@ class ListUsers extends ListRecords
     protected function getHeaderActions(): array
     {
         return [
-            CreateAction::make(),
+            CreateAction::make()
+                ->successNotificationTitle('Data berhasil diinput'),
             Action::make('import_users')
-                ->label('Import Pengguna (Excel / PDF / CSV)')
+                ->label('Import Pengguna (3 File)')
                 ->icon('heroicon-o-arrow-up-tray')
                 ->color('success')
-                ->modalHeading('Import Data Pengguna Otomatis')
-                ->modalDescription('Unggah dokumen Excel daftar hadir siswa, PDF jadwal FET, atau CSV pengguna. Sistem akan mendeteksi format dan mendaftarkan siswa/guru secara otomatis.')
-                ->modalSubmitActionLabel('Mulai Import')
+                ->modalHeading('Import Data Pengguna (3 File: Wali Kelas, Guru & Siswa)')
+                ->modalDescription('Alur import pengguna: Unggah 1) File Wali Kelas & Guru BK, 2) File Data Pegawai Guru (ekstrak NIP & guru baru), dan 3) File Siswa (Daftar Hadir). Data TU & outsourcing pada file pegawai akan diabaikan secara otomatis.')
+                ->modalSubmitActionLabel('Mulai Import Pengguna (3 File)')
                 ->form([
-                    FileUpload::make('file')
-                        ->label('Drop File Excel / PDF / CSV Di Sini')
+                    FileUpload::make('file_walikelas')
+                        ->label('1. File Wali Kelas & Guru BK (Excel / CSV / PDF)')
                         ->disk('local')
                         ->directory('imports/users')
+                        ->preserveFilenames()
                         ->acceptedFileTypes([
                             'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
                             'application/vnd.ms-excel',
@@ -48,24 +49,50 @@ class ListUsers extends ListRecords
                             'application/pdf',
                         ])
                         ->required()
-                        ->live()
-                        ->afterStateUpdated(function ($state, $set, SmartImportDetectorService $detector) {
-                            $filePath = $detector->resolveUploadedFilePath($state, 'local');
-                            if (! $filePath) {
-                                $set('detected_info', null);
-
-                                return;
-                            }
-                            try {
-                                $parsed = $detector->detectAndParse($filePath);
-                                $set('detected_info', $parsed);
-                            } catch (\Throwable $e) {
-                                $set('detected_info', ['error' => $e->getMessage()]);
-                            }
+                        ->live(debounce: 500)
+                        ->afterStateUpdated(function ($state, callable $get, callable $set, SmartImportDetectorService $detector) {
+                            $this->refreshUserDetectionPreview($get, $set, $detector);
                         })
-                        ->helperText('Mendukung: 1) Excel Daftar Hadir Siswa SMKN 1 Bantul, 2) PDF Jadwal FET (import Guru), atau 3) CSV Pengguna umum.'),
+                        ->helperText('Wajib diisi. File pembagian Wali Kelas dan Guru BK (Wali BK) per rombel.'),
+
+                    FileUpload::make('file_guru')
+                        ->label('2. File Data Pegawai / Guru (NIP) (Excel / CSV)')
+                        ->disk('local')
+                        ->directory('imports/users')
+                        ->preserveFilenames()
+                        ->acceptedFileTypes([
+                            'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+                            'application/vnd.ms-excel',
+                            'text/csv',
+                            'text/plain',
+                        ])
+                        ->required()
+                        ->live(debounce: 500)
+                        ->afterStateUpdated(function ($state, callable $get, callable $set, SmartImportDetectorService $detector) {
+                            $this->refreshUserDetectionPreview($get, $set, $detector);
+                        })
+                        ->helperText('Wajib diisi. File Data Nominatif Pegawai 2026. Melengkapi NIP guru dan menambahkan guru yang belum terimport (data TU & outsourcing otomatis diabaikan).'),
+
+                    FileUpload::make('file_siswa')
+                        ->label('3. File Data Siswa / Rombel (Excel / CSV)')
+                        ->disk('local')
+                        ->directory('imports/users')
+                        ->preserveFilenames()
+                        ->acceptedFileTypes([
+                            'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+                            'application/vnd.ms-excel',
+                            'text/csv',
+                            'text/plain',
+                        ])
+                        ->required()
+                        ->live(debounce: 500)
+                        ->afterStateUpdated(function ($state, callable $get, callable $set, SmartImportDetectorService $detector) {
+                            $this->refreshUserDetectionPreview($get, $set, $detector);
+                        })
+                        ->helperText('Wajib diisi. Dokumen Excel/CSV Daftar Hadir Siswa per kelas.'),
+
                     Placeholder::make('detected_preview')
-                        ->label('Hasil Deteksi Otomatis')
+                        ->label('Hasil Deteksi 3 File')
                         ->visible(fn ($get) => filled($get('detected_info')))
                         ->content(function ($get) {
                             $info = $get('detected_info');
@@ -73,118 +100,132 @@ class ListUsers extends ListRecords
                                 return null;
                             }
 
-                            if (isset($info['error'])) {
-                                return new HtmlString(
-                                    '<div class="p-3 bg-amber-50 dark:bg-amber-950/40 border border-amber-200 rounded-lg text-amber-800 text-sm flex items-center gap-2">'
-                                    .'<span class="font-semibold">Perhatian:</span> '.e($info['error'])
-                                    .'</div>'
-                                );
+                            $html = '<div class="space-y-3">';
+
+                            // 1. Wali Kelas & Guru BK card
+                            $wali = $info['walikelas'] ?? null;
+                            if ($wali) {
+                                if (isset($wali['error'])) {
+                                    $html .= '<div class="p-3 bg-red-50 dark:bg-red-950/40 border border-red-200 dark:border-red-800 rounded-lg text-red-800 dark:text-red-200 text-xs"><b>1. File Wali Kelas:</b> '.e($wali['error']).'</div>';
+                                } else {
+                                    $html .= '<div class="p-3 bg-indigo-50 dark:bg-indigo-950/30 border border-indigo-200 dark:border-indigo-800 rounded-lg text-xs text-indigo-900 dark:text-indigo-100 space-y-1">'
+                                        .'<div class="font-semibold text-indigo-700 dark:text-indigo-300 flex items-center gap-1.5"><span class="w-2 h-2 rounded-full bg-indigo-500 inline-block"></span> 1. File Wali Kelas & Guru BK: '.e($wali['detected_format'] ?? 'Terdeteksi').'</div>'
+                                        .'<div class="grid grid-cols-3 gap-1 pt-1 text-gray-600 dark:text-gray-300">'
+                                        .'<div>• Rombel: <b>'.($wali['total_classes'] ?? 0).'</b></div>'
+                                        .'<div>• Wali Kelas: <b>'.($wali['total_homeroom'] ?? 0).' guru</b></div>'
+                                        .'<div>• Guru BK: <b>'.($wali['total_counselor'] ?? 0).' guru</b></div>'
+                                        .'</div></div>';
+                                }
+                            } else {
+                                $html .= '<div class="p-2.5 bg-gray-50 dark:bg-gray-800/40 border border-dashed border-gray-200 dark:border-gray-700 rounded-lg text-xs text-gray-500 dark:text-gray-400 flex items-center gap-2">'
+                                    .'<span class="w-2 h-2 rounded-full bg-gray-400 inline-block"></span> 1. File Wali Kelas: Menunggu file diunggah...'
+                                    .'</div>';
                             }
 
-                            $type = $info['type'] ?? '';
-                            if ($type === 'student_roster') {
-                                return new HtmlString(
-                                    '<div class="p-4 bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-800 rounded-lg text-sm text-emerald-900 dark:text-emerald-100 space-y-2">'
-                                    .'<div class="flex items-center gap-2 font-semibold text-emerald-700 dark:text-emerald-300">'
-                                    .'<span class="inline-block w-2.5 h-2.5 rounded-full bg-emerald-500"></span> Dokumen Terdeteksi: '.e($info['detected_format'] ?? 'Excel Absen')
-                                    .'</div>'
-                                    .'<div class="grid grid-cols-2 gap-2 text-xs text-gray-600 dark:text-gray-300 pt-1 border-t border-emerald-100 dark:border-emerald-900">'
-                                    .'<div>• <b>Tahun Ajaran:</b> '.e($info['academic_year'] ?? '-').'</div>'
-                                    .'<div>• <b>Total Siswa:</b> '.number_format((float) ($info['total_students'] ?? 0)).' siswa</div>'
-                                    .'<div>• <b>Total Rombel:</b> '.($info['total_classes'] ?? 0).' kelas</div>'
-                                    .'<div>• <b>Status:</b> Siap didaftarkan sebagai User (Role: Siswa)</div>'
-                                    .'</div>'
-                                    .'</div>'
-                                );
+                            // 2. Data Guru (NIP) card
+                            $guru = $info['guru'] ?? null;
+                            if ($guru) {
+                                if (isset($guru['error'])) {
+                                    $html .= '<div class="p-3 bg-red-50 dark:bg-red-950/40 border border-red-200 dark:border-red-800 rounded-lg text-red-800 dark:text-red-200 text-xs"><b>2. File Data Guru:</b> '.e($guru['error']).'</div>';
+                                } else {
+                                    $html .= '<div class="p-3 bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-800 rounded-lg text-xs text-blue-900 dark:text-blue-100 space-y-1">'
+                                        .'<div class="font-semibold text-blue-700 dark:text-blue-300 flex items-center gap-1.5"><span class="w-2 h-2 rounded-full bg-blue-500 inline-block"></span> 2. File Data Guru (NIP): '.e($guru['detected_format'] ?? 'Terdeteksi').'</div>'
+                                        .'<div class="pt-1 text-gray-600 dark:text-gray-300 flex items-center justify-between">'
+                                        .'<div>• Total Guru: <b>'.($guru['total_teachers'] ?? 0).' guru</b> (NIP akan disinkronkan)</div>'
+                                        .'<div class="text-[11px] text-blue-600 dark:text-blue-400 font-medium">TU & Outsourcing diabaikan otomatis</div>'
+                                        .'</div></div>';
+                                }
+                            } else {
+                                $html .= '<div class="p-2.5 bg-gray-50 dark:bg-gray-800/40 border border-dashed border-gray-200 dark:border-gray-700 rounded-lg text-xs text-gray-500 dark:text-gray-400 flex items-center gap-2">'
+                                    .'<span class="w-2 h-2 rounded-full bg-gray-400 inline-block"></span> 2. File Data Guru: Menunggu file diunggah...'
+                                    .'</div>';
                             }
 
-                            if ($type === 'timetable_fet') {
-                                return new HtmlString(
-                                    '<div class="p-4 bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-800 rounded-lg text-sm text-blue-900 dark:text-blue-100 space-y-2">'
-                                    .'<div class="flex items-center gap-2 font-semibold text-blue-700 dark:text-blue-300">'
-                                    .'<span class="inline-block w-2.5 h-2.5 rounded-full bg-blue-500"></span> Dokumen Terdeteksi: '.e($info['detected_format'] ?? 'PDF FET Timetable')
-                                    .'</div>'
-                                    .'<div class="grid grid-cols-2 gap-2 text-xs text-gray-600 dark:text-gray-300 pt-1 border-t border-blue-100 dark:border-blue-900">'
-                                    .'<div>• <b>Institusi:</b> '.e($info['institution'] ?? 'SMKN 1 Bantul').'</div>'
-                                    .'<div>• <b>Total Guru:</b> '.($info['total_teachers'] ?? 0).' guru</div>'
-                                    .'<div>• <b>Status:</b> Siap didaftarkan sebagai User (Role: Guru)</div>'
-                                    .'</div>'
-                                    .'</div>'
-                                );
+                            // 3. Data Siswa card
+                            $siswa = $info['siswa'] ?? null;
+                            if ($siswa) {
+                                if (isset($siswa['error'])) {
+                                    $html .= '<div class="p-3 bg-red-50 dark:bg-red-950/40 border border-red-200 dark:border-red-800 rounded-lg text-red-800 dark:text-red-200 text-xs"><b>3. File Siswa:</b> '.e($siswa['error']).'</div>';
+                                } else {
+                                    $html .= '<div class="p-3 bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-800 rounded-lg text-xs text-emerald-900 dark:text-emerald-100 space-y-1">'
+                                        .'<div class="font-semibold text-emerald-700 dark:text-emerald-300 flex items-center gap-1.5"><span class="w-2 h-2 rounded-full bg-emerald-500 inline-block"></span> 3. File Siswa: '.e($siswa['detected_format'] ?? 'Terdeteksi').'</div>'
+                                        .'<div class="grid grid-cols-2 gap-1 pt-1 text-gray-600 dark:text-gray-300">'
+                                        .'<div>• Total Siswa: <b>'.number_format((float) ($siswa['total_students'] ?? 0)).' siswa</b></div>'
+                                        .'<div>• Total Rombel: <b>'.($siswa['total_classes'] ?? 0).' kelas</b></div>'
+                                        .'</div></div>';
+                                }
+                            } else {
+                                $html .= '<div class="p-2.5 bg-gray-50 dark:bg-gray-800/40 border border-dashed border-gray-200 dark:border-gray-700 rounded-lg text-xs text-gray-500 dark:text-gray-400 flex items-center gap-2">'
+                                    .'<span class="w-2 h-2 rounded-full bg-gray-400 inline-block"></span> 3. File Siswa: Menunggu file diunggah...'
+                                    .'</div>';
                             }
 
-                            return null;
+                            $html .= '</div>';
+
+                            return new HtmlString($html);
                         }),
                 ])
                 ->action(function (
                     array $data,
-                    SmartImportDetectorService $detector,
-                    DocumentParserService $parser,
-                    UserImportService $importer
+                    SmartImportDetectorService $detector
                 ) {
-                    $filePath = Storage::disk('local')->path($data['file']);
+                    @set_time_limit(300);
+                    @ini_set('max_execution_time', '300');
+
+                    $waliFile = $data['file_walikelas'] ?? null;
+                    $guruFile = $data['file_guru'] ?? null;
+                    $siswaFile = $data['file_siswa'] ?? null;
+
+                    $waliPath = $waliFile ? Storage::disk('local')->path($waliFile) : null;
+                    $guruPath = $guruFile ? Storage::disk('local')->path($guruFile) : null;
+                    $siswaPath = $siswaFile ? Storage::disk('local')->path($siswaFile) : null;
+
+                    $summaryMessages = [];
 
                     try {
-                        $parsed = $detector->detectAndParse($filePath);
-
-                        if ($parsed['type'] === 'student_roster' || $parsed['type'] === 'timetable_fet') {
-                            $result = $detector->import($parsed, Auth::user());
-                            @unlink($filePath);
-
-                            $formatName = $parsed['detected_format'] ?? $parsed['type'];
-                            Notification::make()
-                                ->title("Import Pengguna Berhasil: {$formatName}")
-                                ->body($result['message'])
-                                ->success()
-                                ->send();
-
-                            return;
+                        // 1. Process Guru first: updates NIPs and creates any teachers not in timetable
+                        if ($guruPath && file_exists($guruPath)) {
+                            $parsedGuru = $detector->detectAndParse($guruPath);
+                            $resGuru = $detector->import($parsedGuru, Auth::user());
+                            $summaryMessages[] = "✔ Guru: {$resGuru['message']}";
+                            @unlink($guruPath);
                         }
-                    } catch (\Throwable $e) {
-                        // fallback to flat parser
-                    }
 
-                    $rows = $parser->parse($filePath);
+                        // 2. Process Wali Kelas & Guru BK second: assigns homeroom and counselor roles and links classrooms
+                        if ($waliPath && file_exists($waliPath)) {
+                            $parsedWali = $detector->detectAndParse($waliPath);
+                            $resWali = $detector->import($parsedWali, Auth::user());
+                            $summaryMessages[] = "✔ Wali Kelas & Guru BK: {$resWali['message']}";
+                            @unlink($waliPath);
+                        }
 
-                    if (empty($rows)) {
+                        // 3. Process Siswa third: imports students and attaches to classrooms
+                        if ($siswaPath && file_exists($siswaPath)) {
+                            $parsedSiswa = $detector->detectAndParse($siswaPath);
+                            $resSiswa = $detector->import($parsedSiswa, Auth::user());
+                            $summaryMessages[] = "✔ Siswa: {$resSiswa['message']}";
+                            @unlink($siswaPath);
+                        }
+
                         Notification::make()
-                            ->title('Gagal Membaca File')
-                            ->body('Tidak ditemukan data pengguna yang valid pada file tersebut.')
-                            ->danger()
-                            ->send();
-
-                        @unlink($filePath);
-
-                        return;
-                    }
-
-                    $result = $importer->import($rows, Auth::user());
-                    @unlink($filePath);
-
-                    $body = "Berhasil memproses: {$result['imported']} user baru ditambahkan, {$result['updated']} user diperbarui.";
-                    if ($result['skipped'] > 0) {
-                        $body .= " {$result['skipped']} baris dilewati.";
-                    }
-
-                    if ($result['imported'] > 0 || $result['updated'] > 0) {
-                        Notification::make()
-                            ->title('Import Pengguna Berhasil')
-                            ->body($body)
+                            ->title('Data berhasil diinput')
                             ->success()
                             ->send();
-                    } else {
-                        Notification::make()
-                            ->title('Import Pengguna Belum Berhasil')
-                            ->body($body)
-                            ->warning()
-                            ->send();
-                    }
+                    } catch (\Throwable $e) {
+                        if ($waliPath) {
+                            @unlink($waliPath);
+                        }
+                        if ($guruPath) {
+                            @unlink($guruPath);
+                        }
+                        if ($siswaPath) {
+                            @unlink($siswaPath);
+                        }
 
-                    if (! empty($result['errors'])) {
                         Notification::make()
-                            ->title('Catatan Validasi')
-                            ->body(implode("\n", array_slice($result['errors'], 0, 5)))
-                            ->warning()
+                            ->title('Gagal Mengimpor Data Pengguna')
+                            ->body($e->getMessage())
+                            ->danger()
                             ->send();
                     }
                 }),
@@ -210,17 +251,69 @@ class ListUsers extends ListRecords
                 ->badge(fn () => User::whereHas('role', fn ($q) => $q->where('name', 'Waka Kurikulum'))->count())
                 ->modifyQueryUsing(fn (Builder $query) => $query->whereHas('role', fn ($q) => $q->where('name', 'Waka Kurikulum'))),
             'guru' => Tab::make('Guru')
-                ->badge(fn () => User::whereHas('role', fn ($q) => $q->where('name', 'Guru'))->count())
-                ->modifyQueryUsing(fn (Builder $query) => $query->whereHas('role', fn ($q) => $q->where('name', 'Guru'))),
+                ->badge(fn () => User::where(fn ($q) => $q->whereHas('role', fn ($r) => $r->where('name', 'Guru'))->orWhereHas('roles', fn ($r) => $r->where('name', 'Guru')))->count())
+                ->modifyQueryUsing(fn (Builder $query) => $query->where(fn ($q) => $q->whereHas('role', fn ($r) => $r->where('name', 'Guru'))->orWhereHas('roles', fn ($r) => $r->where('name', 'Guru')))),
             'wali_kelas' => Tab::make('Wali Kelas')
-                ->badge(fn () => User::whereHas('role', fn ($q) => $q->where('name', 'Wali Kelas'))->count())
-                ->modifyQueryUsing(fn (Builder $query) => $query->whereHas('role', fn ($q) => $q->where('name', 'Wali Kelas'))),
+                ->badge(fn () => User::where(fn ($q) => $q->whereHas('role', fn ($r) => $r->where('name', 'Wali Kelas'))->orWhereHas('roles', fn ($r) => $r->where('name', 'Wali Kelas')))->count())
+                ->modifyQueryUsing(fn (Builder $query) => $query->where(fn ($q) => $q->whereHas('role', fn ($r) => $r->where('name', 'Wali Kelas'))->orWhereHas('roles', fn ($r) => $r->where('name', 'Wali Kelas')))),
             'bk' => Tab::make('Guru BK')
-                ->badge(fn () => User::whereHas('role', fn ($q) => $q->where('name', 'Guru BK'))->count())
-                ->modifyQueryUsing(fn (Builder $query) => $query->whereHas('role', fn ($q) => $q->where('name', 'Guru BK'))),
+                ->badge(fn () => User::where(fn ($q) => $q->whereHas('role', fn ($r) => $r->where('name', 'Guru BK'))->orWhereHas('roles', fn ($r) => $r->where('name', 'Guru BK')))->count())
+                ->modifyQueryUsing(fn (Builder $query) => $query->where(fn ($q) => $q->whereHas('role', fn ($r) => $r->where('name', 'Guru BK'))->orWhereHas('roles', fn ($r) => $r->where('name', 'Guru BK')))),
             'siswa' => Tab::make('Siswa')
                 ->badge(fn () => User::whereHas('role', fn ($q) => $q->where('name', 'Siswa'))->count())
                 ->modifyQueryUsing(fn (Builder $query) => $query->whereHas('role', fn ($q) => $q->where('name', 'Siswa'))),
         ];
+    }
+
+    protected function refreshUserDetectionPreview(callable $get, callable $set, SmartImportDetectorService $detector): void
+    {
+        @set_time_limit(300);
+        @ini_set('max_execution_time', '300');
+
+        $waliState = $get('file_walikelas');
+        $guruState = $get('file_guru');
+        $siswaState = $get('file_siswa');
+
+        $waliPath = $detector->resolveUploadedFilePath($waliState, 'local');
+        $guruPath = $detector->resolveUploadedFilePath($guruState, 'local');
+        $siswaPath = $detector->resolveUploadedFilePath($siswaState, 'local');
+
+        if (! $waliPath && ! $guruPath && ! $siswaPath) {
+            $set('detected_info', null);
+
+            return;
+        }
+
+        $info = [
+            'walikelas' => null,
+            'guru' => null,
+            'siswa' => null,
+        ];
+
+        try {
+            if ($waliPath && file_exists($waliPath)) {
+                $info['walikelas'] = $detector->quickPreview($waliPath);
+            }
+        } catch (\Throwable $e) {
+            $info['walikelas'] = ['error' => $e->getMessage()];
+        }
+
+        try {
+            if ($guruPath && file_exists($guruPath)) {
+                $info['guru'] = $detector->quickPreview($guruPath);
+            }
+        } catch (\Throwable $e) {
+            $info['guru'] = ['error' => $e->getMessage()];
+        }
+
+        try {
+            if ($siswaPath && file_exists($siswaPath)) {
+                $info['siswa'] = $detector->quickPreview($siswaPath);
+            }
+        } catch (\Throwable $e) {
+            $info['siswa'] = ['error' => $e->getMessage()];
+        }
+
+        $set('detected_info', $info);
     }
 }

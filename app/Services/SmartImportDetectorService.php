@@ -15,6 +15,7 @@ use Exception;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 use PhpOffice\PhpSpreadsheet\IOFactory;
 use Spatie\Permission\Models\Role;
 
@@ -389,10 +390,436 @@ class SmartImportDetectorService
         $ext = strtolower(pathinfo($filePath, PATHINFO_EXTENSION));
 
         if (in_array($ext, ['xlsx', 'xls', 'csv'])) {
+            if ($this->isEmployeeTeachersFile($filePath, $ext)) {
+                return $this->nativeParseEmployeeTeachers($filePath, $ext);
+            }
+
+            if ($this->isHomeroomCounselorFile($filePath, $ext)) {
+                return $this->nativeParseHomeroomCounselor($filePath, $ext);
+            }
+
             return $this->nativeParseExcel($filePath);
         }
 
         throw new Exception("Deteksi native PHP untuk file .{$ext} memerlukan Python interpreter dengan pustaka pdfplumber / openpyxl.");
+    }
+
+    protected function isEmployeeTeachersFile(string $filePath, string $ext): bool
+    {
+        try {
+            if ($ext === 'csv') {
+                $content = strtoupper(substr((string) file_get_contents($filePath), 0, 8000));
+
+                return str_contains($content, 'DATA NOMINATIF GURU') || str_contains($content, 'NOMINATIF GURU')
+                    || (str_contains($content, 'NIP') && str_contains($content, 'NAMA') && (str_contains($content, 'GOLONGAN') || str_contains($content, 'MAPEL')));
+            }
+
+            $spreadsheet = IOFactory::load($filePath);
+            foreach ($spreadsheet->getSheetNames() as $sname) {
+                $uName = strtoupper($sname);
+                if (str_contains($uName, 'GURU') && ! str_contains($uName, 'TU') && ! str_contains($uName, 'TATA')) {
+                    return true;
+                }
+            }
+
+            $sheet = $spreadsheet->getActiveSheet();
+            $text = '';
+            for ($r = 1; $r <= min(25, $sheet->getHighestRow()); $r++) {
+                for ($c = 1; $c <= min(15, 15); $c++) {
+                    $text .= ' '.strtoupper((string) $sheet->getCell([$c, $r])->getValue());
+                }
+            }
+
+            return str_contains($text, 'DATA NOMINATIF GURU') || str_contains($text, 'NOMINATIF GURU')
+                || (str_contains($text, 'NIP') && str_contains($text, 'NAMA') && (str_contains($text, 'GOLONGAN') || str_contains($text, 'MAPEL')));
+        } catch (\Throwable) {
+            return false;
+        }
+    }
+
+    protected function nativeParseEmployeeTeachers(string $filePath, string $ext): array
+    {
+        $teachers = [];
+
+        if ($ext === 'csv') {
+            $content = file_get_contents($filePath);
+            $lines = preg_split('/\r\n|\r|\n/', (string) $content);
+            $delim = ',';
+
+            foreach (array_slice($lines, 0, 10) as $l) {
+                if (substr_count($l, ';') > substr_count($l, ',')) {
+                    $delim = ';';
+                    break;
+                }
+            }
+
+            $inGuru = false;
+            $headerFound = false;
+            $colNip = null;
+            $colNama = null;
+            $colGender = null;
+            $colMapel = null;
+
+            foreach ($lines as $line) {
+                if (trim($line) === '') {
+                    continue;
+                }
+                $uLine = strtoupper($line);
+
+                if (str_contains($uLine, 'DATA NOMINATIF GURU') || str_contains($uLine, 'NOMINATIF GURU')) {
+                    $inGuru = true;
+
+                    continue;
+                }
+
+                if ($inGuru && (str_contains($uLine, 'TATA USAHA') || str_contains($uLine, 'SATPAM') || str_contains($uLine, 'CS') || str_contains($uLine, 'OUTSOURCING') || str_contains($uLine, 'TANDA TERIMA'))) {
+                    break;
+                }
+
+                $fields = str_getcsv($line, $delim);
+                $uRow = array_map('strtoupper', array_map('trim', $fields));
+
+                if (! $headerFound && in_array('NIP', $uRow) && in_array('NAMA', $uRow)) {
+                    $headerFound = true;
+                    $inGuru = true;
+                    foreach ($uRow as $idx => $val) {
+                        if ($val === 'NIP') {
+                            $colNip = $idx;
+                        } elseif ($val === 'NAMA') {
+                            $colNama = $idx;
+                        } elseif (str_contains($val, 'KELAMIN')) {
+                            $colGender = $idx;
+                        } elseif (str_contains($val, 'MAPEL') || str_contains($val, 'PELAJARAN')) {
+                            $colMapel = $idx;
+                        }
+                    }
+
+                    continue;
+                }
+
+                if ($headerFound && $inGuru) {
+                    if (count($fields) <= max($colNip, $colNama)) {
+                        continue;
+                    }
+                    $rawNip = trim($fields[$colNip] ?? '');
+                    $rawNama = trim($fields[$colNama] ?? '');
+
+                    if (empty($rawNama) || strlen($rawNama) < 3 || in_array(strtoupper($rawNama), ['L', 'P'])) {
+                        continue;
+                    }
+                    if (strtoupper($rawNip) === 'NIP' || strtoupper($rawNama) === 'NAMA') {
+                        continue;
+                    }
+
+                    $cleanNip = preg_replace('/[^0-9]/', '', $rawNip);
+                    $gender = $colGender !== null ? trim($fields[$colGender] ?? '') : null;
+                    $mapel = $colMapel !== null ? trim($fields[$colMapel] ?? '') : null;
+
+                    $teachers[] = [
+                        'nip' => $cleanNip ?: $rawNip,
+                        'name' => $rawNama,
+                        'gender' => $gender,
+                        'subject' => $mapel,
+                    ];
+                }
+            }
+        } else {
+            $spreadsheet = IOFactory::load($filePath);
+            $targetSheet = null;
+            foreach ($spreadsheet->getSheetNames() as $sname) {
+                $uName = strtoupper($sname);
+                if (str_contains($uName, 'GURU') && ! str_contains($uName, 'TU') && ! str_contains($uName, 'TATA')) {
+                    $targetSheet = $spreadsheet->getSheetByName($sname);
+                    break;
+                }
+            }
+            if (! $targetSheet) {
+                $targetSheet = $spreadsheet->getActiveSheet();
+            }
+
+            $highestRow = $targetSheet->getHighestRow();
+            $inGuru = false;
+            $headerRow = null;
+            $colNip = null;
+            $colNama = null;
+            $colGender = null;
+            $colMapel = null;
+
+            for ($r = 1; $r <= $highestRow; $r++) {
+                $rowVals = [];
+                for ($c = 1; $c <= 15; $c++) {
+                    $rowVals[$c] = trim((string) $targetSheet->getCell([$c, $r])->getValue());
+                }
+                $rowStr = strtoupper(implode(' ', array_filter($rowVals)));
+
+                if (str_contains($rowStr, 'DATA NOMINATIF GURU') || str_contains($rowStr, 'NOMINATIF GURU')) {
+                    $inGuru = true;
+
+                    continue;
+                }
+
+                if ($inGuru && (str_contains($rowStr, 'TATA USAHA') || str_contains($rowStr, 'SATPAM') || str_contains($rowStr, 'CS') || str_contains($rowStr, 'OUTSOURCING') || str_contains($rowStr, 'TANDA TERIMA'))) {
+                    break;
+                }
+
+                $uRow = array_map('strtoupper', $rowVals);
+                if (! $headerRow && in_array('NIP', $uRow) && in_array('NAMA', $uRow)) {
+                    $headerRow = $r;
+                    $inGuru = true;
+                    foreach ($uRow as $cIdx => $val) {
+                        if ($val === 'NIP') {
+                            $colNip = $cIdx;
+                        } elseif ($val === 'NAMA') {
+                            $colNama = $cIdx;
+                        } elseif (str_contains($val, 'KELAMIN')) {
+                            $colGender = $cIdx;
+                        } elseif (str_contains($val, 'MAPEL') || str_contains($val, 'PELAJARAN')) {
+                            $colMapel = $cIdx;
+                        }
+                    }
+
+                    continue;
+                }
+
+                if ($headerRow && $r > $headerRow && $inGuru) {
+                    $rawNip = trim((string) $targetSheet->getCell([$colNip, $r])->getValue());
+                    $rawNama = trim((string) $targetSheet->getCell([$colNama, $r])->getValue());
+
+                    if (empty($rawNama) || strlen($rawNama) < 3 || in_array(strtoupper($rawNama), ['L', 'P'])) {
+                        continue;
+                    }
+                    if (strtoupper($rawNip) === 'NIP' || strtoupper($rawNama) === 'NAMA') {
+                        continue;
+                    }
+
+                    $cleanNip = preg_replace('/[^0-9]/', '', $rawNip);
+                    $gender = $colGender ? trim((string) $targetSheet->getCell([$colGender, $r])->getValue()) : null;
+                    $mapel = $colMapel ? trim((string) $targetSheet->getCell([$colMapel, $r])->getValue()) : null;
+
+                    $teachers[] = [
+                        'nip' => $cleanNip ?: $rawNip,
+                        'name' => $rawNama,
+                        'gender' => $gender,
+                        'subject' => $mapel,
+                    ];
+                }
+            }
+        }
+
+        return [
+            'type' => 'employee_teachers',
+            'detected_format' => $ext === 'csv' ? 'CSV / Data Pegawai Guru (Nominatif NIP)' : 'Excel / Data Pegawai Guru (Nominatif NIP)',
+            'total_teachers' => count($teachers),
+            'teachers' => $teachers,
+        ];
+    }
+
+    protected function isHomeroomCounselorFile(string $filePath, string $ext): bool
+    {
+        try {
+            if ($ext === 'csv') {
+                $content = strtoupper(substr((string) file_get_contents($filePath), 0, 8000));
+
+                return (str_contains($content, 'WALI KELAS') || str_contains($content, 'WALI_KELAS'))
+                    && (str_contains($content, 'GURU BK') || str_contains($content, 'WALI BK') || str_contains($content, 'BK'));
+            }
+
+            $spreadsheet = IOFactory::load($filePath);
+            $sheet = $spreadsheet->getActiveSheet();
+            $text = '';
+            for ($r = 1; $r <= min(25, $sheet->getHighestRow()); $r++) {
+                for ($c = 1; $c <= min(15, 15); $c++) {
+                    $text .= ' '.strtoupper((string) $sheet->getCell([$c, $r])->getValue());
+                }
+            }
+
+            return (str_contains($text, 'WALI KELAS') || str_contains($text, 'WALI_KELAS'))
+                && (str_contains($text, 'GURU BK') || str_contains($text, 'WALI BK') || str_contains($text, 'BK'));
+        } catch (\Throwable) {
+            return false;
+        }
+    }
+
+    protected function nativeParseHomeroomCounselor(string $filePath, string $ext): array
+    {
+        $academicYear = '2026/2027 - Ganjil';
+        $assignments = [];
+
+        if ($ext === 'csv') {
+            $content = file_get_contents($filePath);
+            $lines = preg_split('/\r\n|\r|\n/', (string) $content);
+            $headerIdx = null;
+            $colKelas = null;
+            $colWali = null;
+            $colBk = null;
+            $delim = ',';
+
+            foreach (array_slice($lines, 0, 10) as $l) {
+                if (substr_count($l, ';') > substr_count($l, ',')) {
+                    $delim = ';';
+                    break;
+                }
+            }
+
+            foreach (array_slice($lines, 0, 30) as $idx => $line) {
+                $uLine = strtoupper($line);
+                if (preg_match('/(\d{4}\s*[\/\-]\s*\d{4})/', $uLine, $m)) {
+                    $sem = str_contains($uLine, 'GANJIL') ? 'Ganjil' : (str_contains($uLine, 'GENAP') ? 'Genap' : '');
+                    $yearClean = str_replace([' ', '-'], ['', '/'], $m[1]);
+                    $academicYear = $sem ? "{$yearClean} - {$sem}" : $yearClean;
+                }
+
+                $fields = str_getcsv($line, $delim);
+                $clean = array_filter(array_map('trim', $fields));
+                if (count($clean) >= 2) {
+                    $uParts = array_map('strtoupper', $fields);
+                    $hasKelas = false;
+                    $hasWali = false;
+                    foreach ($uParts as $p) {
+                        if (str_contains($p, 'KELAS') && ! str_contains($p, 'WALI')) {
+                            $hasKelas = true;
+                        }
+                        if (str_contains($p, 'WALI')) {
+                            $hasWali = true;
+                        }
+                    }
+                    if ($hasKelas && $hasWali) {
+                        $headerIdx = $idx;
+                        foreach ($uParts as $cIdx => $p) {
+                            if (str_contains($p, 'KELAS') && ! str_contains($p, 'WALI')) {
+                                $colKelas = $cIdx;
+                            } elseif (str_contains($p, 'WALI')) {
+                                $colWali = $cIdx;
+                            } elseif (str_contains($p, 'BK') || str_contains($p, 'BIMBINGAN')) {
+                                $colBk = $cIdx;
+                            }
+                        }
+                        break;
+                    }
+                }
+            }
+
+            if ($headerIdx !== null && $colKelas !== null && $colWali !== null) {
+                foreach (array_slice($lines, $headerIdx + 1) as $line) {
+                    if (trim($line) === '') {
+                        continue;
+                    }
+                    $parts = str_getcsv($line, $delim);
+                    if (count($parts) <= max($colKelas, $colWali)) {
+                        continue;
+                    }
+                    $rawClass = trim($parts[$colKelas] ?? '');
+                    if (str_contains(strtoupper($rawClass), 'KETERANGAN') || str_contains(strtoupper($rawClass), 'DITETAPKAN')) {
+                        break;
+                    }
+                    $normClass = $this->normalizeClassName($rawClass);
+                    if (! preg_match('/^(X|XI|XII)\b/i', $normClass)) {
+                        continue;
+                    }
+
+                    $assignments[] = [
+                        'classroom' => $normClass,
+                        'raw_classroom' => $rawClass,
+                        'wali_kelas' => trim($parts[$colWali] ?? ''),
+                        'guru_bk' => $colBk !== null ? trim($parts[$colBk] ?? '') : '',
+                    ];
+                }
+            }
+        } else {
+            $spreadsheet = IOFactory::load($filePath);
+            $sheet = $spreadsheet->getActiveSheet();
+            $highestRow = $sheet->getHighestRow();
+            $headerRow = null;
+            $colKelas = null;
+            $colWali = null;
+            $colBk = null;
+
+            for ($r = 1; $r <= min(35, $highestRow); $r++) {
+                $rowVals = [];
+                for ($c = 1; $c <= 15; $c++) {
+                    $rowVals[$c] = trim((string) $sheet->getCell([$c, $r])->getValue());
+                }
+                $textLine = strtoupper(implode(' ', array_filter($rowVals)));
+                if (preg_match('/(\d{4}\s*[\/\-]\s*\d{4})/', $textLine, $m)) {
+                    $sem = str_contains($textLine, 'GANJIL') ? 'Ganjil' : (str_contains($textLine, 'GENAP') ? 'Genap' : '');
+                    $yearClean = str_replace([' ', '-'], ['', '/'], $m[1]);
+                    $academicYear = $sem ? "{$yearClean} - {$sem}" : $yearClean;
+                }
+
+                $nonEmpty = array_filter($rowVals);
+                if (count($nonEmpty) >= 2) {
+                    $hasKelas = false;
+                    $hasWali = false;
+                    foreach ($rowVals as $val) {
+                        $u = strtoupper($val);
+                        if (str_contains($u, 'KELAS') && ! str_contains($u, 'WALI')) {
+                            $hasKelas = true;
+                        }
+                        if (str_contains($u, 'WALI')) {
+                            $hasWali = true;
+                        }
+                    }
+                    if ($hasKelas && $hasWali) {
+                        $headerRow = $r;
+                        foreach ($rowVals as $cIdx => $val) {
+                            $u = strtoupper($val);
+                            if (str_contains($u, 'KELAS') && ! str_contains($u, 'WALI')) {
+                                $colKelas = $cIdx;
+                            } elseif (str_contains($u, 'WALI')) {
+                                $colWali = $cIdx;
+                            } elseif (str_contains($u, 'BK') || str_contains($u, 'BIMBINGAN')) {
+                                $colBk = $cIdx;
+                            }
+                        }
+                        break;
+                    }
+                }
+            }
+
+            if ($headerRow !== null && $colKelas !== null && $colWali !== null) {
+                for ($r = $headerRow + 1; $r <= $highestRow; $r++) {
+                    $rawClass = trim((string) $sheet->getCell([$colKelas, $r])->getValue());
+                    $rawWali = trim((string) $sheet->getCell([$colWali, $r])->getValue());
+                    $rawBk = $colBk !== null ? trim((string) $sheet->getCell([$colBk, $r])->getValue()) : '';
+
+                    if ($rawClass === '' || $rawWali === '') {
+                        continue;
+                    }
+                    if (str_contains(strtoupper($rawClass), 'KETERANGAN') || str_contains(strtoupper($rawClass), 'DITETAPKAN')) {
+                        break;
+                    }
+
+                    $normClass = $this->normalizeClassName($rawClass);
+                    if (! preg_match('/^(X|XI|XII)\b/i', $normClass)) {
+                        continue;
+                    }
+
+                    $assignments[] = [
+                        'classroom' => $normClass,
+                        'raw_classroom' => $rawClass,
+                        'wali_kelas' => $rawWali,
+                        'guru_bk' => $rawBk,
+                    ];
+                }
+            }
+        }
+
+        $homeroomSet = array_values(array_unique(array_filter(array_column($assignments, 'wali_kelas'))));
+        sort($homeroomSet);
+        $counselorSet = array_values(array_unique(array_filter(array_column($assignments, 'guru_bk'))));
+        sort($counselorSet);
+
+        return [
+            'type' => 'homeroom_and_counselor',
+            'detected_format' => $ext === 'csv' ? 'CSV / Daftar Wali Kelas & Guru BK (Wali BK)' : 'Excel / Daftar Wali Kelas & Guru BK (Wali BK)',
+            'academic_year' => $academicYear,
+            'total_classes' => count($assignments),
+            'total_homeroom' => count($homeroomSet),
+            'total_counselor' => count($counselorSet),
+            'homeroom_teachers' => $homeroomSet,
+            'counselor_teachers' => $counselorSet,
+            'assignments' => $assignments,
+        ];
     }
 
     /**
@@ -434,7 +861,7 @@ class SmartImportDetectorService
                 }
 
                 if (str_contains(strtoupper($c1), 'TAHUN PELAJARAN')) {
-                    if (preg_match('/(\d{4}\s*[-/]\s*\d{4})/', $c1, $m)) {
+                    if (preg_match('/(\d{4}\s*[\/\-]\s*\d{4})/', $c1, $m)) {
                         $currYear = str_replace(' ', '', $m[1]);
                         if (! $academicYear) {
                             $academicYear = $currYear;
@@ -646,6 +1073,14 @@ class SmartImportDetectorService
             return $this->importFetTimetable($data, $cycleTypeOverride, $academicYearIdOverride);
         }
 
+        if ($type === 'homeroom_and_counselor') {
+            return $this->importHomeroomAndCounselor($data, $academicYearIdOverride);
+        }
+
+        if ($type === 'employee_teachers') {
+            return $this->importEmployeeTeachers($data);
+        }
+
         throw new Exception("Tipe dokumen tidak dikenal: {$type}");
     }
 
@@ -693,9 +1128,9 @@ class SmartImportDetectorService
                 }
             }
 
-            // 4. Preload existing users and user_class pivots
-            $existingUsers = User::query()
-                ->select(['id', 'identity_number', 'username', 'full_name', 'role_id'])
+            // 4. Preload existing users and user_class pivots (including trashed so they can be restored)
+            $existingUsers = User::withTrashed()
+                ->select(['id', 'identity_number', 'username', 'full_name', 'role_id', 'deleted_at'])
                 ->get()
                 ->keyBy(fn ($u) => (string) ($u->identity_number ?: $u->username));
 
@@ -741,7 +1176,7 @@ class SmartImportDetectorService
                         'model_id' => $userId,
                     ];
 
-                    $existingUsers->put($nis, (object) ['id' => $userId]);
+                    $existingUsers->put($nis, (object) ['id' => $userId, 'deleted_at' => null]);
                     $newUsersCount++;
                 } else {
                     $userId = $user->id;
@@ -749,6 +1184,7 @@ class SmartImportDetectorService
                         'full_name' => $name,
                         'role_id' => $roleSiswa->id,
                         'status' => 'Aktif',
+                        'deleted_at' => null,
                         'updated_at' => $now,
                     ]);
                     $updatedUsersCount++;
@@ -930,7 +1366,7 @@ class SmartImportDetectorService
             $uniqueTeacherIds = [];
             $newTeachersCount = 0;
 
-            $existingStaffUsers = User::query()
+            $existingStaffUsers = User::withTrashed()
                 ->where(function ($q) use ($roleSiswa) {
                     $q->where('role_id', '!=', $roleSiswa->id)
                         ->orWhereNull('role_id');
@@ -1002,12 +1438,12 @@ class SmartImportDetectorService
                 if (! $user) {
                     $uname = $tCode ? "guru_{$tCode}" : strtolower((string) preg_replace('/[^a-zA-Z0-9]/', '', $tName));
                     $uname = substr($uname, 0, 30);
-                    if (User::where('username', $uname)->exists()) {
+                    if (User::withTrashed()->where('username', $uname)->exists()) {
                         $uname .= '_'.rand(10, 99);
                     }
 
                     $identNum = $tCode ?: $uname;
-                    if (User::where('identity_number', $identNum)->exists()) {
+                    if (User::withTrashed()->where('identity_number', $identNum)->exists()) {
                         $identNum = $uname;
                     }
 
@@ -1038,6 +1474,13 @@ class SmartImportDetectorService
                     }
                     $newTeachersCount++;
                 } else {
+                    // Restore user if it was soft-deleted
+                    DB::table('users')->where('id', $user->id)->update([
+                        'deleted_at' => null,
+                        'status' => 'Aktif',
+                        'updated_at' => $now,
+                    ]);
+
                     // Ensure matched teacher also has Guru role in Spatie model_has_roles
                     DB::table('model_has_roles')->insertOrIgnore([
                         'role_id' => $roleGuru->id,
@@ -1187,6 +1630,404 @@ class SmartImportDetectorService
                     'new_teachers_created' => $newTeachersCount,
                     'total_subjects' => count($subjects),
                     'total_rooms' => count($rooms),
+                ],
+            ];
+        });
+    }
+
+    /**
+     * Import Wali Kelas & Guru BK (Wali BK) mappings.
+     */
+    protected function importHomeroomAndCounselor(array $data, ?int $academicYearIdOverride = null): array
+    {
+        return DB::transaction(function () use ($data, $academicYearIdOverride) {
+            // 1. Resolve Academic Year
+            $academicYear = null;
+            if ($academicYearIdOverride) {
+                $academicYear = AcademicYear::find($academicYearIdOverride);
+            }
+
+            if (! $academicYear) {
+                $academicYear = AcademicYear::where('is_active', true)->first()
+                    ?? AcademicYear::where('name', 'like', '%2026%')->first()
+                    ?? AcademicYear::first();
+            }
+
+            if (! $academicYear) {
+                $academicYear = AcademicYear::create([
+                    'name' => '2026/2027 - Ganjil',
+                    'start_date' => '2026-07-01',
+                    'end_date' => '2026-12-31',
+                    'is_active' => true,
+                ]);
+            }
+
+            // 2. Roles
+            $roleGuru = Role::firstOrCreate(['name' => 'Guru'], ['guard_name' => 'web']);
+            $roleWali = Role::firstOrCreate(['name' => 'Wali Kelas'], ['guard_name' => 'web']);
+            $roleBK = Role::firstOrCreate(['name' => 'Guru BK'], ['guard_name' => 'web']);
+
+            // 3. Preload all classrooms
+            $existingClassrooms = Classroom::all()->keyBy(fn ($c) => strtoupper(trim($c->name)));
+
+            // 4. Preload candidate teachers (including trashed so they can be restored)
+            $teacherUsers = User::withTrashed()
+                ->where(function ($q) {
+                    $q->whereHas('role', fn ($r) => $r->whereIn('name', ['Guru', 'Wali Kelas', 'Guru BK', 'Waka Kurikulum', 'Super Admin']))
+                        ->orWhereHas('roles', fn ($r) => $r->whereIn('name', ['Guru', 'Wali Kelas', 'Guru BK', 'Waka Kurikulum', 'Super Admin']));
+                })
+                ->get();
+
+            $matchedUserCache = [];
+            $newUsersCount = 0;
+            $updatedUsersCount = 0;
+
+            $cleanNameHelper = function (string $raw): string {
+                $noTitle = preg_split('/,/', $raw)[0] ?? $raw;
+                $clean = preg_replace('/[^a-zA-Z0-9\s]/', '', $noTitle);
+
+                return strtoupper(trim((string) preg_replace('/\s+/', ' ', (string) $clean)));
+            };
+
+            $findOrCreateTeacher = function (string $rawName, Role $targetRole, array $spatieRoles) use (
+                &$teacherUsers,
+                &$matchedUserCache,
+                &$newUsersCount,
+                &$updatedUsersCount,
+                $cleanNameHelper,
+                $roleGuru
+            ): User {
+                $clean = $cleanNameHelper($rawName);
+                if (isset($matchedUserCache[$clean])) {
+                    /** @var User $cached */
+                    $cached = $matchedUserCache[$clean];
+                    if ($cached->role_id === $roleGuru->id && $targetRole->id !== $roleGuru->id) {
+                        $cached->update(['role_id' => $targetRole->id]);
+                    }
+                    foreach ($spatieRoles as $r) {
+                        if (! $cached->hasRole($r)) {
+                            $cached->assignRole($r);
+                        }
+                    }
+
+                    return $cached;
+                }
+
+                // 1. Exact match
+                $user = $teacherUsers->first(fn ($u) => strtolower(trim((string) $u->full_name)) === strtolower(trim($rawName)));
+
+                // 2. Clean name prefix / exact clean match
+                if (! $user) {
+                    $user = $teacherUsers->first(function ($u) use ($clean, $cleanNameHelper) {
+                        $uClean = $cleanNameHelper($u->full_name);
+
+                        return $uClean === $clean || str_starts_with($uClean, $clean) || str_starts_with($clean, $uClean);
+                    });
+                }
+
+                // 3. Token match (words length >= 4)
+                if (! $user) {
+                    $words = array_values(array_filter(explode(' ', $clean), fn ($w) => strlen($w) >= 4));
+                    if (count($words) >= 2) {
+                        $user = $teacherUsers->first(function ($u) use ($words, $cleanNameHelper) {
+                            $uClean = $cleanNameHelper($u->full_name);
+                            $matches = 0;
+                            foreach ($words as $w) {
+                                if (str_contains($uClean, $w)) {
+                                    $matches++;
+                                }
+                            }
+
+                            return $matches >= min(2, count($words));
+                        });
+                    }
+                }
+
+                if ($user) {
+                    if ($user->trashed()) {
+                        $user->restore();
+                    }
+                    $needsUpdate = false;
+                    if ($user->status !== 'Aktif') {
+                        $user->status = 'Aktif';
+                        $needsUpdate = true;
+                    }
+                    if ($user->role_id === $roleGuru->id && $targetRole->id !== $roleGuru->id) {
+                        $user->role_id = $targetRole->id;
+                        $needsUpdate = true;
+                    }
+                    if ($needsUpdate) {
+                        $user->save();
+                    }
+                    foreach ($spatieRoles as $r) {
+                        if (! $user->hasRole($r)) {
+                            $user->assignRole($r);
+                            $needsUpdate = true;
+                        }
+                    }
+                    if ($needsUpdate) {
+                        $updatedUsersCount++;
+                    }
+
+                    $matchedUserCache[$clean] = $user;
+
+                    return $user;
+                }
+
+                // Create new user
+                $baseUsername = Str::slug($clean, '.');
+                if (empty($baseUsername)) {
+                    $baseUsername = 'guru.'.rand(100, 999);
+                }
+                $username = $baseUsername;
+                $counter = 1;
+                while (User::withTrashed()->where('username', $username)->exists()) {
+                    $username = $baseUsername.$counter++;
+                }
+
+                $email = $username.'@smkn1bantul.sch.id';
+                $counter = 1;
+                while (User::withTrashed()->where('email', $email)->exists()) {
+                    $email = $username.$counter++.'@smkn1bantul.sch.id';
+                }
+
+                $newUser = User::create([
+                    'full_name' => $rawName,
+                    'username' => $username,
+                    'email' => $email,
+                    'password' => Hash::make('password'),
+                    'role_id' => $targetRole->id,
+                    'status' => 'Aktif',
+                ]);
+
+                foreach ($spatieRoles as $r) {
+                    $newUser->assignRole($r);
+                }
+
+                $newUsersCount++;
+                $teacherUsers->push($newUser);
+                $matchedUserCache[$clean] = $newUser;
+
+                return $newUser;
+            };
+
+            // Process assignments
+            $classesMapped = 0;
+            $homeroomLinked = 0;
+            $counselorLinked = 0;
+
+            foreach ($data['assignments'] ?? [] as $assignment) {
+                $normClass = $this->normalizeClassName($assignment['classroom'] ?? '');
+                if (empty($normClass)) {
+                    continue;
+                }
+
+                if (! $existingClassrooms->has($normClass)) {
+                    $c = Classroom::create(['name' => $normClass]);
+                    $c->syncRelationsFromName();
+                    $c->save();
+                    $existingClassrooms->put($normClass, $c);
+                }
+                $classroom = $existingClassrooms->get($normClass);
+
+                // 1. Wali Kelas
+                if (! empty($assignment['wali_kelas'])) {
+                    $waliUser = $findOrCreateTeacher($assignment['wali_kelas'], $roleWali, ['Guru', 'Wali Kelas']);
+                    $exists = DB::table('user_class')
+                        ->where('user_id', $waliUser->id)
+                        ->where('classroom_id', $classroom->id)
+                        ->where('academic_year_id', $academicYear->id)
+                        ->exists();
+
+                    if (! $exists) {
+                        DB::table('user_class')->insert([
+                            'user_id' => $waliUser->id,
+                            'classroom_id' => $classroom->id,
+                            'academic_year_id' => $academicYear->id,
+                            'status' => 'Aktif',
+                            'created_at' => now(),
+                            'updated_at' => now(),
+                        ]);
+                    }
+                    $homeroomLinked++;
+                }
+
+                // 2. Guru BK (Wali BK)
+                if (! empty($assignment['guru_bk'])) {
+                    $bkUser = $findOrCreateTeacher($assignment['guru_bk'], $roleBK, ['Guru', 'Guru BK']);
+                    $exists = DB::table('user_class')
+                        ->where('user_id', $bkUser->id)
+                        ->where('classroom_id', $classroom->id)
+                        ->where('academic_year_id', $academicYear->id)
+                        ->exists();
+
+                    if (! $exists) {
+                        DB::table('user_class')->insert([
+                            'user_id' => $bkUser->id,
+                            'classroom_id' => $classroom->id,
+                            'academic_year_id' => $academicYear->id,
+                            'status' => 'Aktif',
+                            'created_at' => now(),
+                            'updated_at' => now(),
+                        ]);
+                    }
+                    $counselorLinked++;
+                }
+
+                $classesMapped++;
+            }
+
+            return [
+                'status' => 'success',
+                'type' => 'homeroom_and_counselor',
+                'message' => "Import Wali Kelas & Guru BK berhasil: {$classesMapped} rombel dipetakan. Menghubungkan {$homeroomLinked} penugasan Wali Kelas dan {$counselorLinked} penugasan Guru BK. ({$updatedUsersCount} akun guru diperbarui peran, {$newUsersCount} akun baru dibuat).",
+                'details' => [
+                    'classes_mapped' => $classesMapped,
+                    'homeroom_linked' => $homeroomLinked,
+                    'counselor_linked' => $counselorLinked,
+                    'new_users' => $newUsersCount,
+                    'updated_users' => $updatedUsersCount,
+                ],
+            ];
+        });
+    }
+
+    /**
+     * Import / update employee teachers data, populating NIP (identity_number) and creating any missing teachers.
+     * Strictly ignores non-teaching staff (TU, CS, Satpam).
+     */
+    protected function importEmployeeTeachers(array $data): array
+    {
+        return DB::transaction(function () use ($data) {
+            $roleGuru = Role::firstOrCreate(['name' => 'Guru'], ['guard_name' => 'web']);
+
+            $existingTeachers = User::withTrashed()
+                ->where(function ($q) {
+                    $q->whereHas('role', fn ($r) => $r->whereIn('name', ['Guru', 'Wali Kelas', 'Guru BK', 'Waka Kurikulum', 'Super Admin']))
+                        ->orWhereHas('roles', fn ($r) => $r->whereIn('name', ['Guru', 'Wali Kelas', 'Guru BK', 'Waka Kurikulum', 'Super Admin']));
+                })
+                ->get();
+
+            $cleanNameHelper = function (string $raw): string {
+                $noTitle = preg_split('/,/', $raw)[0] ?? $raw;
+                $noPrefix = preg_replace('/^(Dra\.|Drs\.|Dr\.)\s*/i', '', $noTitle);
+                $clean = preg_replace('/[^a-zA-Z0-9\s]/', '', $noPrefix);
+
+                return strtoupper(trim((string) preg_replace('/\s+/', ' ', (string) $clean)));
+            };
+
+            $updatedNipCount = 0;
+            $newTeachersCount = 0;
+            $matchedUserCache = [];
+
+            foreach ($data['teachers'] ?? [] as $t) {
+                $nip = trim((string) ($t['nip'] ?? ''));
+                $name = trim((string) ($t['name'] ?? ''));
+                if (empty($name)) {
+                    continue;
+                }
+
+                $clean = $cleanNameHelper($name);
+                if (isset($matchedUserCache[$clean])) {
+                    continue;
+                }
+
+                // 1. Exact match
+                $user = $existingTeachers->first(fn ($u) => strtolower(trim((string) $u->full_name)) === strtolower($name));
+
+                // 2. Clean match
+                if (! $user) {
+                    $user = $existingTeachers->first(function ($u) use ($clean, $cleanNameHelper) {
+                        $uClean = $cleanNameHelper((string) $u->full_name);
+
+                        return $uClean === $clean || str_starts_with($uClean, $clean) || str_starts_with($clean, $uClean);
+                    });
+                }
+
+                // 3. Token match (words >= 4 chars)
+                if (! $user) {
+                    $words = array_values(array_filter(explode(' ', $clean), fn ($w) => strlen($w) >= 4));
+                    if (count($words) >= 2) {
+                        $user = $existingTeachers->first(function ($u) use ($words, $cleanNameHelper) {
+                            $uClean = $cleanNameHelper((string) $u->full_name);
+                            $matches = 0;
+                            foreach ($words as $w) {
+                                if (str_contains($uClean, $w)) {
+                                    $matches++;
+                                }
+                            }
+
+                            return $matches >= min(2, count($words));
+                        });
+                    }
+                }
+
+                // 4. Match by NIP (identity_number) across all users (active or trashed)
+                if (! $user && ! empty($nip)) {
+                    $user = $existingTeachers->first(fn ($u) => (string) $u->identity_number === $nip)
+                        ?: User::withTrashed()->where('identity_number', $nip)->first();
+                }
+
+                if ($user) {
+                    if ($user->trashed()) {
+                        $user->restore();
+                    }
+                    $needsSave = false;
+                    if (! empty($nip) && $user->identity_number !== $nip) {
+                        $user->identity_number = $nip;
+                        $needsSave = true;
+                    }
+                    if ($user->status !== 'Aktif') {
+                        $user->status = 'Aktif';
+                        $needsSave = true;
+                    }
+                    if ($needsSave) {
+                        $user->save();
+                        $updatedNipCount++;
+                    }
+                    $matchedUserCache[$clean] = $user;
+                } else {
+                    $baseUsername = Str::slug($clean, '.');
+                    if (empty($baseUsername)) {
+                        $baseUsername = ! empty($nip) ? $nip : 'guru.'.rand(100, 999);
+                    }
+                    $username = $baseUsername;
+                    $counter = 1;
+                    while (User::withTrashed()->where('username', $username)->exists()) {
+                        $username = $baseUsername.$counter++;
+                    }
+
+                    $email = $username.'@smkn1bantul.sch.id';
+                    $counter = 1;
+                    while (User::withTrashed()->where('email', $email)->exists()) {
+                        $email = $username.$counter++.'@smkn1bantul.sch.id';
+                    }
+
+                    $newUser = User::create([
+                        'full_name' => $name,
+                        'identity_number' => ! empty($nip) ? $nip : null,
+                        'username' => $username,
+                        'email' => $email,
+                        'password' => Hash::make('password'),
+                        'role_id' => $roleGuru->id,
+                        'status' => 'Aktif',
+                    ]);
+                    $newUser->syncRoles(['Guru']);
+
+                    $existingTeachers->push($newUser);
+                    $matchedUserCache[$clean] = $newUser;
+                    $newTeachersCount++;
+                }
+            }
+
+            return [
+                'status' => 'success',
+                'type' => 'employee_teachers',
+                'message' => 'Berhasil memproses '.count($data['teachers'] ?? [])." data guru: {$updatedNipCount} NIP diperbarui, {$newTeachersCount} guru baru ditambahkan. Data TU & Outsourcing otomatis diabaikan.",
+                'details' => [
+                    'total_teachers_processed' => count($data['teachers'] ?? []),
+                    'nip_updated' => $updatedNipCount,
+                    'new_teachers_created' => $newTeachersCount,
                 ],
             ];
         });

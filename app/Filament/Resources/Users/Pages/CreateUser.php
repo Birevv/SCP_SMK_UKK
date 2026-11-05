@@ -73,8 +73,7 @@ class CreateUser extends CreateRecord
 
                     if ($result['imported'] > 0 || $result['updated'] > 0) {
                         Notification::make()
-                            ->title('Import Pengguna Berhasil')
-                            ->body($body)
+                            ->title('Data berhasil diinput')
                             ->success()
                             ->send();
 
@@ -116,6 +115,11 @@ class CreateUser extends CreateRecord
         }
 
         return parent::mutateFormDataBeforeCreate($data);
+    }
+
+    protected function getCreatedNotificationTitle(): ?string
+    {
+        return 'Data berhasil diinput';
     }
 
     protected function getRedirectUrl(): string

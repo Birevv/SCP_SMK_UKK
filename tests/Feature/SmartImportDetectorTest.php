@@ -368,4 +368,180 @@ class SmartImportDetectorTest extends TestCase
         $this->assertEquals(2, Schedule::where('cycle_type', 'Putaran 1')->count());
         $this->assertEquals(2, Schedule::where('cycle_type', 'Putaran 2')->count());
     }
+
+    public function test_service_can_parse_and_import_homeroom_and_counselor_data(): void
+    {
+        $service = app(SmartImportDetectorService::class);
+
+        $roleGuru = Role::firstOrCreate(['name' => 'Guru'], ['guard_name' => 'web']);
+        $roleWali = Role::firstOrCreate(['name' => 'Wali Kelas'], ['guard_name' => 'web']);
+        $roleBK = Role::firstOrCreate(['name' => 'Guru BK'], ['guard_name' => 'web']);
+
+        // Pre-create an existing teacher with generic 'Guru' role
+        $existingGuru = User::create([
+            'full_name' => 'ERIDHA DEWI SEPITASARI, S.Pd.',
+            'username' => 'eridha.dewi',
+            'email' => 'eridha@smkn1bantul.sch.id',
+            'password' => bcrypt('password'),
+            'role_id' => $roleGuru->id,
+            'status' => 'Aktif',
+        ]);
+        $existingGuru->assignRole('Guru');
+
+        $homeroomData = [
+            'type' => 'homeroom_and_counselor',
+            'detected_format' => 'Excel / Daftar Wali Kelas & Guru BK (Wali BK)',
+            'academic_year' => '2026/2027 - Ganjil',
+            'total_classes' => 2,
+            'total_homeroom' => 2,
+            'total_counselor' => 1,
+            'assignments' => [
+                [
+                    'classroom' => 'X AK 1',
+                    'raw_classroom' => 'X AK1',
+                    'wali_kelas' => 'ERIDHA DEWI SEPITASARI, S.Pd.',
+                    'guru_bk' => 'CANDRA RAHADIAN, S.Pd',
+                ],
+                [
+                    'classroom' => 'X AK 2',
+                    'raw_classroom' => 'X AK 2',
+                    'wali_kelas' => 'SULARDI, S.Pd',
+                    'guru_bk' => 'CANDRA RAHADIAN, S.Pd',
+                ],
+            ],
+        ];
+
+        $result = $service->import($homeroomData);
+
+        $this->assertEquals('success', $result['status']);
+        $this->assertEquals(2, $result['details']['classes_mapped']);
+
+        // Classrooms created
+        $this->assertDatabaseHas('classrooms', ['name' => 'X AK 1']);
+        $this->assertDatabaseHas('classrooms', ['name' => 'X AK 2']);
+
+        // Check Existing Guru updated to Wali Kelas
+        $existingGuru->refresh();
+        $this->assertEquals($roleWali->id, $existingGuru->role_id);
+        $this->assertTrue($existingGuru->hasRole('Guru'));
+        $this->assertTrue($existingGuru->hasRole('Wali Kelas'));
+        $this->assertTrue($existingGuru->classrooms()->where('name', 'X AK 1')->exists());
+
+        // Check Guru BK created & mapped to both classes
+        $candra = User::where('full_name', 'like', '%CANDRA RAHADIAN%')->first();
+        $this->assertNotNull($candra);
+        $this->assertEquals($roleBK->id, $candra->role_id);
+        $this->assertTrue($candra->hasRole('Guru BK'));
+        $this->assertTrue($candra->hasRole('Guru'));
+        $this->assertEquals(2, $candra->classrooms()->count());
+        $this->assertTrue($candra->classrooms()->where('name', 'X AK 1')->exists());
+        $this->assertTrue($candra->classrooms()->where('name', 'X AK 2')->exists());
+
+        // Check Sulardi created as Wali Kelas
+        $sulardi = User::where('full_name', 'like', '%SULARDI%')->first();
+        $this->assertNotNull($sulardi);
+        $this->assertEquals($roleWali->id, $sulardi->role_id);
+        $this->assertTrue($sulardi->classrooms()->where('name', 'X AK 2')->exists());
+
+        // Test idempotency: re-importing same data
+        $reResult = $service->import($homeroomData);
+        $this->assertEquals('success', $reResult['status']);
+        $this->assertEquals(0, $reResult['details']['new_users']);
+        $this->assertEquals(2, $candra->refresh()->classrooms()->count());
+    }
+
+    public function test_service_can_parse_and_import_employee_teachers_data_populating_nip(): void
+    {
+        $service = app(SmartImportDetectorService::class);
+
+        $roleGuru = Role::firstOrCreate(['name' => 'Guru'], ['guard_name' => 'web']);
+
+        // Teacher created from schedule without NIP
+        $existingTeacher = User::create([
+            'full_name' => 'Dwi Lesmiyati, S.Pd.',
+            'username' => 'dwi.lesmiyati',
+            'email' => 'dwi@smkn1bantul.sch.id',
+            'password' => bcrypt('password'),
+            'role_id' => $roleGuru->id,
+            'identity_number' => null,
+            'status' => 'Aktif',
+        ]);
+        $existingTeacher->assignRole('Guru');
+
+        $employeeData = [
+            'type' => 'employee_teachers',
+            'detected_format' => 'Excel / Data Pegawai Guru (Nominatif NIP)',
+            'total_teachers' => 2,
+            'teachers' => [
+                [
+                    'nip' => '197510222006042016',
+                    'name' => 'DWI LESMIYATI, S.Pd',
+                    'gender' => 'Perempuan',
+                    'subject' => 'MATEMATIKA',
+                ],
+                [
+                    'nip' => '196904041989031010',
+                    'name' => 'RAHARJO S.IP., M.Pd.',
+                    'gender' => 'Laki-laki',
+                    'subject' => 'Kepala Sekolah',
+                ],
+            ],
+        ];
+
+        $res = $service->import($employeeData);
+
+        $this->assertEquals('success', $res['status']);
+        $this->assertEquals(1, $res['details']['nip_updated']);
+        $this->assertEquals(1, $res['details']['new_teachers_created']);
+
+        // Assert NIP was populated for existing teacher
+        $existingTeacher->refresh();
+        $this->assertEquals('197510222006042016', $existingTeacher->identity_number);
+
+        // Assert new teacher Raharjo was created with NIP
+        $raharjo = User::where('full_name', 'like', '%RAHARJO%')->first();
+        $this->assertNotNull($raharjo);
+        $this->assertEquals('196904041989031010', $raharjo->identity_number);
+        $this->assertTrue($raharjo->hasRole('Guru'));
+    }
+
+    public function test_import_employee_teachers_restores_soft_deleted_user_without_duplicate_error(): void
+    {
+        $service = app(SmartImportDetectorService::class);
+        $roleGuru = Role::firstOrCreate(['name' => 'Guru'], ['guard_name' => 'web']);
+
+        $trashedTeacher = User::create([
+            'full_name' => 'RAHARJO S.IP., M.Pd.',
+            'username' => 'raharjo.sip',
+            'email' => 'raharjo.sip@smkn1bantul.sch.id',
+            'password' => bcrypt('password'),
+            'role_id' => $roleGuru->id,
+            'identity_number' => '196904041989031010',
+            'status' => 'Aktif',
+        ]);
+        $trashedTeacher->delete();
+        $this->assertTrue($trashedTeacher->trashed());
+
+        $employeeData = [
+            'type' => 'employee_teachers',
+            'detected_format' => 'Excel / Data Pegawai Guru (Nominatif NIP)',
+            'total_teachers' => 1,
+            'teachers' => [
+                [
+                    'nip' => '196904041989031010',
+                    'name' => 'RAHARJO S.IP., M.Pd.',
+                    'gender' => 'Laki-laki',
+                    'subject' => 'Kepala Sekolah',
+                ],
+            ],
+        ];
+
+        $res = $service->import($employeeData);
+        $this->assertEquals('success', $res['status']);
+
+        $trashedTeacher->refresh();
+        $this->assertFalse($trashedTeacher->trashed());
+        $this->assertEquals('Aktif', $trashedTeacher->status);
+        $this->assertEquals('196904041989031010', $trashedTeacher->identity_number);
+    }
 }

@@ -86,10 +86,14 @@ class UserForm
                 TextInput::make('password')
                     ->label('Password')
                     ->password()
+                    ->revealable()
+                    ->default(fn (string $operation): ?string => $operation === 'create' ? 'password' : null)
                     ->required(fn (string $operation): bool => $operation === 'create')
                     ->dehydrated(fn (?string $state): bool => filled($state))
                     ->dehydrateStateUsing(fn (string $state): string => Hash::make($state))
-                    ->helperText(fn (string $operation): string => $operation === 'edit' ? 'Kosongkan jika tidak ingin mengubah password' : ''
+                    ->helperText(fn (string $operation): string => $operation === 'edit'
+                        ? 'Kosongkan jika tidak ingin mengubah password'
+                        : 'Default password: password (dapat diganti jika diinginkan)'
                     ),
             ]);
     }

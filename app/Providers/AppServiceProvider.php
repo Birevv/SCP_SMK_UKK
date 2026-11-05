@@ -2,6 +2,12 @@
 
 namespace App\Providers;
 
+use Filament\Actions\CreateAction;
+use Filament\Actions\DeleteAction;
+use Filament\Actions\DeleteBulkAction;
+use Filament\Actions\EditAction;
+use Filament\Actions\ForceDeleteAction;
+use Filament\Actions\RestoreAction;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\ServiceProvider;
 
@@ -30,16 +36,16 @@ class AppServiceProvider extends ServiceProvider
         });
 
         // Konfigurasi konfirmasi global untuk aksi-aksi CRUD Filament
-        \Filament\Actions\DeleteAction::configureUsing(function (\Filament\Actions\DeleteAction $action): void {
+        DeleteAction::configureUsing(function (DeleteAction $action): void {
             $action
                 ->requiresConfirmation()
-                ->modalHeading(fn (\Filament\Actions\DeleteAction $action): string => 'Konfirmasi Hapus ' . ($action->getRecordTitle() ?: 'Data'))
+                ->modalHeading(fn (DeleteAction $action): string => 'Konfirmasi Hapus '.($action->getRecordTitle() ?: 'Data'))
                 ->modalDescription('Apakah Anda yakin ingin menghapus data ini? Pastikan data sudah sesuai sebelum dihapus karena tindakan ini tidak dapat dibatalkan.')
                 ->modalSubmitActionLabel('Ya, Hapus Data')
                 ->modalCancelActionLabel('Batal');
         });
 
-        \Filament\Actions\DeleteBulkAction::configureUsing(function (\Filament\Actions\DeleteBulkAction $action): void {
+        DeleteBulkAction::configureUsing(function (DeleteBulkAction $action): void {
             $action
                 ->requiresConfirmation()
                 ->modalHeading('Konfirmasi Hapus Data Terpilih')
@@ -48,31 +54,32 @@ class AppServiceProvider extends ServiceProvider
                 ->modalCancelActionLabel('Batal');
         });
 
-        \Filament\Actions\ForceDeleteAction::configureUsing(function (\Filament\Actions\ForceDeleteAction $action): void {
+        ForceDeleteAction::configureUsing(function (ForceDeleteAction $action): void {
             $action
                 ->requiresConfirmation()
-                ->modalHeading(fn (\Filament\Actions\ForceDeleteAction $action): string => 'Konfirmasi Hapus Permanen ' . ($action->getRecordTitle() ?: 'Data'))
+                ->modalHeading(fn (ForceDeleteAction $action): string => 'Konfirmasi Hapus Permanen '.($action->getRecordTitle() ?: 'Data'))
                 ->modalDescription('Apakah Anda yakin ingin menghapus permanen data ini? Data akan dihapus selamanya dari sistem.')
                 ->modalSubmitActionLabel('Ya, Hapus Permanen')
                 ->modalCancelActionLabel('Batal');
         });
 
-        \Filament\Actions\RestoreAction::configureUsing(function (\Filament\Actions\RestoreAction $action): void {
+        RestoreAction::configureUsing(function (RestoreAction $action): void {
             $action
                 ->requiresConfirmation()
-                ->modalHeading(fn (\Filament\Actions\RestoreAction $action): string => 'Konfirmasi Pemulihan ' . ($action->getRecordTitle() ?: 'Data'))
+                ->modalHeading(fn (RestoreAction $action): string => 'Konfirmasi Pemulihan '.($action->getRecordTitle() ?: 'Data'))
                 ->modalDescription('Apakah Anda yakin ingin memulihkan kembali data ini ke sistem?')
                 ->modalSubmitActionLabel('Ya, Pulihkan Data')
                 ->modalCancelActionLabel('Batal');
         });
 
-        \Filament\Actions\CreateAction::configureUsing(function (\Filament\Actions\CreateAction $action): void {
+        CreateAction::configureUsing(function (CreateAction $action): void {
             $action
+                ->successNotificationTitle('Data berhasil diinput')
                 ->modalSubmitActionLabel('Simpan Data')
                 ->modalCancelActionLabel('Batal');
         });
 
-        \Filament\Actions\EditAction::configureUsing(function (\Filament\Actions\EditAction $action): void {
+        EditAction::configureUsing(function (EditAction $action): void {
             $action
                 ->modalSubmitActionLabel('Simpan Perubahan')
                 ->modalCancelActionLabel('Batal');

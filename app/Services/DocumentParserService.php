@@ -74,6 +74,10 @@ class DocumentParserService
 
             $fields = str_getcsv($line, $bestDelimiter);
             if ($headers === null) {
+                $cleanFields = array_filter(array_map('trim', $fields));
+                if (count($cleanFields) < 2) {
+                    continue;
+                }
                 $headers = array_map(fn ($h) => $this->normalizeHeader((string) $h), $fields);
 
                 continue;
@@ -187,10 +191,20 @@ class DocumentParserService
             return [];
         }
 
-        $headers = array_map(fn ($h) => $this->normalizeHeader((string) $h), array_shift($rowsData));
+        $headers = null;
         $rows = [];
 
         foreach ($rowsData as $data) {
+            $nonEmpty = array_filter($data, fn ($c) => trim((string) $c) !== '');
+            if ($headers === null) {
+                if (count($nonEmpty) < 2) {
+                    continue;
+                }
+                $headers = array_map(fn ($h) => $this->normalizeHeader((string) $h), $data);
+
+                continue;
+            }
+
             $row = [];
             foreach ($headers as $index => $header) {
                 if ($header !== '') {

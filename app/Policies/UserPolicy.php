@@ -40,6 +40,10 @@ class UserPolicy
             return false;
         }
 
+        if ($user && $user->id === $authUser->id) {
+            return false;
+        }
+
         return $authUser->can('Delete:User');
     }
 
@@ -48,13 +52,21 @@ class UserPolicy
         return $authUser->can('DeleteAny:User');
     }
 
-    public function restore(AuthUser $authUser): bool
+    public function restore(AuthUser $authUser, ?User $user = null): bool
     {
         return $authUser->can('Restore:User');
     }
 
-    public function forceDelete(AuthUser $authUser): bool
+    public function forceDelete(AuthUser $authUser, ?User $user = null): bool
     {
+        if ($user && ($user->hasRole('Super Admin') || $user->role?->name === 'Super Admin')) {
+            return false;
+        }
+
+        if ($user && $user->id === $authUser->id) {
+            return false;
+        }
+
         return $authUser->can('ForceDelete:User');
     }
 

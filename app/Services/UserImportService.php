@@ -51,9 +51,17 @@ class UserImportService
         foreach ($rows as $index => $row) {
             $rowNum = $index + 2;
 
-            $fullName = $this->getValue($row, ['nama_lengkap', 'nama', 'full_name', 'name']);
+            $fullName = $this->getValue($row, ['nama_lengkap', 'nama', 'full_name', 'name', 'nama_wali_kelas', 'wali_kelas', 'nama_guru_bk', 'guru_bk', 'wali_bk', 'nama_wali_bk']);
             $username = $this->getValue($row, ['username', 'user']);
-            $roleName = $this->getValue($row, ['role', 'role_akses', 'jabatan', 'peran']) ?: 'Siswa';
+
+            $roleFromCol = null;
+            if (! empty($this->getValue($row, ['nama_wali_kelas', 'wali_kelas']))) {
+                $roleFromCol = 'Wali Kelas';
+            } elseif (! empty($this->getValue($row, ['nama_guru_bk', 'guru_bk', 'wali_bk', 'nama_wali_bk']))) {
+                $roleFromCol = 'Guru BK';
+            }
+
+            $roleName = $this->getValue($row, ['role', 'role_akses', 'jabatan', 'peran']) ?: ($roleFromCol ?: 'Siswa');
             $identityNumber = $this->getValue($row, ['nisn_nip', 'identity_number', 'nisn', 'nip', 'nomor_identitas']);
             $email = $this->getValue($row, ['email', 'surel']);
             $phone = $this->getValue($row, ['telepon', 'phone', 'no_hp', 'no_telepon']);
@@ -98,7 +106,7 @@ class UserImportService
 
                 $username = $base;
                 $counter = 1;
-                while (User::where('username', $username)->exists()) {
+                while (User::withTrashed()->where('username', $username)->exists()) {
                     $username = $base.$counter++;
                 }
             }
@@ -106,21 +114,26 @@ class UserImportService
             // Generate email if empty
             if (empty($email)) {
                 $email = Str::slug($username).'@scp.sch.id';
-                if (User::where('email', $email)->exists()) {
-                    $email = Str::slug($username).rand(10, 99).'@scp.sch.id';
+                $counter = 1;
+                while (User::withTrashed()->where('email', $email)->exists()) {
+                    $email = Str::slug($username).rand(10, 99).$counter++.'@scp.sch.id';
                 }
             }
 
-            // Check if user already exists by identity_number or username
+            // Check if user already exists by identity_number or username (including trashed)
             $user = null;
             if (! empty($identityNumber)) {
-                $user = User::where('identity_number', $identityNumber)->first();
+                $user = User::withTrashed()->where('identity_number', $identityNumber)->first();
             }
             if (! $user) {
-                $user = User::where('username', $username)->first();
+                $user = User::withTrashed()->where('username', $username)->first();
             }
 
             if ($user) {
+                if ($user->trashed()) {
+                    $user->restore();
+                }
+
                 // Prevent editing Super Admin by non-Super Admin
                 if (($user->hasRole('Super Admin') || $user->role?->name === 'Super Admin') && ! $isSuperAdmin) {
                     $errors[] = "Baris {$rowNum}: Akun Super Admin tidak dapat diperbarui melalui import.";
@@ -192,7 +205,7 @@ class UserImportService
         return match ($lower) {
             'guru', 'teacher' => 'Guru',
             'wali_kelas', 'wali kelas', 'walikelas', 'homeroom' => 'Wali Kelas',
-            'guru_bk', 'guru bk', 'gurubk', 'bk', 'counselor' => 'Guru BK',
+            'guru_bk', 'guru bk', 'gurubk', 'bk', 'counselor', 'wali_bk', 'wali bk', 'walibk' => 'Guru BK',
             'siswa', 'student', 'murid' => 'Siswa',
             'waka_kurikulum', 'waka kurikulum', 'wakakurikulum', 'waka' => 'Waka Kurikulum',
             'super_admin', 'super admin', 'superadmin', 'admin' => 'Super Admin',
