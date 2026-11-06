@@ -38,34 +38,12 @@ class ListClassrooms extends ListRecords
                         ->label('File Excel / PDF')
                         ->disk('local')
                         ->directory('imports/classrooms')
-                        ->maxSize(51200)
                         ->acceptedFileTypes([
                             'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
                             'application/vnd.ms-excel',
-                            'application/msexcel',
-                            'application/x-msexcel',
-                            'application/x-ms-excel',
-                            'application/x-excel',
-                            'application/excel',
-                            'application/x-dos_ms_excel',
-                            'application/xls',
-                            'application/x-xls',
-                            'application/zip',
-                            'application/x-zip-compressed',
-                            'application/octet-stream',
                             'text/csv',
                             'text/plain',
-                            'application/csv',
-                            'text/x-csv',
-                            'application/x-csv',
-                            'text/comma-separated-values',
-                            'text/x-comma-separated-values',
                             'application/pdf',
-                            'application/x-pdf',
-                            'application/acrobat',
-                            'applications/vnd.pdf',
-                            'text/pdf',
-                            'text/x-pdf',
                         ])
                         ->required()
                         ->live()
