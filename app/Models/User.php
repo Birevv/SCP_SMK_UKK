@@ -10,6 +10,7 @@ use Filament\Models\Contracts\HasName;
 use Filament\Panel;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Hidden;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
@@ -22,7 +23,7 @@ use Illuminate\Support\Facades\Storage;
 use Laravel\Sanctum\HasApiTokens;
 use Spatie\Permission\Traits\HasRoles;
 
-#[Fillable(['role_id', 'full_name', 'username', 'email', 'password', 'identity_number', 'phone', 'profile_photo', 'status'])]
+#[Fillable(['role_id', 'classroom_id', 'full_name', 'username', 'email', 'password', 'identity_number', 'phone', 'profile_photo', 'status', 'graduation_year', 'graduated_at', 'alumni_notes'])]
 #[Hidden(['password', 'remember_token'])]
 /**
  * @mixin HasRoles
@@ -64,7 +65,23 @@ class User extends Authenticatable implements FilamentUser, HasAvatar, HasName
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
+            'graduated_at' => 'date',
         ];
+    }
+
+    public function scopeStudents(Builder $query): Builder
+    {
+        return $query->whereHas('role', fn ($q) => $q->where('name', 'Siswa'));
+    }
+
+    public function scopeAlumni(Builder $query): Builder
+    {
+        return $query->where('status', 'Lulus');
+    }
+
+    public function isAlumni(): bool
+    {
+        return $this->status === 'Lulus';
     }
 
     public function getFilamentAvatarUrl(): ?string
@@ -96,16 +113,24 @@ class User extends Authenticatable implements FilamentUser, HasAvatar, HasName
             : url($url);
     }
 
+    public function classroom(): BelongsTo
+    {
+        return $this->belongsTo(Classroom::class, 'classroom_id');
+    }
+
     public function getClassroomAttribute()
     {
-        return $this->classrooms->first();
+        return $this->classroom
+            ?? $this->classrooms()->wherePivot('status', 'Aktif')->first()
+            ?? $this->classrooms->first();
     }
 
     public function classrooms(): BelongsToMany
     {
         return $this->belongsToMany(Classroom::class, 'user_class')
             ->withPivot(['academic_year_id', 'status'])
-            ->withTimestamps();
+            ->withTimestamps()
+            ->orderByPivot('id', 'desc');
     }
 
     public function role(): BelongsTo

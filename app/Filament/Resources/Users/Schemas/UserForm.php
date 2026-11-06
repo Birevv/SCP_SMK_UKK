@@ -5,7 +5,9 @@ namespace App\Filament\Resources\Users\Schemas;
 use App\Models\AcademicYear;
 use App\Models\Role;
 use App\Models\User;
+use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\Select;
+use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
 use Filament\Schemas\Schema;
 use Illuminate\Support\Facades\Auth;
@@ -76,12 +78,30 @@ class UserForm
                     ->label('Status Siswa/Guru')
                     ->options([
                         'Aktif' => 'Aktif',
-                        'Lulus' => 'Lulus',
+                        'Lulus' => 'Lulus (Alumni)',
                         'Keluar' => 'Keluar',
                         'DO' => 'Drop Out (DO)',
                     ])
                     ->default('Aktif')
+                    ->live()
                     ->required(),
+
+                TextInput::make('graduation_year')
+                    ->label('Tahun Kelulusan / Angkatan')
+                    ->placeholder('Contoh: 2026')
+                    ->maxLength(10)
+                    ->visible(fn ($get): bool => $get('status') === 'Lulus'),
+
+                DatePicker::make('graduated_at')
+                    ->label('Tanggal Kelulusan')
+                    ->visible(fn ($get): bool => $get('status') === 'Lulus'),
+
+                Textarea::make('alumni_notes')
+                    ->label('Catatan Alumni / Status Setelah Lulus')
+                    ->placeholder('Contoh: Melanjutkan kuliah di Universitas Gadjah Mada / Bekerja di PT XYZ')
+                    ->rows(3)
+                    ->visible(fn ($get): bool => $get('status') === 'Lulus')
+                    ->columnSpanFull(),
 
                 TextInput::make('password')
                     ->label('Password')

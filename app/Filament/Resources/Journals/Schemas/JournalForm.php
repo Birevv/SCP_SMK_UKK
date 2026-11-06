@@ -179,7 +179,8 @@ class JournalForm
             $query->whereHas('role', fn ($q) => $q->where('name', 'Siswa'))
                 ->orWhereHas('roles', fn ($q) => $q->where('name', 'Siswa'));
         })
-            ->whereHas('classrooms', fn ($q) => $q->where('classrooms.id', $classroomId))
+            ->where('status', 'Aktif')
+            ->whereHas('classrooms', fn ($q) => $q->where('classrooms.id', $classroomId)->where('user_class.status', 'Aktif'))
             ->orderBy('full_name')
             ->get();
 

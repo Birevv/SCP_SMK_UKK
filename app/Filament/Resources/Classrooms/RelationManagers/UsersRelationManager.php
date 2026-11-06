@@ -31,6 +31,7 @@ class UsersRelationManager extends RelationManager
                         'Aktif' => 'Aktif',
                         'Tinggal Kelas' => 'Tinggal Kelas',
                         'Mutasi' => 'Mutasi',
+                        'Lulus' => 'Lulus (Alumni)',
                     ])
                     ->required(),
             ]);
@@ -76,6 +77,7 @@ class UsersRelationManager extends RelationManager
                         'Aktif' => 'success',
                         'Tinggal Kelas' => 'danger',
                         'Mutasi' => 'warning',
+                        'Lulus' => 'info',
                         default => 'gray',
                     }),
             ])
