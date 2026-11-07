@@ -109,7 +109,6 @@ class SetNewPassword extends BaseResetPassword
         return [
             Action::make('resetPassword')
                 ->label('Simpan Kata Sandi Baru')
-                ->icon('heroicon-m-check-circle')
                 ->submit('resetPassword'),
             $this->loginAction,
         ];

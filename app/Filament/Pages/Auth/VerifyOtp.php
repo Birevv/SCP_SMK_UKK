@@ -97,7 +97,6 @@ class VerifyOtp extends BaseRequestPasswordReset
         return Action::make('request')
             ->label('Verifikasi')
             ->color('primary')
-            ->icon('heroicon-m-check-circle')
             ->submit('request');
     }
 
