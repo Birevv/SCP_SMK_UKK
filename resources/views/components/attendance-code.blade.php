@@ -9,10 +9,10 @@
 
     $resolveActiveClasses = static function (string $letter): string {
         return match ($letter) {
-            'H' => 'bg-accent text-on-accent border-accent font-medium',
-            'S', 'I' => 'bg-note-tint text-note border-note/30 font-medium',
-            'A' => 'bg-danger/10 text-danger border-danger/30 font-medium',
-            default => 'bg-raised text-ink border-hairline-strong font-medium',
+            'H' => 'bg-[#1D4ED8] text-white border-blue-700 font-bold shadow-xs',
+            'S', 'I' => 'bg-amber-100 text-amber-900 border-amber-300 font-bold dark:bg-amber-950 dark:text-amber-200 dark:border-amber-700',
+            'A' => 'bg-red-100 text-red-900 border-red-300 font-bold dark:bg-red-950 dark:text-red-200 dark:border-red-700',
+            default => 'bg-slate-100 text-slate-800 border-slate-300 font-medium dark:bg-slate-800 dark:text-slate-200 dark:border-slate-600',
         };
     };
 @endphp
@@ -24,7 +24,7 @@
                 $isCurrent = strtoupper((string) $active) === $letter;
                 $boxClasses = $isCurrent
                     ? $resolveActiveClasses($letter)
-                    : 'bg-transparent text-ink-muted border-hairline';
+                    : 'bg-white text-slate-400 border-slate-300 dark:bg-slate-800 dark:text-slate-500 dark:border-slate-600 font-medium';
             @endphp
             <span
                 class="inline-flex items-center justify-center w-6 h-6 rounded border leading-none {{ $boxClasses }}"

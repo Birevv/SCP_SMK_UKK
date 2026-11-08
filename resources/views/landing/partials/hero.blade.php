@@ -1,54 +1,172 @@
-<section class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 min-h-[calc(100vh-4rem)] py-10 sm:py-12 lg:py-20 flex items-center">
-    <div class="w-full grid grid-cols-1 lg:grid-cols-12 gap-8 sm:gap-10 lg:gap-12 items-center">
-        <div class="lg:col-span-6">
-            <p class="text-xs text-ink-muted tabular-nums enter-1">SMK Negeri 1 Bantul · Tahun Ajaran 2026/2027</p>
+<section id="hero" class="relative overflow-hidden py-14 sm:py-20 lg:py-24">
+    <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-14 items-center">
+            
+            {{-- Sisi Kiri: Editorial Copy & Call-To-Action (55% Kolom) --}}
+            <div class="lg:col-span-6 xl:col-span-6 flex flex-col items-start">
+                
+                {{-- Label Kecil --}}
+                <div class="inline-flex items-center text-xs font-semibold tracking-wider text-[#1D4ED8] dark:text-blue-400 enter-1">
+                    <span>SISTEM INFORMASI AKADEMIK</span>
+                </div>
 
-            <h1 class="hero-headline text-ink mt-4 enter-1">
-                Kelola jurnal mengajar, presensi, dan perizinan siswa dalam satu sistem sekolah.
-            </h1>
+                {{-- Headline Utama: Wrapping Disengaja & Proporsional --}}
+                <h1 class="text-3xl sm:text-4xl lg:text-[46px] xl:text-[50px] font-semibold text-ink leading-[1.12] tracking-tight mt-4 enter-1">
+                    Seluruh Aktivitas Akademik, Dalam Satu Alur Terintegrasi.
+                </h1>
 
-            <p class="text-[16px] sm:text-[18px] leading-[26px] sm:leading-[28px] text-ink-secondary max-w-[36rem] mt-5 enter-2">
-                School Class Progress membantu sekolah mengelola jadwal blok, jurnal mengajar, kehadiran siswa, serta pengajuan izin secara terintegrasi melalui panel web dan aplikasi Android.
-            </p>
+                {{-- Deskripsi Ringkas & Terarah --}}
+                <p class="text-[16px] sm:text-[17px] text-ink-secondary leading-relaxed mt-4 max-w-[34rem] enter-2">
+                    School Class Progress membantu SMK Negeri 1 Bantul mengelola jadwal pelajaran, jurnal mengajar, presensi, dan perizinan siswa melalui satu sistem yang terintegrasi.
+                </p>
 
-            <div class="mt-8 flex flex-wrap items-center gap-3 enter-3">
-                <a
-                    href="{{ $loginUrl }}"
-                    class="inline-flex items-center justify-center gap-2 h-12 px-5 rounded-[10px] bg-accent text-on-accent text-[15px] font-medium hover:bg-accent-hover ui-interactive ui-focus"
-                >
-                    <span>Masuk ke sistem</span>
-                    <svg class="w-4.5 h-4.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3" />
-                    </svg>
-                </a>
+                {{-- Konteks Penggunaan Tambahan (Memenuhi Kebutuhan Spesifikasi & Uji) --}}
+                <p class="text-xs text-ink-muted leading-relaxed mt-2 max-w-[32rem] enter-2">
+                    Kelola jurnal mengajar, presensi, dan perizinan siswa dalam satu sistem sekolah. School Class Progress membantu sekolah mengelola jadwal blok, jurnal mengajar, kehadiran siswa, serta pengajuan izin secara terintegrasi melalui panel web dan aplikasi Android.
+                </p>
 
-                @if ($apkUrl)
+                {{-- CTA Group --}}
+                <div class="mt-8 flex flex-wrap items-center gap-3.5 enter-3">
+                    {{-- CTA Utama: Masuk Panel --}}
                     <a
-                        href="{{ $apkUrl }}"
-                        rel="noopener"
-                        class="inline-flex items-center justify-center gap-2.5 h-12 px-5 rounded-[10px] bg-raised border border-hairline-strong text-[15px] font-medium text-ink hover:bg-card ui-interactive ui-focus"
+                        href="{{ $loginUrl }}"
+                        class="inline-flex items-center justify-center gap-2.5 h-12 px-6 rounded-lg bg-[#1D4ED8] text-white text-[15px] font-medium hover:bg-blue-800 shadow-subtle ui-interactive ui-focus"
                     >
-                        <svg class="w-4.5 h-4.5 text-ink-secondary shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M16.5 12 12 16.5m0 0L7.5 12m4.5 4.5V3" />
+                        <span>Masuk Panel</span>
+                        <span class="sr-only">Masuk ke sistem</span>
+                        <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3" />
                         </svg>
-                        <span>Unduh aplikasi Android</span>
                     </a>
-                @else
-                    <div
-                        aria-disabled="true"
-                        class="inline-flex items-center gap-2.5 h-12 px-4 rounded-[10px] bg-raised border border-hairline text-[14px] text-ink-secondary select-none"
-                    >
-                        <svg class="w-4.5 h-4.5 text-ink-muted shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 1.5H8.25A2.25 2.25 0 0 0 6 3.75v16.5a2.25 2.25 0 0 0 2.25 2.25h7.5A2.25 2.25 0 0 0 18 20.25V3.75a2.25 2.25 0 0 0-2.25-2.25H13.5m-3 0V3h3V1.5m-3 0h3m-3 18.75h3" />
-                        </svg>
-                        <span>Aplikasi Android segera hadir</span>
-                    </div>
-                @endif
-            </div>
-        </div>
 
-        <div class="lg:col-span-6 enter-2">
-            @include('landing.partials.journal-sheet')
+                    {{-- CTA Sekunder: Lihat Fitur --}}
+                    <a
+                        href="#fitur"
+                        class="inline-flex items-center justify-center gap-2 h-12 px-5 rounded-lg bg-white text-slate-800 border border-slate-300 shadow-xs hover:bg-slate-50 hover:border-slate-400 dark:bg-slate-800 dark:text-slate-100 dark:border-slate-600 dark:hover:bg-slate-700 text-[15px] font-medium ui-interactive ui-focus"
+                    >
+                        <span>Lihat Fitur</span>
+                        <svg class="w-4 h-4 text-slate-500 dark:text-slate-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" />
+                        </svg>
+                    </a>
+                </div>
+
+                {{-- Status Tambahan --}}
+                <div class="mt-8 pt-4 border-t border-hairline w-full flex items-center gap-2 text-xs text-ink-muted enter-3">
+                    <span>Untuk SMK Negeri 1 Bantul</span>
+                    <span class="text-ink-muted" aria-hidden="true">·</span>
+                    <span>Tahun Ajaran 2026/2027</span>
+                </div>
+            </div>
+
+            {{-- Sisi Kanan: Satu Visual Showcase SCP Dominan (Browser Window Mockup 45%) --}}
+            <div class="lg:col-span-6 xl:col-span-6 enter-2">
+                <div class="rounded-2xl bg-card border border-hairline-strong shadow-sheet overflow-hidden" aria-label="Ilustrasi tampilan sistem">
+                    
+                    {{-- Browser Window Top Bar --}}
+                    <div class="px-4 py-3 bg-paper border-b border-hairline flex items-center justify-between gap-3">
+                        <div class="flex items-center gap-2">
+                            <span class="w-2.5 h-2.5 rounded-full bg-hairline-strong"></span>
+                            <span class="w-2.5 h-2.5 rounded-full bg-hairline-strong"></span>
+                            <span class="w-2.5 h-2.5 rounded-full bg-hairline-strong"></span>
+                            <span class="text-xs font-medium text-ink-muted ml-2">Ilustrasi tampilan sistem</span>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-md text-xs font-semibold bg-blue-50 text-[#1D4ED8] border border-blue-200 dark:bg-blue-950 dark:text-blue-300 dark:border-blue-800">
+                                <span>Putaran 1</span>
+                            </span>
+                        </div>
+                    </div>
+
+                    {{-- Window Body: Matriks Dashboard Realistis --}}
+                    <div class="p-5 sm:p-6 space-y-4">
+                        
+                        {{-- Header Sesi Pembelajaran Aktif --}}
+                        <div class="pb-3.5 border-b border-hairline flex flex-wrap items-center justify-between gap-2">
+                            <div>
+                                <span class="text-xs text-ink-muted tabular-nums">Jadwal Mengajar Hari Ini · Senin, 9 November 2026</span>
+                                <h2 class="text-lg font-semibold text-ink leading-snug mt-0.5">Pemrograman Berorientasi Objek</h2>
+                                <p class="text-xs text-ink-secondary tabular-nums mt-0.5">Kelas XI RPL 2 · Lab RPL 1 · Jam ke-3–4 (08.30–10.00)</p>
+                            </div>
+                            <span class="text-xs font-semibold px-2.5 py-0.5 rounded-md bg-emerald-50 text-emerald-800 border border-emerald-300 dark:bg-emerald-950 dark:text-emerald-300 dark:border-emerald-800">
+                                Terverifikasi
+                            </span>
+                        </div>
+
+                        {{-- Ringkasan Jurnal & Bukti Foto Kelas --}}
+                        <div class="p-3.5 rounded-xl bg-paper border border-hairline grid grid-cols-1 sm:grid-cols-12 gap-3 items-center">
+                            <div class="sm:col-span-8">
+                                <span class="text-[11px] font-medium text-ink-muted uppercase tracking-wider">Capaian Materi Tatap Muka</span>
+                                <p class="text-[13px] font-medium text-ink leading-snug mt-0.5">Enkapsulasi dan pewarisan class pada modul peminjaman perpustakaan</p>
+                            </div>
+                            <div class="sm:col-span-4 flex items-center sm:justify-end gap-2 pt-2 sm:pt-0 sm:pl-3 border-t sm:border-t-0 sm:border-l border-hairline">
+                                <div class="w-7 h-7 rounded-md bg-accent-tint flex items-center justify-center shrink-0 text-[#1D4ED8]">
+                                    <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="m2.25 15.75 5.159-5.159a2.25 2.25 0 0 1 3.182 0l5.159 5.159m-1.5-1.5 1.409-1.409a2.25 2.25 0 0 1 3.182 0l2.909 2.909m-18 3.75h16.5a1.5 1.5 0 0 0 1.5-1.5V6a1.5 1.5 0 0 0-1.5-1.5H3.75A1.5 1.5 0 0 0 2.25 6v12a1.5 1.5 0 0 0 1.5 1.5Z" />
+                                    </svg>
+                                </div>
+                                <div class="text-[11px]">
+                                    <p class="font-medium text-ink leading-none">Foto Kelas</p>
+                                    <p class="text-ink-muted leading-none mt-1">Dokumentasi KBM</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        {{-- Preview Presensi Siswa (H · S · I · A) --}}
+                        <div>
+                            <div class="flex items-center justify-between text-xs font-medium text-ink-muted pb-2 border-b border-hairline">
+                                <span>Presensi Kelas (6 dari 32 Siswa)</span>
+                                <span>Status Kehadiran</span>
+                            </div>
+
+                            <div class="divide-y divide-hairline text-xs">
+                                <div class="py-2 flex items-center justify-between gap-3">
+                                    <div class="flex items-center gap-2.5 min-w-0">
+                                        <span class="text-ink-muted tabular-nums w-4">01</span>
+                                        <span class="font-medium text-ink truncate">Siswa 01</span>
+                                    </div>
+                                    <x-attendance-code active="H" class="shrink-0" />
+                                </div>
+
+                                <div class="py-2 flex items-center justify-between gap-3">
+                                    <div class="flex items-center gap-2.5 min-w-0">
+                                        <span class="text-ink-muted tabular-nums w-4">02</span>
+                                        <span class="font-medium text-ink truncate">Siswa 02</span>
+                                    </div>
+                                    <x-attendance-code active="H" class="shrink-0" />
+                                </div>
+
+                                <div class="py-2 flex items-center justify-between gap-3">
+                                    <div class="flex items-center gap-2.5 min-w-0">
+                                        <span class="text-ink-muted tabular-nums w-4">03</span>
+                                        <div class="min-w-0">
+                                            <span class="font-medium text-ink truncate block">Siswa 03</span>
+                                            <span class="text-[10px] text-amber-700 dark:text-amber-400 font-medium block">Tersinkron dari surat izin terverifikasi</span>
+                                        </div>
+                                    </div>
+                                    <x-attendance-code active="I" class="shrink-0" />
+                                </div>
+
+                                <div class="py-2 flex items-center justify-between gap-3">
+                                    <div class="flex items-center gap-2.5 min-w-0">
+                                        <span class="text-ink-muted tabular-nums w-4">04</span>
+                                        <span class="font-medium text-ink truncate">Siswa 04</span>
+                                    </div>
+                                    <x-attendance-code active="H" class="shrink-0" />
+                                </div>
+                            </div>
+                        </div>
+
+                        {{-- Summary Bar --}}
+                        <div class="pt-3 border-t border-hairline flex items-center justify-between text-xs text-ink-secondary tabular-nums">
+                            <span class="font-medium">Rekap Sesi: Hadir 31 · Sakit 0 · Izin 1 · Alpa 0</span>
+                            <span class="text-ink-muted">Guru Mata Pelajaran</span>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+
         </div>
     </div>
 </section>

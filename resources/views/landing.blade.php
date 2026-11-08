@@ -34,28 +34,48 @@
     @endphp
     {!! $viteAssets !!}
 </head>
-<body class="min-h-screen flex flex-col bg-paper text-ink antialiased">
+<body class="min-h-screen flex flex-col bg-paper text-ink antialiased selection:bg-accent-tint selection:text-[#1D4ED8]">
+    {{-- SECTION A: NAVBAR --}}
     @include('landing.partials.nav', ['loginUrl' => $loginUrl])
 
     <main id="konten-utama" class="flex-1">
+        {{-- SECTION B: HERO SECTION --}}
         @include('landing.partials.hero', [
             'loginUrl' => $loginUrl,
             'apkUrl' => $apkUrl,
         ])
 
-        @include('landing.partials.alur')
+        {{-- SECTION C: FEATURE HIGHLIGHT --}}
+        @include('landing.partials.features')
 
-        @include('landing.partials.peran')
+        {{-- SECTION D: CARA KERJA SCP --}}
+        @include('landing.partials.how-it-works')
 
-        @include('landing.partials.aplikasi', [
+        {{-- SECTION E: PREVIEW FITUR APLIKASI --}}
+        @include('landing.partials.feature-preview')
+
+        {{-- SECTION F: ALUR JADWAL BLOK DUA MINGGU --}}
+        @include('landing.partials.cycle-schedule')
+
+        {{-- SECTION G: TENTANG SCP --}}
+        @include('landing.partials.about')
+
+        {{-- SECTION H: FAQ --}}
+        @include('landing.partials.faq', ['loginUrl' => $loginUrl])
+
+        {{-- SECTION I: DOWNLOAD APLIKASI MOBILE / CTA --}}
+        @include('landing.partials.mobile', [
+            'loginUrl' => $loginUrl,
             'apkUrl' => $apkUrl,
             'apkVersion' => $apkVersion,
             'apkSha256' => $apkSha256,
         ])
-
-        @include('landing.partials.faq')
     </main>
 
-    @include('landing.partials.footer', ['loginUrl' => $loginUrl])
+    {{-- SECTION J: FOOTER --}}
+    @include('landing.partials.footer', [
+        'loginUrl' => $loginUrl,
+        'apkUrl' => $apkUrl,
+    ])
 </body>
 </html>
