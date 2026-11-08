@@ -6,9 +6,18 @@
                     <x-filament::icon icon="heroicon-o-calendar-days" class="h-5 w-5 text-primary-500" />
                     <span>Jadwal Mengajar Saya (Filter Tingkat Kelas)</span>
                 </div>
-                <x-filament::badge color="primary">
-                    {{ $activeCycle }}
-                </x-filament::badge>
+                <div class="flex items-center gap-2">
+                    <a
+                        href="{{ \App\Filament\Pages\JournalHistory::getUrl() }}"
+                        class="inline-flex items-center gap-1.5 text-xs font-semibold text-primary-600 dark:text-primary-400 hover:text-primary-700 hover:underline bg-primary-50 dark:bg-primary-950/60 border border-primary-200 dark:border-primary-800/80 px-2.5 py-1 rounded-lg transition-colors"
+                    >
+                        <x-filament::icon icon="heroicon-o-clipboard-document-check" class="h-3.5 w-3.5" />
+                        <span>Riwayat Jurnal</span>
+                    </a>
+                    <x-filament::badge color="primary">
+                        {{ $activeCycle }}
+                    </x-filament::badge>
+                </div>
             </div>
         </x-slot>
 

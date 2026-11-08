@@ -2,6 +2,7 @@
 
 namespace App\Filament\Widgets;
 
+use App\Filament\Pages\JournalHistory;
 use App\Models\Journal;
 use App\Models\Schedule;
 use App\Models\SystemConfiguration;
@@ -90,7 +91,8 @@ class TeacherStatsWidget extends BaseWidget
             Stat::make('Jurnal Bulan Ini', $monthlyJournalCount)
                 ->description('Total jurnal yang sudah diisi')
                 ->descriptionIcon('heroicon-o-document-text')
-                ->color('success'),
+                ->color('success')
+                ->url(JournalHistory::getUrl()),
             Stat::make('Total Jadwal Aktif', $totalSchedules)
                 ->description($activeCycle)
                 ->descriptionIcon('heroicon-o-clock')
