@@ -19,10 +19,28 @@ echo "🎨 [Deploy] Menginstall NPM packages & building Vite assets..."
 npm ci || npm install
 npm run build
 
-# 5. Install dependency Python (untuk import parser) jika ada
+# 5. Setup Python Virtual Environment & Install dependencies (Kompatibel Ubuntu 22.04 / 24.04+)
 if [ -f "requirements.txt" ]; then
-    echo "🐍 [Deploy] Menginstall modul Python..."
-    pip3 install -r requirements.txt --quiet || pip install -r requirements.txt --quiet || true
+    echo "🐍 [Deploy] Menyiapkan environment Python..."
+    
+    # Buat virtual environment jika belum ada
+    if [ ! -d "venv" ]; then
+        echo "🐍 [Deploy] Membuat virtual environment (venv)..."
+        python3 -m venv venv 2>/dev/null || \
+        (command -v sudo >/dev/null 2>&1 && sudo apt-get update -y && sudo apt-get install -y python3-venv python3-pip && python3 -m venv venv) || true
+    fi
+
+    # Install modul via venv jika tersedia
+    if [ -f "venv/bin/pip" ]; then
+        echo "🐍 [Deploy] Menginstall requirements ke dalam venv..."
+        ./venv/bin/pip install --upgrade pip --quiet
+        ./venv/bin/pip install -r requirements.txt --quiet
+        chmod -R a+rX venv/ 2>/dev/null || true
+    else
+        echo "⚠️ [Deploy] Venv tidak tersedia, mencoba instalasi system-wide..."
+        pip3 install --break-system-packages -r requirements.txt --quiet 2>/dev/null || \
+        pip3 install -r requirements.txt --quiet 2>/dev/null || true
+    fi
 fi
 
 # 6. Migrasi database production
