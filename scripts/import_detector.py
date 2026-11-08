@@ -321,28 +321,35 @@ def detect_file_type(file_path):
         return 'STUDENT_ROSTER_EXCEL'
 
     elif ext == '.pdf':
+        p0_text = ''
         p1_text = ''
         if pypdf:
             try:
                 reader = pypdf.PdfReader(file_path)
-                p1_text = reader.pages[0].extract_text() or ''
+                p0_text = reader.pages[0].extract_text() or ''
+                if len(reader.pages) > 1:
+                    p1_text = reader.pages[1].extract_text() or ''
             except Exception:
                 pass
-        if not p1_text and pdfplumber:
+        if not p0_text and pdfplumber:
             try:
                 with pdfplumber.open(file_path) as pdf:
-                    p1_text = pdf.pages[0].extract_text() or ''
+                    p0_text = pdf.pages[0].extract_text() or ''
+                    if len(pdf.pages) > 1:
+                        p1_text = pdf.pages[1].extract_text() or ''
             except Exception:
                 pass
 
-        p1_upper = p1_text.upper()
-        if 'DATA NOMINATIF GURU' in p1_upper or 'NOMINATIF GURU' in p1_upper:
+        p_combined = (p0_text + '\n' + p1_text).upper()
+        fname = Path(file_path).name.upper()
+
+        if 'DATA NOMINATIF GURU' in p_combined or 'NOMINATIF GURU' in p_combined:
             return 'EMPLOYEE_TEACHERS'
-        if ('WALI KELAS' in p1_upper or 'WALI_KELAS' in p1_upper) and ('GURU BK' in p1_upper or 'WALI BK' in p1_upper or 'BK' in p1_upper):
+        if ('WALI KELAS' in p_combined or 'WALI_KELAS' in p_combined) and ('GURU BK' in p_combined or 'WALI BK' in p_combined or 'BK' in p_combined):
             return 'HOMEROOM_COUNSELOR'
-        if 'JADWAL RUANG' in p1_upper or ('HARI' in p1_upper and 'WAKTU' in p1_upper and 'UPACARA' in p1_upper):
+        if 'JADWAL RUANG' in p_combined or 'PENGGUNAAN RUANG' in p_combined or 'RUANG' in fname or ('HARI' in p_combined and 'WAKTU' in p_combined and 'UPACARA' in p_combined):
             return 'ROOM_SCHEDULE_PDF'
-        if 'SMK NEGERI 1 BANTUL' in p1_upper or 'FET' in p1_upper or 'KELAS X' in p1_upper:
+        if 'SMK NEGERI 1 BANTUL' in p_combined or 'FET' in p_combined or 'KELAS' in fname or 'DAFTAR ISI' in p_combined:
             return 'TIMETABLE_FET_PDF'
         return 'TIMETABLE_FET_PDF'
 
@@ -1285,13 +1292,43 @@ def parse_schedule_pdf_pair(file1_path, file2_path):
     elif t1 == 'TIMETABLE_FET_PDF' and t2 == 'ROOM_SCHEDULE_PDF':
         fet_path, room_path = file1_path, file2_path
     else:
-        raise ValueError(
-            "Pastikan Anda mengunggah 1 file PDF Jadwal Kelas (FET) dan 1 file PDF Jadwal Ruang SMKN 1 Bantul."
-        )
+        # Check by page count: FET schedule has many pages (one per class, ~48 pages),
+        # whereas Room Schedule has fewer pages (typically 5-10 pages, one per day)
+        p1_pages = 0
+        p2_pages = 0
+        try:
+            if pdfplumber:
+                with pdfplumber.open(file1_path) as p1:
+                    p1_pages = len(p1.pages)
+                with pdfplumber.open(file2_path) as p2:
+                    p2_pages = len(p2.pages)
+            elif pypdf:
+                p1_pages = len(pypdf.PdfReader(file1_path).pages)
+                p2_pages = len(pypdf.PdfReader(file2_path).pages)
+        except Exception:
+            pass
 
-    fet_data = parse_fet_timetable_pdf(fet_path)
-    room_data = parse_room_schedule_pdf(room_path)
-    return merge_fet_and_room_schedule(fet_data, room_data)
+        if p1_pages > 0 and p2_pages > 0:
+            if p1_pages >= p2_pages:
+                fet_path, room_path = file1_path, file2_path
+            else:
+                room_path, fet_path = file1_path, file2_path
+        else:
+            # Default: file1 is class schedule, file2 is room schedule
+            fet_path, room_path = file1_path, file2_path
+
+    try:
+        fet_data = parse_fet_timetable_pdf(fet_path)
+        room_data = parse_room_schedule_pdf(room_path)
+        return merge_fet_and_room_schedule(fet_data, room_data)
+    except Exception as primary_exc:
+        # If parsing with current assignment fails, attempt swapped assignment
+        try:
+            fet_data = parse_fet_timetable_pdf(room_path)
+            room_data = parse_room_schedule_pdf(fet_path)
+            return merge_fet_and_room_schedule(fet_data, room_data)
+        except Exception:
+            raise primary_exc
 
 
 def import_to_database(data, env_path=None):

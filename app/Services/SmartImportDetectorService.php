@@ -312,6 +312,10 @@ class SmartImportDetectorService
             return $this->mergeSchedulePairArrays($parsed1, $parsed2);
         }
 
+        if (! empty($parsed1) && ! empty($parsed2)) {
+            return $this->mergeSchedulePairArrays($parsed1, $parsed2);
+        }
+
         throw new Exception('Pastikan Anda mengunggah 1 file PDF Jadwal Kelas (FET) dan 1 file PDF Jadwal Ruang SMKN 1 Bantul.');
     }
 
