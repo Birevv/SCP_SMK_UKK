@@ -21,7 +21,18 @@
     <meta property="og:description" content="{{ $metaDescription }}" />
     <meta property="og:url" content="{{ $canonicalUrl }}" />
 
-    @vite(['resources/css/landing.css', 'resources/js/app.js'])
+    @php
+        try {
+            $viteAssets = app(\Illuminate\Foundation\Vite::class)(['resources/css/landing.css', 'resources/js/app.js']);
+        } catch (\Illuminate\Foundation\ViteException $e) {
+            try {
+                $viteAssets = app(\Illuminate\Foundation\Vite::class)(['resources/css/app.css', 'resources/js/app.js']);
+            } catch (\Throwable $t) {
+                $viteAssets = '';
+            }
+        }
+    @endphp
+    {!! $viteAssets !!}
 </head>
 <body class="min-h-screen flex flex-col bg-paper text-ink antialiased">
     @include('landing.partials.nav', ['loginUrl' => $loginUrl])
