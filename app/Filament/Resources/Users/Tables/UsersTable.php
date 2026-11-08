@@ -23,6 +23,7 @@ use Filament\Tables\Filters\TrashedFilter;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Gate;
 
 class UsersTable
 {
@@ -43,9 +44,10 @@ class UsersTable
                     })
                     ->searchable()
                     ->sortable(),
-                Tables\Columns\TextColumn::make('classrooms.name')
+                Tables\Columns\TextColumn::make('activeClassrooms.name')
                     ->badge()
                     ->label('Kelas')
+                    ->placeholder(fn (User $record): string => $record->classroom?->name ? $record->classroom->name.' (Alumni)' : '-')
                     ->searchable(),
                 Tables\Columns\TextColumn::make('status')
                     ->label('Status')
@@ -75,6 +77,18 @@ class UsersTable
                     ->label('Username')
                     ->searchable()
                     ->sortable(),
+                Tables\Columns\TextColumn::make('graduation_year')
+                    ->label('Angkatan Alumni')
+                    ->placeholder('-')
+                    ->searchable()
+                    ->sortable()
+                    ->toggleable(isToggledHiddenByDefault: true),
+                Tables\Columns\TextColumn::make('alumni_notes')
+                    ->label('Catatan Alumni')
+                    ->placeholder('-')
+                    ->limit(30)
+                    ->tooltip(fn (User $record): ?string => $record->alumni_notes)
+                    ->toggleable(isToggledHiddenByDefault: true),
                 Tables\Columns\TextColumn::make('phone')
                     ->label('Nomor Telepon')
                     ->placeholder('-')
@@ -98,9 +112,9 @@ class UsersTable
                     ->relationship('role', 'name')
                     ->preload()
                     ->searchable(),
-                SelectFilter::make('classrooms')
-                    ->label('Filter Kelas')
-                    ->relationship('classrooms', 'name', modifyQueryUsing: fn ($query) => $query->orderBy('name'))
+                SelectFilter::make('activeClassrooms')
+                    ->label('Filter Kelas (Aktif)')
+                    ->relationship('activeClassrooms', 'name', modifyQueryUsing: fn ($query) => $query->orderBy('name'))
                     ->preload()
                     ->searchable(),
                 SelectFilter::make('status')
@@ -111,6 +125,15 @@ class UsersTable
                         'Keluar' => 'Keluar',
                         'DO' => 'DO',
                     ]),
+                SelectFilter::make('graduation_year')
+                    ->label('Filter Angkatan Alumni')
+                    ->options(fn () => User::where('status', 'Lulus')
+                        ->whereNotNull('graduation_year')
+                        ->distinct()
+                        ->orderByDesc('graduation_year')
+                        ->pluck('graduation_year', 'graduation_year')
+                        ->toArray()
+                    ),
                 TrashedFilter::make(),
             ])
             ->recordActions([
@@ -120,7 +143,8 @@ class UsersTable
                     ->color('success')
                     ->visible(fn (User $record): bool => $record->status === 'Aktif' && ($record->hasRole('Siswa') || $record->role?->name === 'Siswa'))
                     ->modalHeading('Luluskan Siswa ke Alumni')
-                    ->modalDescription(fn (User $record): string => "Proses kelulusan untuk {$record->full_name} ({$record->identity_number}). Siswa akan ditandai sebagai Alumni.")
+                    ->modalDescription(fn (User $record): string => "Luluskan {$record->full_name} menjadi Alumni?")
+                    ->modalSubmitActionLabel('Luluskan')
                     ->form([
                         TextInput::make('graduation_year')
                             ->label('Tahun Kelulusan / Angkatan')
@@ -147,6 +171,9 @@ class UsersTable
                                 ->where('user_id', $record->id)
                                 ->where('status', 'Aktif')
                                 ->update(['status' => 'Lulus']);
+
+                            DB::table('sessions')->where('user_id', $record->id)->delete();
+                            $record->tokens()->delete();
                         });
 
                         Notification::make()
@@ -163,7 +190,8 @@ class UsersTable
                     ->visible(fn (User $record): bool => $record->status === 'Lulus')
                     ->requiresConfirmation()
                     ->modalHeading('Batalkan Status Alumni')
-                    ->modalDescription(fn (User $record): string => "Kembalikan {$record->full_name} ke status Aktif?")
+                    ->modalDescription(fn (User $record): string => "Kembalikan {$record->full_name} ke status Siswa Aktif?")
+                    ->modalSubmitActionLabel('Ya, Batalkan')
                     ->action(function (User $record): void {
                         DB::transaction(function () use ($record) {
                             $record->update([
@@ -197,8 +225,9 @@ class UsersTable
                         ->label('Luluskan Terpilih ke Alumni')
                         ->icon('heroicon-o-academic-cap')
                         ->color('success')
-                        ->modalHeading('Luluskan Siswa Terpilih ke Alumni')
-                        ->modalDescription('Seluruh siswa yang dipilih akan diubah statusnya menjadi Lulus (Alumni).')
+                        ->modalHeading('Luluskan Siswa Terpilih')
+                        ->modalDescription('Ubah status siswa terpilih menjadi Alumni?')
+                        ->modalSubmitActionLabel('Luluskan')
                         ->form([
                             TextInput::make('graduation_year')
                                 ->label('Tahun Kelulusan / Angkatan')
@@ -229,6 +258,9 @@ class UsersTable
                                             ->where('status', 'Aktif')
                                             ->update(['status' => 'Lulus']);
 
+                                        DB::table('sessions')->where('user_id', $user->id)->delete();
+                                        $user->tokens()->delete();
+
                                         $count++;
                                     }
                                 }
@@ -242,13 +274,13 @@ class UsersTable
                         })
                         ->deselectRecordsAfterCompletion(),
                     DeleteBulkAction::make()
-                        ->visible(fn () => auth()->user()?->can('deleteAny', User::class))
+                        ->visible(fn (): bool => Gate::allows('deleteAny', User::class))
                         ->authorizeIndividualRecords(),
                     ForceDeleteBulkAction::make()
-                        ->visible(fn () => auth()->user()?->can('forceDeleteAny', User::class))
+                        ->visible(fn (): bool => Gate::allows('forceDeleteAny', User::class))
                         ->authorizeIndividualRecords(),
                     RestoreBulkAction::make()
-                        ->visible(fn () => auth()->user()?->can('restoreAny', User::class))
+                        ->visible(fn (): bool => Gate::allows('restoreAny', User::class))
                         ->authorizeIndividualRecords(),
                 ]),
             ]);

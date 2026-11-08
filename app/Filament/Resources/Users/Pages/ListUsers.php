@@ -246,7 +246,7 @@ class ListUsers extends ListRecords
     public function getTabs(): array
     {
         return [
-            'all' => Tab::make('Semua Role'),
+            'all' => Tab::make('Semua'),
             'waka' => Tab::make('Waka Kurikulum')
                 ->badge(fn () => User::whereHas('role', fn ($q) => $q->where('name', 'Waka Kurikulum'))->count())
                 ->modifyQueryUsing(fn (Builder $query) => $query->whereHas('role', fn ($q) => $q->where('name', 'Waka Kurikulum'))),
@@ -259,9 +259,14 @@ class ListUsers extends ListRecords
             'bk' => Tab::make('Guru BK')
                 ->badge(fn () => User::where(fn ($q) => $q->whereHas('role', fn ($r) => $r->where('name', 'Guru BK'))->orWhereHas('roles', fn ($r) => $r->where('name', 'Guru BK')))->count())
                 ->modifyQueryUsing(fn (Builder $query) => $query->where(fn ($q) => $q->whereHas('role', fn ($r) => $r->where('name', 'Guru BK'))->orWhereHas('roles', fn ($r) => $r->where('name', 'Guru BK')))),
-            'siswa' => Tab::make('Siswa')
-                ->badge(fn () => User::whereHas('role', fn ($q) => $q->where('name', 'Siswa'))->count())
-                ->modifyQueryUsing(fn (Builder $query) => $query->whereHas('role', fn ($q) => $q->where('name', 'Siswa'))),
+            'siswa_aktif' => Tab::make('Siswa (Aktif)')
+                ->badge(fn () => User::whereHas('role', fn ($q) => $q->where('name', 'Siswa'))->where('status', 'Aktif')->count())
+                ->badgeColor('success')
+                ->modifyQueryUsing(fn (Builder $query) => $query->whereHas('role', fn ($q) => $q->where('name', 'Siswa'))->where('status', 'Aktif')),
+            'alumni' => Tab::make('Alumni')
+                ->badge(fn () => User::where('status', 'Lulus')->count())
+                ->badgeColor('info')
+                ->modifyQueryUsing(fn (Builder $query) => $query->where('status', 'Lulus')),
         ];
     }
 

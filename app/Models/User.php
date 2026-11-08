@@ -46,6 +46,10 @@ class User extends Authenticatable implements FilamentUser, HasAvatar, HasName
 
     public function canAccessPanel(Panel $panel): bool
     {
+        if ($this->status !== 'Aktif') {
+            return false;
+        }
+
         return $this->hasAnyRole(['Super Admin', 'Waka Kurikulum', 'Guru', 'Wali Kelas', 'Guru BK', 'Siswa'])
             || in_array($this->role?->name, ['Super Admin', 'Waka Kurikulum', 'Guru', 'Wali Kelas', 'Guru BK', 'Siswa']);
     }
@@ -129,6 +133,14 @@ class User extends Authenticatable implements FilamentUser, HasAvatar, HasName
     {
         return $this->belongsToMany(Classroom::class, 'user_class')
             ->withPivot(['academic_year_id', 'status'])
+            ->withTimestamps();
+    }
+
+    public function activeClassrooms(): BelongsToMany
+    {
+        return $this->belongsToMany(Classroom::class, 'user_class')
+            ->withPivot(['academic_year_id', 'status'])
+            ->wherePivot('status', 'Aktif')
             ->withTimestamps();
     }
 

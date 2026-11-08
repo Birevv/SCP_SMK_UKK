@@ -377,4 +377,23 @@ class ApiIntegrationAuditTest extends TestCase
 
         Carbon::setTestNow(); // Reset mock
     }
+
+    public function test_alumni_student_cannot_login_via_api(): void
+    {
+        $this->student->update([
+            'status' => 'Lulus',
+            'password' => bcrypt('password123'),
+        ]);
+
+        $response = $this->postJson('/api/login', [
+            'login' => $this->student->username,
+            'password' => 'password123',
+        ]);
+
+        $response->assertStatus(403);
+        $response->assertJson([
+            'success' => false,
+            'message' => 'Akun Anda berstatus Alumni (Sudah Lulus). Hak akses ke portal telah dinonaktifkan.',
+        ]);
+    }
 }

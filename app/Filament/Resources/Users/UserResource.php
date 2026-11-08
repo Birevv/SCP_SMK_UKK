@@ -21,7 +21,7 @@ class UserResource extends Resource
 {
     public static function getEloquentQuery(): Builder
     {
-        return parent::getEloquentQuery()->with(['role', 'classrooms']);
+        return parent::getEloquentQuery()->with(['role', 'activeClassrooms', 'classroom']);
     }
 
     protected static ?string $model = User::class;

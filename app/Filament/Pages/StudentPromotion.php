@@ -9,6 +9,7 @@ use App\Models\Classroom;
 use App\Models\User;
 use BackedEnum;
 use Filament\Actions\Action;
+use Filament\Actions\ActionGroup;
 use Filament\Actions\BulkAction;
 use Filament\Actions\BulkActionGroup;
 use Filament\Forms\Components\DatePicker;
@@ -40,7 +41,7 @@ class StudentPromotion extends Page implements HasForms, HasTable
 
     protected static ?string $title = 'Kenaikan Kelas & Kelulusan Siswa';
 
-    protected ?string $subheading = 'Pusat pengelolaan kenaikan tingkat kelas (semua kelas sekaligus) dan pemrosesan kelulusan siswa kelas XII menjadi alumni.';
+    protected ?string $subheading = 'Pusat pengelolaan kenaikan tingkat kelas dan kelulusan siswa kelas XII.';
 
     protected static UnitEnum|string|null $navigationGroup = 'Manajemen Akademik';
 
@@ -66,37 +67,16 @@ class StudentPromotion extends Page implements HasForms, HasTable
     {
         return [
             // =================================================================
-            // HANYA 1 TOMBOL LANGSUNG (TANPA INPUT APAPUN)
+            // TOMBOL UTAMA: PROSES KENAIKAN & KELULUSAN
             // =================================================================
             Action::make('promote_and_graduate')
-                ->label('Proses Kenaikan Kelas & Kelulusan Langsung')
+                ->label('Proses Kenaikan & Kelulusan')
                 ->icon('heroicon-o-arrow-trending-up')
                 ->color('primary')
                 ->requiresConfirmation()
-                ->modalHeading('Konfirmasi Kenaikan Kelas & Kelulusan Langsung')
-                ->modalDescription(function (): string {
-                    $g12Count = User::where('status', 'Aktif')
-                        ->whereHas('role', fn ($q) => $q->where('name', 'Siswa'))
-                        ->whereHas('classrooms', fn ($q) => $q->forGrade('12')->where('user_class.status', 'Aktif'))
-                        ->count();
-
-                    $g11Count = User::where('status', 'Aktif')
-                        ->whereHas('role', fn ($q) => $q->where('name', 'Siswa'))
-                        ->whereHas('classrooms', fn ($q) => $q->forGrade('11')->where('user_class.status', 'Aktif'))
-                        ->count();
-
-                    $g10Count = User::where('status', 'Aktif')
-                        ->whereHas('role', fn ($q) => $q->where('name', 'Siswa'))
-                        ->whereHas('classrooms', fn ($q) => $q->forGrade('10')->where('user_class.status', 'Aktif'))
-                        ->count();
-
-                    return "Detail proses otomatis yang akan dijalankan:\n"
-                        ."• {$g12Count} siswa Kelas XII akan diluluskan menjadi Alumni.\n"
-                        ."• {$g11Count} siswa Kelas XI akan dinaikkan ke Kelas XII.\n"
-                        ."• {$g10Count} siswa Kelas X akan dinaikkan ke Kelas XI.\n\n"
-                        .'Apakah Anda yakin ingin memproses seluruh rombel sekarang?';
-                })
-                ->modalSubmitActionLabel('Ya, Jalankan Sekarang')
+                ->modalHeading('Kenaikan & Kelulusan')
+                ->modalDescription('Proses kenaikan tingkat kelas dan kelulusan siswa kelas XII akan dijalankan. Lanjutkan?')
+                ->modalSubmitActionLabel('Ya, Proses')
                 ->action(function (): void {
                     $activeId = AcademicYear::getActiveId();
                     $nextYear = AcademicYear::where('id', '>', (int) $activeId)->first();
@@ -133,6 +113,9 @@ class StudentPromotion extends Page implements HasForms, HasTable
                                 ->where('user_id', $student->id)
                                 ->where('status', 'Aktif')
                                 ->update(['status' => 'Lulus', 'updated_at' => $now]);
+
+                            DB::table('sessions')->where('user_id', $student->id)->delete();
+                            $student->tokens()->delete();
 
                             $graduatedCount++;
                         }
@@ -262,54 +245,146 @@ class StudentPromotion extends Page implements HasForms, HasTable
                 }),
 
             // =================================================================
-            // TOMBOL BATALKAN SEMUA ALUMNI
+            // MENU DROPDOWN PEMBATALAN (LEBIH SIMPLE & RAPI)
             // =================================================================
-            Action::make('revert_all_alumni')
-                ->label('Batalkan Semua Alumni')
+            ActionGroup::make([
+                Action::make('revert_all_promotions')
+                    ->label('Batalkan Kenaikan & Kelulusan')
+                    ->icon('heroicon-o-arrow-uturn-left')
+                    ->color('danger')
+                    ->requiresConfirmation()
+                    ->modalHeading('Batalkan Kenaikan & Kelulusan')
+                    ->modalDescription('Kembalikan seluruh siswa ke kelas asal dan batalkan kelulusan alumni?')
+                    ->modalSubmitActionLabel('Ya, Batalkan')
+                    ->action(function (): void {
+                        $countPromotedReverted = 0;
+                        $countAlumniReverted = 0;
+
+                        DB::transaction(function () use (&$countPromotedReverted, &$countAlumniReverted) {
+                            // 1. Batalkan kelulusan alumni
+                            $alumniStudents = User::where('status', 'Lulus')
+                                ->whereHas('role', fn ($q) => $q->where('name', 'Siswa'))
+                                ->get();
+
+                            foreach ($alumniStudents as $student) {
+                                $student->update([
+                                    'status' => 'Aktif',
+                                    'graduation_year' => null,
+                                    'graduated_at' => null,
+                                    'alumni_notes' => null,
+                                ]);
+
+                                DB::table('user_class')
+                                    ->where('user_id', $student->id)
+                                    ->where('status', 'Lulus')
+                                    ->update(['status' => 'Aktif']);
+
+                                $countAlumniReverted++;
+                            }
+
+                            // 2. Batalkan kenaikan kelas (kembalikan ke kelas asal)
+                            $promotedUserIds = DB::table('user_class')
+                                ->where('status', 'Naik Kelas')
+                                ->pluck('user_id')
+                                ->unique();
+
+                            foreach ($promotedUserIds as $userId) {
+                                $student = User::find($userId);
+                                if (! $student) {
+                                    continue;
+                                }
+
+                                $oldClassRecord = DB::table('user_class')
+                                    ->where('user_id', $userId)
+                                    ->where('status', 'Naik Kelas')
+                                    ->latest('id')
+                                    ->first();
+
+                                $newClassRecord = DB::table('user_class')
+                                    ->where('user_id', $userId)
+                                    ->where('status', 'Aktif')
+                                    ->where('id', '>', $oldClassRecord?->id ?? 0)
+                                    ->first();
+
+                                if ($newClassRecord) {
+                                    DB::table('user_class')->where('id', $newClassRecord->id)->delete();
+                                }
+
+                                if ($oldClassRecord) {
+                                    DB::table('user_class')->where('id', $oldClassRecord->id)->update(['status' => 'Aktif']);
+                                    $student->update(['classroom_id' => $oldClassRecord->classroom_id]);
+                                    $countPromotedReverted++;
+                                }
+                            }
+                        });
+
+                        if ($countPromotedReverted > 0 || $countAlumniReverted > 0) {
+                            Notification::make()
+                                ->title('Kenaikan & Kelulusan Berhasil Dibatalkan')
+                                ->body("{$countPromotedReverted} siswa dikembalikan ke kelas asal dan {$countAlumniReverted} siswa alumni dikembalikan aktif.")
+                                ->warning()
+                                ->send();
+                        } else {
+                            Notification::make()
+                                ->title('Tidak Ada Proses Kenaikan/Kelulusan')
+                                ->body('Saat ini tidak ada siswa berstatus Naik Kelas atau Alumni untuk dibatalkan.')
+                                ->info()
+                                ->send();
+                        }
+                    }),
+
+                Action::make('revert_all_alumni')
+                    ->label('Batalkan Status Alumni Saja')
+                    ->icon('heroicon-o-academic-cap')
+                    ->color('warning')
+                    ->requiresConfirmation()
+                    ->modalHeading('Batalkan Status Alumni')
+                    ->modalDescription('Kembalikan seluruh alumni menjadi siswa aktif kelas XII?')
+                    ->modalSubmitActionLabel('Ya, Batalkan')
+                    ->action(function (): void {
+                        $alumniStudents = User::where('status', 'Lulus')
+                            ->whereHas('role', fn ($q) => $q->where('name', 'Siswa'))
+                            ->get();
+
+                        $count = 0;
+                        DB::transaction(function () use ($alumniStudents, &$count) {
+                            foreach ($alumniStudents as $student) {
+                                $student->update([
+                                    'status' => 'Aktif',
+                                    'graduation_year' => null,
+                                    'graduated_at' => null,
+                                    'alumni_notes' => null,
+                                ]);
+
+                                DB::table('user_class')
+                                    ->where('user_id', $student->id)
+                                    ->where('status', 'Lulus')
+                                    ->update(['status' => 'Aktif']);
+
+                                $count++;
+                            }
+                        });
+
+                        if ($count > 0) {
+                            Notification::make()
+                                ->title('Status Alumni Berhasil Dibatalkan')
+                                ->body("{$count} siswa alumni berhasil dikembalikan menjadi Siswa Aktif.")
+                                ->warning()
+                                ->send();
+                        } else {
+                            Notification::make()
+                                ->title('Tidak Ada Siswa Alumni')
+                                ->body('Saat ini tidak ada siswa dengan status Alumni untuk dibatalkan.')
+                                ->info()
+                                ->send();
+                        }
+                    }),
+            ])
+                ->label('Batalkan')
                 ->icon('heroicon-o-arrow-uturn-left')
                 ->color('danger')
-                ->requiresConfirmation()
-                ->modalHeading('Konfirmasi Batalkan Semua Status Alumni')
-                ->modalDescription('Apakah Anda yakin ingin membatalkan status kelulusan seluruh siswa yang berstatus Alumni dan mengembalikan mereka ke status Siswa Aktif?')
-                ->modalSubmitActionLabel('Ya, Batalkan Semua Alumni')
-                ->action(function (): void {
-                    $alumniStudents = User::where('status', 'Lulus')
-                        ->whereHas('role', fn ($q) => $q->where('name', 'Siswa'))
-                        ->get();
-
-                    $count = 0;
-                    DB::transaction(function () use ($alumniStudents, &$count) {
-                        foreach ($alumniStudents as $student) {
-                            $student->update([
-                                'status' => 'Aktif',
-                                'graduation_year' => null,
-                                'graduated_at' => null,
-                                'alumni_notes' => null,
-                            ]);
-
-                            DB::table('user_class')
-                                ->where('user_id', $student->id)
-                                ->where('status', 'Lulus')
-                                ->update(['status' => 'Aktif']);
-
-                            $count++;
-                        }
-                    });
-
-                    if ($count > 0) {
-                        Notification::make()
-                            ->title('Status Alumni Berhasil Dibatalkan')
-                            ->body("{$count} siswa alumni berhasil dikembalikan menjadi Siswa Aktif.")
-                            ->warning()
-                            ->send();
-                    } else {
-                        Notification::make()
-                            ->title('Tidak Ada Siswa Alumni')
-                            ->body('Saat ini tidak ada siswa dengan status Alumni untuk dibatalkan.')
-                            ->info()
-                            ->send();
-                    }
-                }),
+                ->button()
+                ->outlined(),
         ];
     }
 
@@ -340,8 +415,8 @@ class StudentPromotion extends Page implements HasForms, HasTable
                     ->sortable()
                     ->weight('bold'),
 
-                TextColumn::make('classrooms.name')
-                    ->label('Kelas Terakhir')
+                TextColumn::make('classroom.name')
+                    ->label('Kelas')
                     ->badge()
                     ->color('gray')
                     ->searchable(),
@@ -447,6 +522,9 @@ class StudentPromotion extends Page implements HasForms, HasTable
                                 ->where('user_id', $record->id)
                                 ->where('status', 'Aktif')
                                 ->update(['status' => 'Lulus']);
+
+                            DB::table('sessions')->where('user_id', $record->id)->delete();
+                            $record->tokens()->delete();
                         });
 
                         Notification::make()
@@ -499,7 +577,8 @@ class StudentPromotion extends Page implements HasForms, HasTable
                     ->visible(fn (User $record): bool => $record->status === 'Lulus')
                     ->requiresConfirmation()
                     ->modalHeading('Batalkan Status Alumni')
-                    ->modalDescription(fn (User $record): string => "Apakah Anda yakin ingin membatalkan status kelulusan {$record->full_name} dan mengembalikannya ke status Siswa Aktif?")
+                    ->modalDescription(fn (User $record): string => "Kembalikan {$record->full_name} ke status Siswa Aktif?")
+                    ->modalSubmitActionLabel('Ya, Batalkan')
                     ->action(function (User $record): void {
                         DB::transaction(function () use ($record) {
                             $record->update([
@@ -528,8 +607,9 @@ class StudentPromotion extends Page implements HasForms, HasTable
                         ->label('Luluskan Siswa Terpilih ke Alumni')
                         ->icon('heroicon-o-academic-cap')
                         ->color('success')
-                        ->modalHeading('Luluskan Siswa Terpilih ke Alumni')
-                        ->modalDescription('Siswa yang dicentang akan diubah statusnya menjadi Alumni.')
+                        ->modalHeading('Luluskan Siswa Terpilih')
+                        ->modalDescription('Ubah status siswa terpilih menjadi Alumni?')
+                        ->modalSubmitActionLabel('Luluskan')
                         ->form([
                             TextInput::make('graduation_year')
                                 ->label('Tahun Kelulusan / Angkatan')
@@ -560,6 +640,9 @@ class StudentPromotion extends Page implements HasForms, HasTable
                                             ->where('status', 'Aktif')
                                             ->update(['status' => 'Lulus']);
 
+                                        DB::table('sessions')->where('user_id', $student->id)->delete();
+                                        $student->tokens()->delete();
+
                                         $count++;
                                     }
                                 }
@@ -578,8 +661,9 @@ class StudentPromotion extends Page implements HasForms, HasTable
                         ->icon('heroicon-o-arrow-uturn-left')
                         ->color('warning')
                         ->requiresConfirmation()
-                        ->modalHeading('Batalkan Status Alumni Siswa Terpilih')
-                        ->modalDescription('Siswa alumni yang dicentang akan dikembalikan statusnya menjadi Siswa Aktif.')
+                        ->modalHeading('Batalkan Alumni Terpilih')
+                        ->modalDescription('Kembalikan siswa yang dipilih ke status Siswa Aktif?')
+                        ->modalSubmitActionLabel('Ya, Batalkan')
                         ->action(function (EloquentCollection $records): void {
                             $count = 0;
                             DB::transaction(function () use ($records, &$count) {

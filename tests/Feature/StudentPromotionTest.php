@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Filament\Pages\Auth\Login;
 use App\Filament\Pages\StudentPromotion;
 use App\Models\AcademicYear;
 use App\Models\ClassLevel;
@@ -10,6 +11,7 @@ use App\Models\Major;
 use App\Models\Role;
 use App\Models\Rombel;
 use App\Models\User;
+use Filament\Facades\Filament;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Livewire\Livewire;
 use Tests\TestCase;
@@ -148,7 +150,7 @@ class StudentPromotionTest extends TestCase
         $this->actingAs($this->admin);
 
         // Call action directly without any input parameters
-        Livewire::test(StudentPromotionTest::class)
+        Livewire::test(StudentPromotion::class)
             ->callAction('promote_and_graduate')
             ->assertHasNoErrors();
 
@@ -185,7 +187,7 @@ class StudentPromotionTest extends TestCase
     {
         $this->actingAs($this->admin);
 
-        Livewire::test(StudentPromotionTest::class)
+        Livewire::test(StudentPromotion::class)
             ->callTableAction('graduate_single', $this->siswaGrade12, [
                 'graduation_year' => '2026',
                 'graduated_at' => '2026-05-15',
@@ -213,7 +215,7 @@ class StudentPromotionTest extends TestCase
         ]);
 
         // Edit alumni detail
-        Livewire::test(StudentPromotionTest::class)
+        Livewire::test(StudentPromotion::class)
             ->callTableAction('edit_alumni', $this->siswaGrade12, [
                 'graduation_year' => '2026',
                 'graduated_at' => '2026-05-15',
@@ -225,7 +227,7 @@ class StudentPromotionTest extends TestCase
         $this->assertEquals('Bekerja di Google', $this->siswaGrade12->alumni_notes);
 
         // Revert graduation back to active
-        Livewire::test(StudentPromotionTest::class)
+        Livewire::test(StudentPromotion::class)
             ->callTableAction('revert_graduation', $this->siswaGrade12)
             ->assertHasNoErrors();
 
@@ -251,7 +253,7 @@ class StudentPromotionTest extends TestCase
         $this->assertTrue($this->siswaGrade12->fresh()->isAlumni());
 
         // Call header action 'revert_all_alumni'
-        Livewire::test(StudentPromotionTest::class)
+        Livewire::test(StudentPromotion::class)
             ->callAction('revert_all_alumni')
             ->assertHasNoErrors();
 
@@ -264,6 +266,49 @@ class StudentPromotionTest extends TestCase
 
         $pivot = $this->siswaGrade12->classrooms()->wherePivot('status', 'Aktif')->exists();
         $this->assertTrue($pivot);
+    }
+
+    public function test_all_promotions_and_graduations_can_be_reverted(): void
+    {
+        $this->actingAs($this->admin);
+
+        // 1. Run promotion
+        Livewire::test(StudentPromotion::class)
+            ->callAction('promote_and_graduate')
+            ->assertHasNoErrors();
+
+        $this->siswaGrade10->refresh();
+        $this->siswaGrade11->refresh();
+        $this->siswaGrade12->refresh();
+
+        $this->assertEquals('Aktif', $this->siswaGrade10->status);
+        $this->assertEquals($this->class11->id, $this->siswaGrade10->classroom_id);
+        $this->assertEquals('Aktif', $this->siswaGrade11->status);
+        $this->assertEquals($this->class12->id, $this->siswaGrade11->classroom_id);
+        $this->assertEquals('Lulus', $this->siswaGrade12->status);
+
+        // 2. Call revert_all_promotions
+        Livewire::test(StudentPromotion::class)
+            ->callAction('revert_all_promotions')
+            ->assertHasNoErrors();
+
+        $this->siswaGrade10->refresh();
+        $this->siswaGrade11->refresh();
+        $this->siswaGrade12->refresh();
+
+        // Check Grade 10 student is back to Grade 10
+        $this->assertEquals('Aktif', $this->siswaGrade10->status);
+        $this->assertEquals($this->class10->id, $this->siswaGrade10->classroom_id);
+        $this->assertCount(1, $this->siswaGrade10->activeClassrooms);
+
+        // Check Grade 11 student is back to Grade 11
+        $this->assertEquals('Aktif', $this->siswaGrade11->status);
+        $this->assertEquals($this->class11->id, $this->siswaGrade11->classroom_id);
+        $this->assertCount(1, $this->siswaGrade11->activeClassrooms);
+
+        // Check Grade 12 student is back to Aktif Grade 12
+        $this->assertEquals('Aktif', $this->siswaGrade12->status);
+        $this->assertFalse($this->siswaGrade12->isAlumni());
     }
 
     public function test_selected_alumni_can_be_reverted_via_bulk_action(): void
@@ -280,7 +325,7 @@ class StudentPromotionTest extends TestCase
         $this->siswaGrade12->classrooms()->updateExistingPivot($this->class12->id, ['status' => 'Lulus']);
 
         // Call bulk action 'bulk_revert'
-        Livewire::test(StudentPromotionTest::class)
+        Livewire::test(StudentPromotion::class)
             ->callTableBulkAction('bulk_revert', [$this->siswaGrade12])
             ->assertHasNoErrors();
 
@@ -294,7 +339,7 @@ class StudentPromotionTest extends TestCase
     {
         $this->actingAs($this->admin);
 
-        Livewire::test(StudentPromotionTest::class)
+        Livewire::test(StudentPromotion::class)
             ->assertCanSeeTableRecords([$this->siswaGrade12])
             ->assertCanNotSeeTableRecords([$this->siswaGrade10, $this->siswaGrade11]);
     }
@@ -304,7 +349,7 @@ class StudentPromotionTest extends TestCase
         $this->actingAs($this->admin);
 
         // Run 1
-        Livewire::test(StudentPromotionTest::class)
+        Livewire::test(StudentPromotion::class)
             ->callAction('promote_and_graduate')
             ->assertHasNoErrors();
 
@@ -319,7 +364,7 @@ class StudentPromotionTest extends TestCase
         $this->assertEquals($this->class11->id, $this->siswaGrade10->classroom_id);
 
         // Run 2 immediately
-        Livewire::test(StudentPromotionTest::class)
+        Livewire::test(StudentPromotion::class)
             ->callAction('promote_and_graduate')
             ->assertHasNoErrors();
 
@@ -333,5 +378,29 @@ class StudentPromotionTest extends TestCase
         // The newly promoted Grade 10 student must STILL be 'Aktif' in Grade 11 and NOT promoted again!
         $this->assertEquals('Aktif', $this->siswaGrade10->status);
         $this->assertEquals($this->class11->id, $this->siswaGrade10->classroom_id);
+    }
+
+    public function test_graduated_alumni_student_cannot_access_filament_panel(): void
+    {
+        $this->siswaGrade12->update(['status' => 'Lulus']);
+
+        $panel = Filament::getCurrentOrDefaultPanel();
+        $this->assertFalse($this->siswaGrade12->canAccessPanel($panel));
+    }
+
+    public function test_inactive_student_is_denied_login_with_specific_message(): void
+    {
+        $this->siswaGrade12->update([
+            'status' => 'Lulus',
+            'password' => bcrypt('password123'),
+        ]);
+
+        Livewire::test(Login::class)
+            ->fillForm([
+                'login' => $this->siswaGrade12->username,
+                'password' => 'password123',
+            ])
+            ->call('authenticate')
+            ->assertHasErrors(['data.login' => 'Akun Anda berstatus Alumni (Sudah Lulus). Hak akses ke portal telah dinonaktifkan.']);
     }
 }

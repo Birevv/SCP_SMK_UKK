@@ -34,6 +34,14 @@ class AuthController extends Controller
             return $this->errorResponse('Kredensial Login Tidak Valid', 401);
         }
 
+        if ($user->status === 'Lulus') {
+            return $this->errorResponse('Akun Anda berstatus Alumni (Sudah Lulus). Hak akses ke portal telah dinonaktifkan.', 403);
+        }
+
+        if ($user->status !== 'Aktif') {
+            return $this->errorResponse("Akun Anda berstatus {$user->status}. Hak akses telah dinonaktifkan.", 403);
+        }
+
         $token = $user->createToken('mobile-app')->plainTextToken;
 
         return $this->successResponse([

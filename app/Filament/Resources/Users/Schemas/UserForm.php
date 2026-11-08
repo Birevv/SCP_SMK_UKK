@@ -36,8 +36,8 @@ class UserForm
                     ->required()
                     ->reactive(),
 
-                Select::make('classrooms')
-                    ->relationship('classrooms', 'name', modifyQueryUsing: fn ($query) => $query->orderBy('name'))
+                Select::make('activeClassrooms')
+                    ->relationship('activeClassrooms', 'name', modifyQueryUsing: fn ($query) => $query->orderBy('name'))
                     ->multiple()
                     ->label('Kelas')
                     ->searchable()
