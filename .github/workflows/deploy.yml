@@ -43,6 +43,32 @@ jobs:
           echo "Installing production dependencies..."
           composer install --no-dev --optimize-autoloader --no-interaction
 
+          echo "Setting up Python environment and dependencies..."
+          if ! command -v python3 &> /dev/null; then
+              echo "Installing Python3..."
+              (apt-get update && apt-get install -y python3 python3-pip python3-venv) || \
+              (sudo apt-get update && sudo apt-get install -y python3-pip python3-venv) || true
+          fi
+
+          if [ ! -d "venv" ]; then
+              echo "Creating virtual environment..."
+              python3 -m venv venv 2>/dev/null || \
+              (apt-get update && apt-get install -y python3-venv python3-pip && python3 -m venv venv) || \
+              (sudo apt-get update && sudo apt-get install -y python3-venv python3-pip && python3 -m venv venv) || true
+          fi
+
+          if [ -f "venv/bin/pip" ]; then
+              echo "Installing Python requirements into virtual environment..."
+              ./venv/bin/pip install --upgrade pip --quiet
+              ./venv/bin/pip install -r requirements.txt --quiet
+              chmod -R a+rX venv/
+          else
+              echo "Virtual environment fallback: installing requirements system-wide..."
+              pip3 install --break-system-packages -r requirements.txt 2>/dev/null || \
+              pip3 install -r requirements.txt 2>/dev/null || \
+              python3 -m pip install -r requirements.txt 2>/dev/null || true
+          fi
+
           echo "Building frontend..."
           npm ci
           npm run build

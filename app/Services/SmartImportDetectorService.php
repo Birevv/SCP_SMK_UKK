@@ -78,21 +78,23 @@ class SmartImportDetectorService
         }
 
         $candidates = [
+            base_path('venv/bin/python'),
+            base_path('venv/bin/python3'),
+            base_path('.venv/bin/python'),
+            base_path('.venv/bin/python3'),
+            base_path('venv/Scripts/python.exe'),
+            base_path('.venv/Scripts/python.exe'),
             'C:\\laragon\\bin\\python\\python-3.10\\python.exe',
             'C:/laragon/bin/python/python-3.10/python.exe',
             'C:\\Program Files\\Python312\\python.exe',
             'C:\\Program Files\\Python311\\python.exe',
             'C:\\Program Files\\Python310\\python.exe',
-            'python',
-            'python3',
             '/usr/bin/python3',
             '/usr/bin/python',
             '/usr/local/bin/python3',
             '/usr/local/bin/python',
-            base_path('venv/bin/python'),
-            base_path('venv/bin/python3'),
-            base_path('.venv/bin/python'),
-            base_path('.venv/bin/python3'),
+            'python3',
+            'python',
         ];
 
         foreach ($candidates as $candidate) {
