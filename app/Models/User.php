@@ -121,16 +121,15 @@ class User extends Authenticatable implements FilamentUser, HasAvatar, HasName
     public function getClassroomAttribute()
     {
         return $this->classroom
-            ?? $this->classrooms()->wherePivot('status', 'Aktif')->first()
-            ?? $this->classrooms->first();
+            ?? $this->classrooms()->wherePivot('status', 'Aktif')->latest('user_class.id')->first()
+            ?? $this->classrooms()->latest('user_class.id')->first();
     }
 
     public function classrooms(): BelongsToMany
     {
         return $this->belongsToMany(Classroom::class, 'user_class')
             ->withPivot(['academic_year_id', 'status'])
-            ->withTimestamps()
-            ->orderByPivot('id', 'desc');
+            ->withTimestamps();
     }
 
     public function role(): BelongsTo

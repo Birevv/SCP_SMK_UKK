@@ -100,7 +100,7 @@ class UsersTable
                     ->searchable(),
                 SelectFilter::make('classrooms')
                     ->label('Filter Kelas')
-                    ->relationship('classrooms', 'name')
+                    ->relationship('classrooms', 'name', modifyQueryUsing: fn ($query) => $query->orderBy('name'))
                     ->preload()
                     ->searchable(),
                 SelectFilter::make('status')

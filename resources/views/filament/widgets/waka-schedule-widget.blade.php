@@ -67,12 +67,17 @@
             }
             .scp-filter-grid {
                 display: grid;
-                grid-template-columns: repeat(3, minmax(0, 1fr));
+                grid-template-columns: repeat(4, minmax(0, 1fr));
                 gap: 0.75rem;
                 padding-top: 0.75rem;
                 border-top: 1px solid #e2e8f0;
             }
-            @media (max-width: 768px) {
+            @media (max-width: 1024px) {
+                .scp-filter-grid {
+                    grid-template-columns: repeat(2, minmax(0, 1fr));
+                }
+            }
+            @media (max-width: 640px) {
                 .scp-filter-grid {
                     grid-template-columns: 1fr;
                 }
@@ -426,8 +431,22 @@
                     </div>
                 </div>
 
-                {{-- Secondary Filters: Tanggal, Tingkat, Kelas, Hari, Putaran, Status Jurnal --}}
+                {{-- Secondary Filters: Tahun Ajaran, Tanggal, Tingkat, Kelas, Hari, Putaran, Status Jurnal --}}
                 <div class="scp-filter-grid">
+                    {{-- Filter Tahun Ajaran --}}
+                    <div>
+                        <label class="scp-filter-label">
+                            Tahun ajaran
+                        </label>
+                        <select wire:model.live="selectedAcademicYearId" class="scp-select">
+                            @foreach ($academicYears as $year)
+                                <option value="{{ $year->id }}">
+                                    {{ $year->name }} {{ $year->is_active ? '(Aktif)' : '' }}
+                                </option>
+                            @endforeach
+                        </select>
+                    </div>
+
                     {{-- Filter Tanggal --}}
                     <div>
                         <label class="scp-filter-label">
@@ -436,8 +455,15 @@
                         <input
                             type="date"
                             wire:model.live="selectedDate"
+                            min="{{ $minDate }}"
+                            max="{{ $maxDate }}"
                             class="scp-select"
                         />
+                        @if ($minDate && $maxDate)
+                            <div style="font-size: 0.6875rem; color: #64748b; margin-top: 0.2rem;" class="dark:text-gray-400">
+                                Periode: {{ \Carbon\Carbon::parse($minDate)->format('d/m/Y') }} - {{ \Carbon\Carbon::parse($maxDate)->format('d/m/Y') }}
+                            </div>
+                        @endif
                     </div>
 
                     {{-- Tingkat Kelas --}}
@@ -559,7 +585,7 @@
                     <x-filament::icon icon="heroicon-o-calendar-days" class="mx-auto h-8 w-8 text-gray-400" />
                     <div class="scp-empty-title">Tidak Ada Jadwal Mengajar Ditemukan</div>
                     <div class="scp-empty-desc">
-                        Tidak ada jadwal untuk Jurusan <strong>{{ $selectedMajor }}</strong>, Tingkat <strong>{{ $selectedGrade }}</strong> pada hari <strong>{{ $selectedDay }}</strong> ({{ $selectedCycle }}).
+                        Tidak ada jadwal untuk Tahun Ajaran <strong>{{ $selectedYear?->name ?? '-' }}</strong>, Jurusan <strong>{{ $selectedMajor }}</strong>, Tingkat <strong>{{ $selectedGrade }}</strong> pada hari <strong>{{ $selectedDay }}</strong> ({{ $selectedCycle }}).
                     </div>
                 </div>
             @else

@@ -119,7 +119,7 @@
                                         </x-filament::badge>
                                     @elseif ($s['is_expired'] ?? $s['is_overdue'])
                                         <x-filament::badge color="danger" size="sm" icon="heroicon-o-x-circle">
-                                            Tidak mengisi jurnal
+                                            Tidak Mengisi Jurnal
                                         </x-filament::badge>
                                     @else
                                         <x-filament::badge color="warning" size="sm">

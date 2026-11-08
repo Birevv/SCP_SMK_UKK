@@ -7,7 +7,11 @@ use App\Filament\Resources\Journals\JournalResource;
 use App\Filament\Resources\Journals\Schemas\JournalForm;
 use App\Models\Attendance;
 use App\Models\Schedule;
+use App\Models\User;
+use Carbon\Carbon;
 use Filament\Resources\Pages\CreateRecord;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Validation\ValidationException;
 
 class CreateJournal extends CreateRecord
 {
@@ -25,13 +29,21 @@ class CreateJournal extends CreateRecord
         parent::mount();
 
         $scheduleId = request()->query('schedule_id');
-        if ($scheduleId) {
-            $date = $this->data['date'] ?? now()->toDateString();
-            $this->form->fill([
-                'schedule_id' => (int) $scheduleId,
+        $queryDate = request()->query('date');
+
+        $date = filled($queryDate) ? (string) $queryDate : ($this->data['date'] ?? now()->toDateString());
+
+        if ($scheduleId || filled($queryDate)) {
+            $fillData = array_merge($this->data ?? [], [
                 'date' => $date,
-                'attendances' => JournalForm::getStudentsAttendanceData((int) $scheduleId, $date),
             ]);
+
+            if ($scheduleId) {
+                $fillData['schedule_id'] = (int) $scheduleId;
+                $fillData['attendances'] = JournalForm::getStudentsAttendanceData((int) $scheduleId, $date);
+            }
+
+            $this->form->fill($fillData);
         }
     }
 
@@ -42,6 +54,27 @@ class CreateJournal extends CreateRecord
 
     protected function mutateFormDataBeforeCreate(array $data): array
     {
+        /** @var User|null $currentUser */
+        $currentUser = Auth::user();
+        $isSuperAdmin = $currentUser && ($currentUser->hasRole('Super Admin') || $currentUser->role?->name === 'Super Admin');
+
+        if (! $isSuperAdmin && ! empty($data['date'])) {
+            $journalDate = Carbon::parse($data['date'])->startOfDay();
+            $today = Carbon::today();
+
+            if ($journalDate->isAfter($today)) {
+                throw ValidationException::withMessages([
+                    'date' => 'Jurnal mengajar hanya dapat diisi pada hari pembelajaran (hari ini). Pengisian untuk tanggal mendatang / besok tidak diperbolehkan.',
+                ]);
+            }
+
+            if ($journalDate->isBefore($today)) {
+                throw ValidationException::withMessages([
+                    'date' => 'Pengisian jurnal masa lalu tidak diperbolehkan. Jurnal hanya dapat diisi pada hari jadwal mengajar (hari ini).',
+                ]);
+            }
+        }
+
         if (isset($data['attendances'])) {
             $this->customAttendances = (array) $data['attendances'];
             unset($data['attendances']);

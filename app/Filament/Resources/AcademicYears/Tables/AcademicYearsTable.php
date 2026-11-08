@@ -26,8 +26,8 @@ class AcademicYearsTable
 
                 TextColumn::make('period')
                     ->label('Periode Semester')
-                    ->state(fn(AcademicYear $record): string => $record->start_date && $record->end_date
-                        ? $record->start_date->format('d/m/Y') . ' - ' . $record->end_date->format('d/m/Y')
+                    ->state(fn (AcademicYear $record): string => $record->start_date && $record->end_date
+                        ? $record->start_date->format('d/m/Y').' - '.$record->end_date->format('d/m/Y')
                         : '-'),
 
                 IconColumn::make('is_active')
@@ -47,10 +47,10 @@ class AcademicYearsTable
                     ->label('Set Aktif')
                     ->icon('heroicon-o-check-circle')
                     ->color('success')
-                    ->visible(fn(AcademicYear $record): bool => ! $record->is_active && static::canUpdate())
+                    ->visible(fn (AcademicYear $record): bool => ! $record->is_active && static::canUpdate())
                     ->requiresConfirmation()
                     ->modalHeading('Aktifkan Tahun Ajaran')
-                    ->modalDescription(fn(AcademicYear $record) => "Aktifkan {$record->name}? Tahun ajaran lain akan dinonaktifkan dan kolom Tahun Ajaran di tabel Jadwal serta data kelas akan otomatis diperbarui.")
+                    ->modalDescription(fn (AcademicYear $record) => "Aktifkan {$record->name}? Tahun ajaran lain akan dinonaktifkan dan kolom Tahun Ajaran di tabel Jadwal serta data kelas akan otomatis diperbarui.")
                     ->action(function (AcademicYear $record) {
                         $record->update(['is_active' => true]);
 
@@ -61,12 +61,12 @@ class AcademicYearsTable
                             ->send();
                     }),
                 EditAction::make()
-                    ->visible(fn(): bool => static::canUpdate()),
+                    ->visible(fn (): bool => static::canUpdate()),
             ])
             ->toolbarActions([
                 BulkActionGroup::make([
                     DeleteBulkAction::make()
-                        ->visible(fn(): bool => static::canDelete()),
+                        ->visible(fn (): bool => static::canDelete()),
                 ]),
             ]);
     }

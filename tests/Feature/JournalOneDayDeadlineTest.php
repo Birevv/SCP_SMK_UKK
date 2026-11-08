@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Filament\Resources\Journals\Pages\CreateJournal;
 use App\Filament\Widgets\HomeroomScheduleWidget;
 use App\Filament\Widgets\TeacherScheduleWidget;
 use App\Filament\Widgets\WakaScheduleWidget;
@@ -19,8 +20,10 @@ use App\Models\Subject;
 use App\Models\SystemConfiguration;
 use App\Models\User;
 use Carbon\Carbon;
+use Filament\Facades\Filament;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Livewire\Livewire;
+use Spatie\Permission\Models\Permission;
 use Tests\TestCase;
 
 class JournalOneDayDeadlineTest extends TestCase
@@ -46,6 +49,11 @@ class JournalOneDayDeadlineTest extends TestCase
         Role::firstOrCreate(['name' => 'Waka Kurikulum', 'guard_name' => 'web']);
         Role::firstOrCreate(['name' => 'Super Admin', 'guard_name' => 'web']);
         $guruRole = Role::firstOrCreate(['name' => 'Guru', 'guard_name' => 'web']);
+
+        foreach (['ViewAny:Journal', 'View:Journal', 'Create:Journal'] as $permName) {
+            $p = Permission::firstOrCreate(['name' => $permName, 'guard_name' => 'web']);
+            $guruRole->givePermissionTo($p);
+        }
 
         $this->academicYear = AcademicYear::create([
             'name' => '2026/2027 - Ganjil',
@@ -91,6 +99,8 @@ class JournalOneDayDeadlineTest extends TestCase
         ]);
 
         SchoolSession::seedDefaults();
+
+        Filament::setCurrentPanel(Filament::getPanel('admin'));
     }
 
     public function test_schedule_status_is_belum_diisi_within_one_day(): void
@@ -247,10 +257,10 @@ class JournalOneDayDeadlineTest extends TestCase
             ->assertSee('Belum Diisi')
             ->assertDontSee('Tidak mengisi jurnal');
 
-        // Untuk hari Senin (sudah > 1 hari) -> Tidak mengisi jurnal
+        // Untuk hari Senin (sudah > 1 hari) -> Tidak Mengisi Jurnal
         Livewire::test(TeacherScheduleWidget::class)
             ->set('selectedDay', 'Senin')
-            ->assertSee('Tidak mengisi jurnal');
+            ->assertSee('Tidak Mengisi Jurnal');
 
         // Homeroom widget untuk Wali Kelas
         $waliKelasRole = Role::firstOrCreate(['name' => 'Wali Kelas', 'guard_name' => 'web']);
@@ -262,9 +272,252 @@ class JournalOneDayDeadlineTest extends TestCase
 
         Livewire::test(HomeroomScheduleWidget::class)
             ->set('selectedDay', 'Senin')
-            ->assertSee('Tidak mengisi jurnal');
+            ->assertSee('Tidak Mengisi Jurnal');
+
+        Carbon::setTestNow();
+    }
+
+    public function test_teacher_schedule_widget_on_weekend_shows_upcoming_monday_as_belum_diisi(): void
+    {
+        // Simulasi hari Minggu 8 November 2026 (seperti screenshot user)
+        Carbon::setTestNow(Carbon::parse('2026-11-08 17:00:00')); // Sunday
+
+        // Jadwal hari Senin esok (9 November 2026)
+        Schedule::create([
+            'academic_year_id' => $this->academicYear->id,
+            'teacher_id' => $this->teacher->id,
+            'classroom_id' => $this->classroom->id,
+            'room_id' => $this->room->id,
+            'subject_id' => $this->subject->id,
+            'day_of_week' => 'Senin',
+            'start_session' => 1,
+            'end_session' => 3,
+            'start_time' => '07:15:00',
+            'end_time' => '09:15:00',
+            'cycle_type' => 'Putaran 1',
+        ]);
+
+        $this->actingAs($this->teacher);
+
+        // Pada hari Minggu, jadwal Senin esok berstatus "Belum Diisi" dengan tombol nonaktif dan keterangan tanggal
+        Livewire::test(TeacherScheduleWidget::class)
+            ->set('selectedDay', 'Senin')
+            ->assertSee('Belum Diisi')
+            ->assertDontSee('Tidak Mengisi Jurnal')
+            ->assertSee('Diisi pada 09 Nov 2026')
+            ->assertDontSee('Isi Jurnal');
+
+        // Ketika hari Senin esok telah tiba, tombol "Isi Jurnal" aktif kembali
+        Carbon::setTestNow(Carbon::parse('2026-11-09 08:00:00'));
+
+        Livewire::test(TeacherScheduleWidget::class)
+            ->set('selectedDay', 'Senin')
+            ->assertSee('Belum Diisi')
+            ->assertSee('Isi Jurnal')
+            ->assertDontSee('Diisi pada 09 Nov 2026');
+
+        Carbon::setTestNow();
+    }
+
+    public function test_waka_schedule_widget_clamps_date_to_academic_year_and_filters(): void
+    {
+        Carbon::setTestNow(Carbon::parse('2026-11-09 10:00:00'));
+
+        $this->actingAs($this->wakaUser);
+
+        // Uji jika user memilih tanggal sebelum tahun ajaran (misal 2017 seperti screenshot user)
+        $component = Livewire::test(WakaScheduleWidget::class)
+            ->set('selectedAcademicYearId', $this->academicYear->id)
+            ->set('selectedDate', '2017-09-01');
+
+        // Tanggal harus otomatis di-clamp ke batas awal tahun ajaran (2026-07-01)
+        $this->assertEquals('2026-07-01', $component->get('selectedDate'));
+
+        Carbon::setTestNow();
+    }
+
+    public function test_teacher_cannot_create_journal_for_past_date(): void
+    {
+        Carbon::setTestNow(Carbon::parse('2026-11-09 10:00:00'));
+
+        $schedule = Schedule::create([
+            'academic_year_id' => $this->academicYear->id,
+            'teacher_id' => $this->teacher->id,
+            'classroom_id' => $this->classroom->id,
+            'room_id' => $this->room->id,
+            'subject_id' => $this->subject->id,
+            'day_of_week' => 'Senin',
+            'start_session' => 1,
+            'end_session' => 3,
+            'start_time' => '07:15:00',
+            'end_time' => '09:15:00',
+            'cycle_type' => 'Putaran 1',
+        ]);
+
+        Livewire::actingAs($this->teacher)
+            ->test(CreateJournal::class)
+            ->fillForm([
+                'schedule_id' => $schedule->id,
+                'date' => '2026-11-01', // tanggal lampau
+                'teaching_material' => 'Materi Lampau',
+            ])
+            ->call('create')
+            ->assertHasFormErrors(['date']);
+
+        $this->assertDatabaseMissing('journals', [
+            'schedule_id' => $schedule->id,
+            'date' => '2026-11-01',
+        ]);
+
+        Carbon::setTestNow();
+    }
+
+    public function test_create_journal_hydrates_date_from_query_parameters(): void
+    {
+        Carbon::setTestNow(Carbon::parse('2026-11-08 17:00:00')); // Sunday
+
+        $schedule = Schedule::create([
+            'academic_year_id' => $this->academicYear->id,
+            'teacher_id' => $this->teacher->id,
+            'classroom_id' => $this->classroom->id,
+            'room_id' => $this->room->id,
+            'subject_id' => $this->subject->id,
+            'day_of_week' => 'Senin',
+            'start_session' => 1,
+            'end_session' => 3,
+            'start_time' => '07:15:00',
+            'end_time' => '09:15:00',
+            'cycle_type' => 'Putaran 1',
+        ]);
+
+        Livewire::actingAs($this->teacher)
+            ->withQueryParams([
+                'schedule_id' => $schedule->id,
+                'date' => '2026-11-09',
+            ])
+            ->test(CreateJournal::class)
+            ->assertFormSet([
+                'schedule_id' => $schedule->id,
+                'date' => '2026-11-09',
+            ]);
+
+        Carbon::setTestNow();
+    }
+
+    public function test_teacher_cannot_create_journal_for_future_date_tomorrow(): void
+    {
+        // Hari Minggu 8 November 2026
+        Carbon::setTestNow(Carbon::parse('2026-11-08 17:00:00'));
+
+        $schedule = Schedule::create([
+            'academic_year_id' => $this->academicYear->id,
+            'teacher_id' => $this->teacher->id,
+            'classroom_id' => $this->classroom->id,
+            'room_id' => $this->room->id,
+            'subject_id' => $this->subject->id,
+            'day_of_week' => 'Senin',
+            'start_session' => 1,
+            'end_session' => 3,
+            'start_time' => '07:15:00',
+            'end_time' => '09:15:00',
+            'cycle_type' => 'Putaran 1',
+        ]);
+
+        // Guru mencoba mengisi jurnal untuk besok (Senin 9 November 2026)
+        Livewire::actingAs($this->teacher)
+            ->test(CreateJournal::class)
+            ->fillForm([
+                'schedule_id' => $schedule->id,
+                'date' => '2026-11-09',
+                'teaching_material' => 'Materi Besok Belum Mulai',
+            ])
+            ->call('create')
+            ->assertHasFormErrors(['date']);
+
+        $this->assertDatabaseMissing('journals', [
+            'schedule_id' => $schedule->id,
+            'date' => '2026-11-09',
+        ]);
+
+        Carbon::setTestNow();
+    }
+
+    public function test_teacher_can_create_journal_for_today(): void
+    {
+        // Hari Senin 9 November 2026
+        Carbon::setTestNow(Carbon::parse('2026-11-09 10:00:00'));
+
+        $schedule = Schedule::create([
+            'academic_year_id' => $this->academicYear->id,
+            'teacher_id' => $this->teacher->id,
+            'classroom_id' => $this->classroom->id,
+            'room_id' => $this->room->id,
+            'subject_id' => $this->subject->id,
+            'day_of_week' => 'Senin',
+            'start_session' => 1,
+            'end_session' => 3,
+            'start_time' => '07:15:00',
+            'end_time' => '09:15:00',
+            'cycle_type' => 'Putaran 1',
+        ]);
+
+        Livewire::actingAs($this->teacher)
+            ->test(CreateJournal::class)
+            ->fillForm([
+                'schedule_id' => $schedule->id,
+                'date' => '2026-11-09',
+                'teaching_material' => 'Materi Pembelajaran Hari Ini',
+            ])
+            ->call('create')
+            ->assertHasNoFormErrors();
+
+        $journal = Journal::where('schedule_id', $schedule->id)->latest()->first();
+        $this->assertNotNull($journal);
+        $this->assertEquals('2026-11-09', Carbon::parse($journal->date)->toDateString());
+        $this->assertEquals('Materi Pembelajaran Hari Ini', $journal->teaching_material);
+
+        Carbon::setTestNow();
+    }
+
+    public function test_super_admin_can_create_journal_for_future_date(): void
+    {
+        // Hari Minggu 8 November 2026
+        Carbon::setTestNow(Carbon::parse('2026-11-08 17:00:00'));
+
+        $superAdmin = User::factory()->create([
+            'role_id' => Role::where('name', 'Super Admin')->first()->id,
+        ]);
+        $superAdmin->assignRole('Super Admin');
+
+        $schedule = Schedule::create([
+            'academic_year_id' => $this->academicYear->id,
+            'teacher_id' => $this->teacher->id,
+            'classroom_id' => $this->classroom->id,
+            'room_id' => $this->room->id,
+            'subject_id' => $this->subject->id,
+            'day_of_week' => 'Senin',
+            'start_session' => 1,
+            'end_session' => 3,
+            'start_time' => '07:15:00',
+            'end_time' => '09:15:00',
+            'cycle_type' => 'Putaran 1',
+        ]);
+
+        Livewire::actingAs($superAdmin)
+            ->test(CreateJournal::class)
+            ->fillForm([
+                'schedule_id' => $schedule->id,
+                'date' => '2026-11-09',
+                'teaching_material' => 'Super Admin Bypass Date Restriction',
+            ])
+            ->call('create')
+            ->assertHasNoFormErrors();
+
+        $journal = Journal::where('schedule_id', $schedule->id)->latest()->first();
+        $this->assertNotNull($journal);
+        $this->assertEquals('2026-11-09', Carbon::parse($journal->date)->toDateString());
+        $this->assertEquals('Super Admin Bypass Date Restriction', $journal->teaching_material);
 
         Carbon::setTestNow();
     }
 }
-

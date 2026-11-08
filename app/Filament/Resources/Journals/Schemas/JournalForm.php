@@ -60,6 +60,34 @@ class JournalForm
                     ->default(now())
                     ->required()
                     ->label('Tanggal Jurnal')
+                    ->maxDate(function () {
+                        $user = Auth::user();
+                        if ($user && ($user->hasRole('Super Admin') || $user->role?->name === 'Super Admin')) {
+                            return null;
+                        }
+
+                        return Carbon::today();
+                    })
+                    ->minDate(function () {
+                        $user = Auth::user();
+                        if ($user && ($user->hasRole('Super Admin') || $user->role?->name === 'Super Admin')) {
+                            return null;
+                        }
+
+                        return Carbon::today();
+                    })
+                    ->validationMessages([
+                        'before_or_equal' => 'Jurnal mengajar hanya dapat diisi pada hari pembelajaran (hari ini). Pengisian untuk tanggal mendatang / besok tidak diperbolehkan.',
+                        'after_or_equal' => 'Pengisian jurnal masa lalu tidak diperbolehkan. Jurnal hanya dapat diisi pada hari jadwal mengajar (hari ini).',
+                    ])
+                    ->helperText(function () {
+                        $user = Auth::user();
+                        if ($user && ($user->hasRole('Super Admin') || $user->role?->name === 'Super Admin')) {
+                            return null;
+                        }
+
+                        return 'Pengisian jurnal hanya dapat dilakukan pada hari pembelajaran (hari ini).';
+                    })
                     ->live()
                     ->afterStateUpdated(function ($state, Set $set, Get $get) {
                         if ($scheduleId = $get('schedule_id')) {

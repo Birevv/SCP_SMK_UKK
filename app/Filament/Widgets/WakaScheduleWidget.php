@@ -2,6 +2,7 @@
 
 namespace App\Filament\Widgets;
 
+use App\Models\AcademicYear;
 use App\Models\ClassLevel;
 use App\Models\Classroom;
 use App\Models\Major;
@@ -28,6 +29,8 @@ class WakaScheduleWidget extends Widget
     public ?string $selectedGrade = 'ALL';
 
     public ?string $selectedClassroom = 'ALL';
+
+    public ?int $selectedAcademicYearId = null;
 
     public ?string $selectedDate = null;
 
@@ -60,9 +63,22 @@ class WakaScheduleWidget extends Widget
     {
         $config = SystemConfiguration::current();
         $this->selectedCycle = $config->active_cycle ?? 'Putaran 1';
-        $this->selectedDate = Carbon::today()->toDateString();
 
-        $dayIndex = Carbon::now()->dayOfWeekIso;
+        $activeYear = AcademicYear::getActive() ?? AcademicYear::first();
+        $this->selectedAcademicYearId = $activeYear?->id;
+
+        $today = Carbon::today();
+        if ($activeYear && $activeYear->start_date && $activeYear->end_date) {
+            if ($today->betweenIncluded($activeYear->start_date, $activeYear->end_date)) {
+                $this->selectedDate = $today->toDateString();
+            } else {
+                $this->selectedDate = $activeYear->start_date->toDateString();
+            }
+        } else {
+            $this->selectedDate = $today->toDateString();
+        }
+
+        $dayIndex = Carbon::parse($this->selectedDate)->dayOfWeekIso;
         $this->selectedDay = match ($dayIndex) {
             1 => 'Senin',
             2 => 'Selasa',
@@ -71,6 +87,24 @@ class WakaScheduleWidget extends Widget
             5 => 'Jumat',
             default => 'Senin',
         };
+    }
+
+    public function updatedSelectedAcademicYearId(): void
+    {
+        $selectedYear = AcademicYear::find($this->selectedAcademicYearId);
+        $today = Carbon::today();
+
+        if ($selectedYear && $selectedYear->start_date && $selectedYear->end_date) {
+            if ($today->betweenIncluded($selectedYear->start_date, $selectedYear->end_date)) {
+                $this->selectedDate = $today->toDateString();
+            } else {
+                $this->selectedDate = $selectedYear->start_date->toDateString();
+            }
+        } else {
+            $this->selectedDate = $today->toDateString();
+        }
+
+        $this->updatedSelectedDate($this->selectedDate);
     }
 
     public function setMajor(string $major): void
@@ -94,7 +128,19 @@ class WakaScheduleWidget extends Widget
     {
         if (filled($date)) {
             try {
-                $dayIndex = Carbon::parse($date)->dayOfWeekIso;
+                $parsedDate = Carbon::parse($date)->startOfDay();
+                $selectedYear = AcademicYear::find($this->selectedAcademicYearId);
+
+                // Batasi tanggal agar tidak keluar dari periode awal s/d akhir tahun ajaran
+                if ($selectedYear && $selectedYear->start_date && $parsedDate->isBefore($selectedYear->start_date)) {
+                    $parsedDate = $selectedYear->start_date->copy();
+                    $this->selectedDate = $parsedDate->toDateString();
+                } elseif ($selectedYear && $selectedYear->end_date && $parsedDate->isAfter($selectedYear->end_date)) {
+                    $parsedDate = $selectedYear->end_date->copy();
+                    $this->selectedDate = $parsedDate->toDateString();
+                }
+
+                $dayIndex = $parsedDate->dayOfWeekIso;
                 $mappedDay = match ($dayIndex) {
                     1 => 'Senin',
                     2 => 'Selasa',
@@ -134,10 +180,30 @@ class WakaScheduleWidget extends Widget
     protected function getViewData(): array
     {
         $config = SystemConfiguration::current();
+        $academicYears = AcademicYear::orderByDesc('is_active')->orderByDesc('name')->get();
+        $selectedYear = AcademicYear::find($this->selectedAcademicYearId)
+            ?? AcademicYear::getActive()
+            ?? $academicYears->first();
+
+        $minDate = $selectedYear?->start_date?->toDateString();
+        $maxDate = $selectedYear?->end_date?->toDateString();
+
         $targetDate = filled($this->selectedDate)
             ? Carbon::parse($this->selectedDate)->startOfDay()
             : Carbon::today();
+
+        // Pastikan targetDate berada dalam rentang tahun ajaran yang dipilih jika batas tanggal ada
+        if ($selectedYear && $selectedYear->start_date && $targetDate->isBefore($selectedYear->start_date)) {
+            $targetDate = $selectedYear->start_date->copy()->startOfDay();
+            $this->selectedDate = $targetDate->toDateString();
+        } elseif ($selectedYear && $selectedYear->end_date && $targetDate->isAfter($selectedYear->end_date)) {
+            $targetDate = $selectedYear->end_date->copy()->startOfDay();
+            $this->selectedDate = $targetDate->toDateString();
+        }
+
         $now = Carbon::now();
+        $isFuture = $targetDate->isFuture();
+        $isToday = $targetDate->isToday();
 
         $majors = Major::orderBy('code')->get();
         $grades = ClassLevel::orderBy('level')->get();
@@ -163,6 +229,10 @@ class WakaScheduleWidget extends Widget
             ->where('day_of_week', $this->selectedDay ?? 'Senin')
             ->where('cycle_type', $this->selectedCycle ?? $config->active_cycle);
 
+        if ($this->selectedAcademicYearId) {
+            $query->where('academic_year_id', $this->selectedAcademicYearId);
+        }
+
         if ($this->selectedMajor && $this->selectedMajor !== 'ALL') {
             $query->forMajor($this->selectedMajor);
         }
@@ -177,7 +247,7 @@ class WakaScheduleWidget extends Widget
 
         $daySessions = SchoolSession::getSessionsForDay($this->selectedDay ?? 'Senin');
 
-        $allSchedules = $query->orderBy('start_time')->get()->map(function (Schedule $schedule) use ($targetDate, $now, $daySessions) {
+        $allSchedules = $query->orderBy('start_time')->get()->map(function (Schedule $schedule) use ($targetDate, $now, $isFuture, $isToday, $daySessions) {
             $journal = $schedule->journals->first();
             $hasJournal = $journal !== null;
 
@@ -187,9 +257,23 @@ class WakaScheduleWidget extends Widget
             $startTimeStr = $startSession ? $startSession['start'] : substr((string) $schedule->start_time, 0, 5);
             $endTimeStr = $endSession ? $endSession['end'] : substr((string) $schedule->end_time, 0, 5);
 
-            // Batas waktu pengisian jurnal adalah 1 hari (24 jam sejak jadwal pembelajaran selesai)
             $scheduleEndDateTime = Carbon::parse($targetDate->toDateString().' '.$endTimeStr);
-            $isExpired = ! $hasJournal && $now->greaterThan($scheduleEndDateTime->copy()->addDay());
+            $isScheduleFuture = $isFuture || ($isToday && $now->lessThanOrEqualTo($scheduleEndDateTime));
+            $isScheduleWithinDeadline = $isToday && $now->lessThanOrEqualTo($scheduleEndDateTime->copy()->addDay());
+
+            if ($hasJournal) {
+                $status = 'filled';
+                $statusLabel = 'Sudah diisi';
+                $isExpired = false;
+            } elseif ($isScheduleFuture || $isScheduleWithinDeadline) {
+                $status = 'unfilled';
+                $statusLabel = 'Belum diisi';
+                $isExpired = false;
+            } else {
+                $status = 'not_filled';
+                $statusLabel = 'Tidak mengisi jurnal';
+                $isExpired = true;
+            }
 
             return [
                 'id' => $schedule->id,
@@ -211,22 +295,25 @@ class WakaScheduleWidget extends Widget
                 'has_journal' => $hasJournal,
                 'is_expired' => $isExpired,
                 'is_overdue' => $isExpired,
-                'status' => $hasJournal ? 'filled' : ($isExpired ? 'not_filled' : 'unfilled'),
-                'status_label' => $hasJournal ? 'Sudah diisi' : ($isExpired ? 'Tidak mengisi jurnal' : 'Belum diisi'),
+                'status' => $status,
+                'status_label' => $statusLabel,
             ];
         });
 
         // Quick stats per major
         $majorStats = $majors->map(function ($major) use ($config) {
-            $count = Schedule::where('day_of_week', $this->selectedDay ?? 'Senin')
+            $countQuery = Schedule::where('day_of_week', $this->selectedDay ?? 'Senin')
                 ->where('cycle_type', $this->selectedCycle ?? $config->active_cycle)
-                ->forMajor($major->code)
-                ->count();
+                ->forMajor($major->code);
+
+            if ($this->selectedAcademicYearId) {
+                $countQuery->where('academic_year_id', $this->selectedAcademicYearId);
+            }
 
             return [
                 'code' => $major->code,
                 'name' => $major->name,
-                'count' => $count,
+                'count' => $countQuery->count(),
             ];
         });
 
@@ -244,6 +331,10 @@ class WakaScheduleWidget extends Widget
 
         return [
             'schedules' => $schedules,
+            'academicYears' => $academicYears,
+            'selectedYear' => $selectedYear,
+            'minDate' => $minDate,
+            'maxDate' => $maxDate,
             'majors' => $majors,
             'grades' => $grades,
             'classrooms' => $classrooms,

@@ -2,6 +2,7 @@
 
 namespace App\Filament\Widgets;
 
+use App\Models\AcademicYear;
 use App\Models\ClassLevel;
 use App\Models\Classroom;
 use App\Models\Journal;
@@ -99,8 +100,9 @@ class HomeroomScheduleWidget extends Widget
         $config = SystemConfiguration::current();
         $today = Carbon::today();
         $now = Carbon::now();
+        $currentDayIso = $now->dayOfWeekIso;
 
-        $selectedDayName = $this->selectedDay ?? match (Carbon::now()->dayOfWeekIso) {
+        $selectedDayName = $this->selectedDay ?? match ($currentDayIso) {
             1 => 'Senin',
             2 => 'Selasa',
             3 => 'Rabu',
@@ -118,9 +120,17 @@ class HomeroomScheduleWidget extends Widget
             default => 1,
         };
 
-        $targetDate = Carbon::now()->startOfWeek()->addDays($targetDayIndex - 1)->startOfDay();
+        // Jika hari ini akhir pekan (Sabtu/Minggu), wali kelas melihat jadwal minggu depan yang akan datang
+        if ($currentDayIso >= 6) {
+            $weekStart = $today->copy()->startOfWeek()->addWeek();
+        } else {
+            $weekStart = $today->copy()->startOfWeek();
+        }
+
+        $targetDate = $weekStart->copy()->addDays($targetDayIndex - 1)->startOfDay();
 
         $allGrades = ClassLevel::orderBy('level')->get();
+        $activeAcademicYearId = AcademicYear::getActiveId();
 
         // Get accessible classrooms
         $userClassrooms = $user->classrooms;
@@ -140,6 +150,10 @@ class HomeroomScheduleWidget extends Widget
             ->where('cycle_type', $config->active_cycle)
             ->where('day_of_week', $selectedDayName);
 
+        if ($activeAcademicYearId) {
+            $query->where('academic_year_id', $activeAcademicYearId);
+        }
+
         if ($this->selectedClassroomId) {
             $query->where('classroom_id', $this->selectedClassroomId);
         } elseif ($this->selectedGrade && $this->selectedGrade !== 'ALL') {
@@ -154,15 +168,15 @@ class HomeroomScheduleWidget extends Widget
         $filledScheduleIds = ! empty($scheduleIds)
             ? Journal::whereIn('schedule_id', $scheduleIds)
                 ->whereDate('date', $targetDate)
-                ->pluck('schedule_id')
-                ->flip()
+                ->pluck('id', 'schedule_id')
                 ->toArray()
             : [];
 
         $daySessions = SchoolSession::getSessionsForDay($selectedDayName);
 
         $schedules = $rawSchedules->map(function (Schedule $schedule) use ($now, $targetDate, $filledScheduleIds, $daySessions) {
-            $hasJournal = isset($filledScheduleIds[$schedule->id]);
+            $journalId = $filledScheduleIds[$schedule->id] ?? null;
+            $hasJournal = $journalId !== null;
 
             $startSession = $schedule->start_session ? ($daySessions[$schedule->start_session] ?? null) : null;
             $endSession = $schedule->end_session ? ($daySessions[$schedule->end_session] ?? null) : null;
@@ -170,9 +184,25 @@ class HomeroomScheduleWidget extends Widget
             $startTimeStr = $startSession ? $startSession['start'] : substr((string) $schedule->start_time, 0, 5);
             $endTimeStr = $endSession ? $endSession['end'] : substr((string) $schedule->end_time, 0, 5);
 
-            // Batas waktu pengisian jurnal adalah 1 hari (24 jam sejak jadwal pembelajaran selesai)
             $scheduleEndDateTime = Carbon::parse($targetDate->toDateString().' '.$endTimeStr);
-            $isExpired = ! $hasJournal && $now->greaterThan($scheduleEndDateTime->copy()->addDay());
+            $isFuture = $targetDate->isFuture();
+            $isToday = $targetDate->isToday();
+
+            // Jika hari sekarang < hari jadwal atau masih dalam batas tenggat 1 hari -> Belum diisi
+            // Jika jadwal sudah terlewat > 1 hari dan tidak mengisi -> Tidak Mengisi Jurnal
+            if ($hasJournal) {
+                $status = 'filled';
+                $statusLabel = 'Sudah Diisi';
+                $isExpired = false;
+            } elseif ($isFuture || ($isToday && $now->lessThanOrEqualTo($scheduleEndDateTime->copy()->addDay()))) {
+                $status = 'unfilled';
+                $statusLabel = 'Belum Diisi';
+                $isExpired = false;
+            } else {
+                $status = 'not_filled';
+                $statusLabel = 'Tidak Mengisi Jurnal';
+                $isExpired = true;
+            }
 
             return [
                 'id' => $schedule->id,

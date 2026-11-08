@@ -108,23 +108,48 @@
                                 <x-filament::badge color="success" size="sm" icon="heroicon-o-check-circle">
                                     Sudah Diisi
                                 </x-filament::badge>
+
+                                @if (! empty($s['journal_id']))
+                                    <a
+                                        href="{{ \App\Filament\Resources\Journals\JournalResource::getUrl('view', ['record' => $s['journal_id']]) }}"
+                                        class="inline-flex items-center gap-1 text-xs font-semibold text-primary-600 dark:text-primary-400 hover:underline"
+                                    >
+                                        <span>Lihat Jurnal</span>
+                                        <x-filament::icon icon="heroicon-m-arrow-right" class="h-3 w-3" />
+                                    </a>
+                                @endif
                             @elseif ($s['is_expired'] ?? $s['is_overdue'])
                                 <x-filament::badge color="danger" size="sm" icon="heroicon-o-x-circle">
-                                    Tidak mengisi jurnal
+                                    Tidak Mengisi Jurnal
                                 </x-filament::badge>
+
+                                <span class="inline-flex items-center gap-1 text-xs text-gray-400 dark:text-gray-500 font-medium">
+                                    <x-filament::icon icon="heroicon-m-lock-closed" class="h-3 w-3" />
+                                    <span>Waktu Lewat</span>
+                                </span>
                             @else
                                 <x-filament::badge color="warning" size="sm">
                                     Belum Diisi
                                 </x-filament::badge>
-                            @endif
 
-                            <a
-                                href="{{ \App\Filament\Resources\Journals\JournalResource::getUrl('create', ['schedule_id' => $s['id']]) }}"
-                                class="inline-flex items-center gap-1 text-xs font-semibold text-primary-600 dark:text-primary-400 hover:underline"
-                            >
-                                <span>{{ $s['has_journal'] ? 'Lihat Jurnal' : 'Isi Jurnal' }}</span>
-                                <x-filament::icon icon="heroicon-m-arrow-right" class="h-3 w-3" />
-                            </a>
+                                @if ($s['can_fill'])
+                                    <a
+                                        href="{{ \App\Filament\Resources\Journals\JournalResource::getUrl('create', ['schedule_id' => $s['id'], 'date' => $s['target_date']]) }}"
+                                        class="inline-flex items-center gap-1 text-xs font-semibold text-primary-600 dark:text-primary-400 hover:underline"
+                                    >
+                                        <span>Isi Jurnal</span>
+                                        <x-filament::icon icon="heroicon-m-arrow-right" class="h-3 w-3" />
+                                    </a>
+                                @else
+                                    <span
+                                        title="Jurnal dapat diisi pada {{ $s['target_date_formatted'] }}"
+                                        class="inline-flex items-center gap-1 text-[11px] font-medium text-gray-500 dark:text-gray-400 bg-gray-100 dark:bg-gray-800/80 px-2 py-0.5 rounded-md border border-gray-200 dark:border-gray-700/60 cursor-not-allowed select-none"
+                                    >
+                                        <x-filament::icon icon="heroicon-o-calendar" class="h-3 w-3 text-gray-400 dark:text-gray-500" />
+                                        <span>Diisi pada {{ $s['target_date_formatted'] }}</span>
+                                    </span>
+                                @endif
+                            @endif
                         </div>
                     </div>
                 @endforeach

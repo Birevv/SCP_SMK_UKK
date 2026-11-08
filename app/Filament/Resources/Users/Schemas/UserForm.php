@@ -37,11 +37,12 @@ class UserForm
                     ->reactive(),
 
                 Select::make('classrooms')
-                    ->relationship('classrooms', 'name')
+                    ->relationship('classrooms', 'name', modifyQueryUsing: fn ($query) => $query->orderBy('name'))
                     ->multiple()
                     ->label('Kelas')
                     ->searchable()
                     ->preload()
+                    ->optionsLimit(200)
                     ->pivotData(fn () => [
                         'academic_year_id' => AcademicYear::getActiveId(),
                         'status' => 'Aktif',
