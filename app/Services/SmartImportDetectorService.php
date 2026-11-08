@@ -69,8 +69,12 @@ class SmartImportDetectorService
     public function findPythonBinary(): ?string
     {
         $custom = config('services.python_binary') ?: env('PYTHON_BINARY');
-        if ($custom && file_exists($custom)) {
+        if ($custom && (file_exists($custom) || is_executable($custom))) {
             return $custom;
+        }
+
+        if (! function_exists('shell_exec')) {
+            return null;
         }
 
         $candidates = [
@@ -81,6 +85,14 @@ class SmartImportDetectorService
             'C:\\Program Files\\Python310\\python.exe',
             'python',
             'python3',
+            '/usr/bin/python3',
+            '/usr/bin/python',
+            '/usr/local/bin/python3',
+            '/usr/local/bin/python',
+            base_path('venv/bin/python'),
+            base_path('venv/bin/python3'),
+            base_path('.venv/bin/python'),
+            base_path('.venv/bin/python3'),
         ];
 
         foreach ($candidates as $candidate) {
@@ -203,6 +215,31 @@ class SmartImportDetectorService
                         return $decoded;
                     }
                 }
+
+                if (str_contains($output, 'RuntimeError:')) {
+                    $parts = explode('RuntimeError:', $output, 2);
+                    throw new Exception(trim($parts[1]));
+                }
+
+                if (str_contains($output, 'ModuleNotFoundError:')) {
+                    $parts = explode('ModuleNotFoundError:', $output, 2);
+                    throw new Exception('Pustaka Python belum terpasang di server: '.trim($parts[1]).'. Silakan jalankan: pip install -r requirements.txt');
+                }
+
+                if (str_contains($output, 'RuntimeError:')) {
+                    $parts = explode('RuntimeError:', $output, 2);
+                    throw new Exception(trim($parts[1]));
+                }
+
+                if (str_contains($output, 'ModuleNotFoundError:')) {
+                    $parts = explode('ModuleNotFoundError:', $output, 2);
+                    throw new Exception('Pustaka Python belum terpasang di server: '.trim($parts[1]).'. Silakan jalankan: pip install -r requirements.txt');
+                }
+
+                if (str_contains($output, 'ValueError:')) {
+                    $parts = explode('ValueError:', $output, 2);
+                    throw new Exception(trim($parts[1]));
+                }
             }
         }
 
@@ -243,6 +280,16 @@ class SmartImportDetectorService
                     if (is_array($decoded) && isset($decoded['type'])) {
                         return $decoded;
                     }
+                }
+
+                if (str_contains($output, 'RuntimeError:')) {
+                    $parts = explode('RuntimeError:', $output, 2);
+                    throw new Exception(trim($parts[1]));
+                }
+
+                if (str_contains($output, 'ModuleNotFoundError:')) {
+                    $parts = explode('ModuleNotFoundError:', $output, 2);
+                    throw new Exception('Pustaka Python belum terpasang di server: '.trim($parts[1]).'. Silakan jalankan: pip install -r requirements.txt');
                 }
 
                 if (str_contains($output, 'ValueError:')) {
@@ -401,7 +448,14 @@ class SmartImportDetectorService
             return $this->nativeParseExcel($filePath);
         }
 
-        throw new Exception("Deteksi native PHP untuk file .{$ext} memerlukan Python interpreter dengan pustaka pdfplumber / openpyxl.");
+        $disabled = explode(',', (string) ini_get('disable_functions'));
+        $disabled = array_map('trim', $disabled);
+
+        if (! function_exists('shell_exec') || in_array('shell_exec', $disabled, true)) {
+            throw new Exception('Fungsi shell_exec() dinonaktifkan di konfigurasi PHP server (disable_functions pada php.ini). Harap aktifkan shell_exec dan pastikan pustaka pdfplumber terpasang untuk mengimpor file PDF.');
+        }
+
+        throw new Exception("File jadwal .{$ext} memerlukan Python dengan pustaka pdfplumber. Pastikan python3 dan pustaka telah terpasang di server (jalankan: pip install -r requirements.txt) atau atur path interpreter pada PYTHON_BINARY di file .env.");
     }
 
     protected function isEmployeeTeachersFile(string $filePath, string $ext): bool
