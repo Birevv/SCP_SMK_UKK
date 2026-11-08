@@ -2,10 +2,13 @@
 
 namespace App\Models;
 
+use App\Observers\SchoolSessionObserver;
 use Carbon\Carbon;
+use Illuminate\Database\Eloquent\Attributes\ObservedBy;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
+#[ObservedBy(SchoolSessionObserver::class)]
 class SchoolSession extends Model
 {
     use HasFactory;
@@ -133,6 +136,31 @@ class SchoolSession extends Model
     }
 
     /**
+     * Parsing string waktu secara aman dan fleksibel (mendukung format 07:15, 07.15, 7:15, 7.15, 07:15:00).
+     */
+    public static function parseTimeCarbon(string $timeStr): Carbon
+    {
+        $clean = trim($timeStr);
+        $clean = str_replace('.', ':', $clean);
+
+        if (preg_match('/^(\d{1,2}):(\d{2})/', $clean, $matches)) {
+            $hour = str_pad($matches[1], 2, '0', STR_PAD_LEFT);
+            $min = $matches[2];
+            $clean = "{$hour}:{$min}";
+        }
+
+        try {
+            return Carbon::createFromFormat('H:i', substr($clean, 0, 5));
+        } catch (\Throwable) {
+            try {
+                return Carbon::parse($clean);
+            } catch (\Throwable) {
+                return Carbon::createFromTime(7, 15);
+            }
+        }
+    }
+
+    /**
      * Generate sesi otomatis untuk hari tertentu dengan durasi per sesi kustom.
      */
     public static function generateSessionsForDay(
@@ -147,7 +175,7 @@ class SchoolSession extends Model
         int $break3After = 8,
         int $break3Minutes = 20
     ): void {
-        $currentTime = Carbon::createFromFormat('H:i', substr($firstStartTime, 0, 5));
+        $currentTime = static::parseTimeCarbon($firstStartTime);
 
         for ($num = 1; $num <= $totalSessions; $num++) {
             $startStr = $currentTime->format('H:i');

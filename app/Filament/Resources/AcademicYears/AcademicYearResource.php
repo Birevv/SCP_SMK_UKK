@@ -8,11 +8,13 @@ use App\Filament\Resources\AcademicYears\Pages\ListAcademicYears;
 use App\Filament\Resources\AcademicYears\Schemas\AcademicYearForm;
 use App\Filament\Resources\AcademicYears\Tables\AcademicYearsTable;
 use App\Models\AcademicYear;
+use App\Models\User;
 use BackedEnum;
 use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Model;
 use UnitEnum;
 
 class AcademicYearResource extends Resource
@@ -21,7 +23,7 @@ class AcademicYearResource extends Resource
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedCalendarDays;
 
-    protected static string|UnitEnum|null $navigationGroup = 'Data Master';
+    protected static string|UnitEnum|null $navigationGroup = 'Manajemen Akademik';
 
     protected static ?string $navigationLabel = 'Kalender Akademik';
 
@@ -37,6 +39,58 @@ class AcademicYearResource extends Resource
     public static function table(Table $table): Table
     {
         return AcademicYearsTable::configure($table);
+    }
+
+    public static function canCreate(): bool
+    {
+        /** @var User|null $user */
+        $user = auth()->user();
+
+        if (! $user) {
+            return false;
+        }
+
+        return $user->hasRole(['Super Admin', 'Waka Kurikulum'])
+            || $user->can('Create:AcademicYear');
+    }
+
+    public static function canEdit(Model $record): bool
+    {
+        /** @var User|null $user */
+        $user = auth()->user();
+
+        if (! $user) {
+            return false;
+        }
+
+        return $user->hasRole(['Super Admin', 'Waka Kurikulum'])
+            || $user->can('Update:AcademicYear');
+    }
+
+    public static function canDelete(Model $record): bool
+    {
+        /** @var User|null $user */
+        $user = auth()->user();
+
+        if (! $user) {
+            return false;
+        }
+
+        return $user->hasRole(['Super Admin', 'Waka Kurikulum'])
+            || $user->can('Delete:AcademicYear');
+    }
+
+    public static function canDeleteAny(): bool
+    {
+        /** @var User|null $user */
+        $user = auth()->user();
+
+        if (! $user) {
+            return false;
+        }
+
+        return $user->hasRole(['Super Admin', 'Waka Kurikulum'])
+            || $user->can('DeleteAny:AcademicYear');
     }
 
     public static function getRelations(): array

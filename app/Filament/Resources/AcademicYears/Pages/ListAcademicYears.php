@@ -96,6 +96,10 @@ class ListAcademicYears extends ListRecords
                 $this->currentYear = $activeYear->start_date->year;
             }
         }
+
+        if (! $this->canManage()) {
+            $this->currentViewTab = 'calendar';
+        }
     }
 
     public function canManage(): bool
@@ -114,6 +118,12 @@ class ListAcademicYears extends ListRecords
 
     public function switchTab(string $tab): void
     {
+        if ($tab === 'years' && ! $this->canManage()) {
+            $this->currentViewTab = 'calendar';
+
+            return;
+        }
+
         $this->currentViewTab = $tab;
     }
 
@@ -418,6 +428,10 @@ class ListAcademicYears extends ListRecords
 
     public function openSyncModal(): void
     {
+        if (! $this->canManage()) {
+            return;
+        }
+
         $this->syncYear = $this->currentYear;
         $this->showSyncModal = true;
     }

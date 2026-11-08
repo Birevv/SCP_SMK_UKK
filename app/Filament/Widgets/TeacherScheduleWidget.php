@@ -6,6 +6,7 @@ use App\Models\ClassLevel;
 use App\Models\Journal;
 use App\Models\Major;
 use App\Models\Schedule;
+use App\Models\SchoolSession;
 use App\Models\SystemConfiguration;
 use App\Models\User;
 use Carbon\Carbon;
@@ -92,6 +93,26 @@ class TeacherScheduleWidget extends Widget
         $today = Carbon::today();
         $now = Carbon::now();
 
+        $selectedDayName = $this->selectedDay ?? match (Carbon::now()->dayOfWeekIso) {
+            1 => 'Senin',
+            2 => 'Selasa',
+            3 => 'Rabu',
+            4 => 'Kamis',
+            5 => 'Jumat',
+            default => 'Senin',
+        };
+
+        $targetDayIndex = match ($selectedDayName) {
+            'Senin' => 1,
+            'Selasa' => 2,
+            'Rabu' => 3,
+            'Kamis' => 4,
+            'Jumat' => 5,
+            default => 1,
+        };
+
+        $targetDate = Carbon::now()->startOfWeek()->addDays($targetDayIndex - 1)->startOfDay();
+
         // Find which grades this teacher actually teaches
         $teacherClassroomIds = Schedule::where('teacher_id', $user->id)
             ->pluck('classroom_id')
@@ -103,7 +124,7 @@ class TeacherScheduleWidget extends Widget
         $query = Schedule::with(['subject', 'classroom.classLevel', 'classroom.major', 'classroom.rombel', 'room'])
             ->where('teacher_id', $user->id)
             ->where('cycle_type', $config->active_cycle)
-            ->where('day_of_week', $this->selectedDay ?? 'Senin');
+            ->where('day_of_week', $selectedDayName);
 
         if ($this->selectedGrade && $this->selectedGrade !== 'ALL') {
             $query->forGrade($this->selectedGrade);
@@ -118,28 +139,46 @@ class TeacherScheduleWidget extends Widget
 
         $filledScheduleIds = ! empty($scheduleIds)
             ? Journal::whereIn('schedule_id', $scheduleIds)
-                ->whereDate('date', $today)
+                ->whereDate('date', $targetDate)
                 ->pluck('schedule_id')
                 ->flip()
                 ->toArray()
             : [];
 
-        $schedules = $rawSchedules->map(function (Schedule $schedule) use ($now, $filledScheduleIds) {
+        $daySessions = SchoolSession::getSessionsForDay($selectedDayName);
+
+        $schedules = $rawSchedules->map(function (Schedule $schedule) use ($now, $targetDate, $filledScheduleIds, $daySessions) {
             $hasJournal = isset($filledScheduleIds[$schedule->id]);
-            $endTime = Carbon::parse($schedule->end_time);
-            $isOverdue = ! $hasJournal && $now->greaterThan($endTime->copy()->addMinutes(45));
+
+            $startSession = $schedule->start_session ? ($daySessions[$schedule->start_session] ?? null) : null;
+            $endSession = $schedule->end_session ? ($daySessions[$schedule->end_session] ?? null) : null;
+
+            $startTimeStr = $startSession ? $startSession['start'] : substr((string) $schedule->start_time, 0, 5);
+            $endTimeStr = $endSession ? $endSession['end'] : substr((string) $schedule->end_time, 0, 5);
+
+            // Batas waktu pengisian jurnal adalah 1 hari (24 jam sejak jadwal pembelajaran selesai)
+            $scheduleEndDateTime = Carbon::parse($targetDate->toDateString().' '.$endTimeStr);
+            $isExpired = ! $hasJournal && $now->greaterThan($scheduleEndDateTime->copy()->addDay());
 
             return [
                 'id' => $schedule->id,
-                'start_time' => substr($schedule->start_time, 0, 5),
-                'end_time' => substr($schedule->end_time, 0, 5),
+                'start_time' => $startTimeStr,
+                'end_time' => $endTimeStr,
+                'start_session' => $schedule->start_session,
+                'end_session' => $schedule->end_session,
+                'session_label' => $schedule->start_session && $schedule->end_session
+                    ? ($schedule->start_session === $schedule->end_session ? "Jam ke - {$schedule->start_session}" : "Jam ke {$schedule->start_session} - {$schedule->end_session}")
+                    : null,
                 'subject_name' => $schedule->subject?->name ?? '-',
                 'classroom_name' => $schedule->classroom?->name ?? '-',
                 'grade_name' => $schedule->classroom?->classLevel?->name ?? '-',
                 'major_code' => $schedule->classroom?->major?->code ?? '-',
                 'room_name' => $schedule->room?->name ?? '-',
                 'has_journal' => $hasJournal,
-                'is_overdue' => $isOverdue,
+                'is_expired' => $isExpired,
+                'is_overdue' => $isExpired,
+                'status' => $hasJournal ? 'filled' : ($isExpired ? 'not_filled' : 'unfilled'),
+                'status_label' => $hasJournal ? 'Sudah diisi' : ($isExpired ? 'Tidak mengisi jurnal' : 'Belum diisi'),
             ];
         });
 
@@ -150,7 +189,8 @@ class TeacherScheduleWidget extends Widget
             'activeCycle' => $config->active_cycle,
             'totalCount' => $schedules->count(),
             'filledCount' => $schedules->where('has_journal', true)->count(),
-            'unfilledCount' => $schedules->where('has_journal', false)->count(),
+            'unfilledCount' => $schedules->where('has_journal', false)->where('is_expired', false)->count(),
+            'notFilledCount' => $schedules->where('is_expired', true)->count(),
         ];
     }
 }

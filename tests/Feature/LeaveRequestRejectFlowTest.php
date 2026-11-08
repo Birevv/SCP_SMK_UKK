@@ -245,19 +245,34 @@ class LeaveRequestRejectFlowTest extends TestCase
         ]);
     }
 
-    public function test_student_cannot_submit_leave_request_with_past_start_date(): void
+    public function test_student_cannot_submit_leave_request_more_than_7_days_in_past(): void
     {
         $this->actingAs($this->student, 'sanctum');
 
         $response = $this->postJson('/api/student/leave-requests', [
-            'start_date' => now()->subDay()->toDateString(),
+            'start_date' => now()->timezone('Asia/Jakarta')->subDays(8)->toDateString(),
             'end_date' => now()->toDateString(),
             'reason_type' => 'Izin',
-            'description' => 'Izin keperluan keluarga kemarin',
+            'description' => 'Izin lebih dari 7 hari lalu',
         ]);
 
         $response->assertStatus(422)
             ->assertJsonValidationErrors(['start_date']);
+    }
+
+    public function test_student_can_submit_retroactive_leave_request_within_7_days(): void
+    {
+        $this->actingAs($this->student, 'sanctum');
+
+        $response = $this->postJson('/api/student/leave-requests', [
+            'start_date' => now()->timezone('Asia/Jakarta')->subDays(2)->toDateString(),
+            'end_date' => now()->toDateString(),
+            'reason_type' => 'Sakit',
+            'description' => 'Sakit susulan 2 hari lalu',
+        ]);
+
+        $response->assertStatus(201)
+            ->assertJsonPath('data.status', 'Pending');
     }
 
     public function test_student_can_submit_leave_request_starting_today(): void

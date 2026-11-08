@@ -16,22 +16,22 @@ from pathlib import Path
 
 # Try importing libraries
 try:
-    import openpyxl
+    import openpyxl  # type: ignore
 except ImportError:
     openpyxl = None
 
 try:
-    import pdfplumber
+    import pdfplumber  # type: ignore
 except ImportError:
     pdfplumber = None
 
 try:
-    import pypdf
+    import pypdf  # type: ignore
 except ImportError:
     pypdf = None
 
 try:
-    import pymysql
+    import pymysql  # type: ignore
 except ImportError:
     pymysql = None
 

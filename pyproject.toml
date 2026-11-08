@@ -1,0 +1,5 @@
+[tool.pyrefly]
+preset = "off"
+project-excludes = [
+    "**/*"
+]

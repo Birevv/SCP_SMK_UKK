@@ -8,6 +8,7 @@ use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
 use Filament\Actions\ForceDeleteAction;
 use Filament\Actions\RestoreAction;
+use Illuminate\Foundation\Console\ServeCommand;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\ServiceProvider;
 
@@ -30,6 +31,22 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        // Pastikan variabel lingkungan temporary Windows diteruskan saat menjalankan artisan serve
+        if (class_exists(ServeCommand::class)) {
+            ServeCommand::$passthroughVariables = array_unique(array_merge(
+                ServeCommand::$passthroughVariables,
+                ['TMP', 'TEMP', 'USERPROFILE']
+            ));
+        }
+
+        // Pastikan variabel lingkungan temporary Windows diteruskan saat menjalankan artisan serve
+        if (class_exists(ServeCommand::class)) {
+            ServeCommand::$passthroughVariables = array_unique(array_merge(
+                ServeCommand::$passthroughVariables,
+                ['TMP', 'TEMP', 'USERPROFILE']
+            ));
+        }
+
         // Super Admin memiliki akses penuh ke seluruh gate & abilities
         Gate::before(function ($user, $ability) {
             return ($user->hasRole('Super Admin') || $user->role?->name === 'Super Admin') ? true : null;

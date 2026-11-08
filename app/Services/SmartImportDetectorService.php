@@ -1541,6 +1541,8 @@ class SmartImportDetectorService
                 $dayOfWeek = trim((string) ($s['day_of_week'] ?? 'Senin'));
                 $startTime = $this->normalizeTimeHms((string) ($s['start_time'] ?? '07:15:00'));
                 $endTime = $this->normalizeTimeHms((string) ($s['end_time'] ?? '08:00:00'));
+                $startSession = ! empty($s['jam_start']) ? (int) $s['jam_start'] : null;
+                $endSession = ! empty($s['jam_end']) ? (int) $s['jam_end'] : null;
                 $startHm = substr($startTime, 0, 5);
                 $endHm = substr($endTime, 0, 5);
 
@@ -1575,6 +1577,8 @@ class SmartImportDetectorService
                         'teacher_id' => $teacher->id,
                         'subject_id' => $subject->id,
                         'room_id' => $room?->id,
+                        'start_session' => $startSession,
+                        'end_session' => $endSession,
                         'start_time' => $startTime,
                         'end_time' => $endTime,
                         'updated_at' => $now,
@@ -1588,6 +1592,8 @@ class SmartImportDetectorService
                         'subject_id' => $subject->id,
                         'room_id' => $room?->id,
                         'day_of_week' => $dayOfWeek,
+                        'start_session' => $startSession,
+                        'end_session' => $endSession,
                         'start_time' => $startTime,
                         'end_time' => $endTime,
                         'cycle_type' => $cycle,

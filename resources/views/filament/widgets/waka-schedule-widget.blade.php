@@ -498,7 +498,7 @@
                             <option value="ALL">Semua Status Jurnal</option>
                             <option value="filled">Sudah Diisi</option>
                             <option value="unfilled">Belum Diisi</option>
-                            <option value="overdue">Terlambat &gt;45m</option>
+                            <option value="not_filled">Tidak Mengisi Jurnal</option>
                         </select>
                     </div>
                 </div>
@@ -529,24 +529,24 @@
                 </div>
 
                 <div class="scp-metric-card">
-                    <div class="scp-metric-label">Belum Terisi</div>
+                    <div class="scp-metric-label">Belum Diisi</div>
                     <div class="scp-metric-val-row">
                         <div class="scp-metric-number">{{ $unfilledCount }}</div>
                         <div class="scp-metric-badge">
                             <span class="scp-dot scp-dot-warning"></span>
-                            <span class="text-amber-700 dark:text-amber-400 font-medium">Pending</span>
+                            <span class="text-amber-700 dark:text-amber-400 font-medium">Tenggat 1 Hari</span>
                         </div>
                     </div>
                 </div>
 
                 <div class="scp-metric-card">
-                    <div class="scp-metric-label">Terlambat >45m</div>
+                    <div class="scp-metric-label">Tidak Mengisi Jurnal</div>
                     <div class="scp-metric-val-row">
-                        <div class="scp-metric-number {{ $overdueCount > 0 ? 'text-rose-600 dark:text-rose-400' : '' }}">{{ $overdueCount }}</div>
+                        <div class="scp-metric-number {{ $notFilledCount > 0 ? 'text-rose-600 dark:text-rose-400' : '' }}">{{ $notFilledCount }}</div>
                         <div class="scp-metric-badge">
-                            <span class="scp-dot {{ $overdueCount > 0 ? 'scp-dot-danger' : 'scp-dot-neutral' }}"></span>
-                            <span class="{{ $overdueCount > 0 ? 'text-rose-700 dark:text-rose-400 font-medium' : 'text-gray-500 dark:text-gray-400' }}">
-                                {{ $overdueCount > 0 ? 'Perlu tindakan' : 'Tertib' }}
+                            <span class="scp-dot {{ $notFilledCount > 0 ? 'scp-dot-danger' : 'scp-dot-neutral' }}"></span>
+                            <span class="{{ $notFilledCount > 0 ? 'text-rose-700 dark:text-rose-400 font-medium' : 'text-gray-500 dark:text-gray-400' }}">
+                                {{ $notFilledCount > 0 ? 'Perlu tindakan' : 'Tertib' }}
                             </span>
                         </div>
                     </div>
@@ -580,6 +580,11 @@
                                 <tr>
                                     <td>
                                         <span class="scp-time-val">{{ $s['start_time'] }} - {{ $s['end_time'] }}</span>
+                                        @if (! empty($s['session_label']))
+                                            <div style="font-size: 0.6875rem; color: #6b7280; margin-top: 1px;" class="dark:text-gray-400 font-medium">
+                                                {{ $s['session_label'] }}
+                                            </div>
+                                        @endif
                                     </td>
                                     <td>
                                         <span class="scp-class-title">{{ $s['classroom_name'] }}</span>
@@ -602,10 +607,10 @@
                                                 <span class="scp-dot scp-dot-success"></span>
                                                 Sudah diisi
                                             </span>
-                                        @elseif ($s['is_overdue'])
+                                        @elseif ($s['is_expired'] ?? $s['is_overdue'])
                                             <span class="scp-status-pill scp-status-danger">
                                                 <span class="scp-dot scp-dot-danger"></span>
-                                                Terlambat >45m
+                                                Tidak mengisi jurnal
                                             </span>
                                         @else
                                             <span class="scp-status-pill scp-status-warning">

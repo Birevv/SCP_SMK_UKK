@@ -28,9 +28,9 @@ class StoreScheduleRequest extends FormRequest
             'day_of_week' => ['required', 'in:Senin,Selasa,Rabu,Kamis,Jumat'],
             'start_time' => ['required', 'date_format:H:i'],
             'end_time' => ['required', 'date_format:H:i', 'after:start_time'],
-            'classroom_id' => ['required', 'integer', 'exists:classroom,id'],
+            'classroom_id' => ['required', 'integer', 'exists:classrooms,id'],
             'room_id' => ['required', 'integer', 'exists:rooms,id'],
-            'subject_id' => ['required', 'integer', 'exists:subject_id'],
+            'subject_id' => ['required', 'integer', 'exists:subjects,id'],
             'cycle_type' => ['required', 'in:Putaran 1,Putaran 2'],
         ];
     }

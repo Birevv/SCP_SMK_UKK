@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use App\Enums\AcademicEventCategory;
+use App\Filament\Resources\AcademicYears\AcademicYearResource;
 use App\Filament\Resources\AcademicYears\Pages\ListAcademicYears;
 use App\Filament\Widgets\AcademicCalendarWidget;
 use App\Models\AcademicEvent;
@@ -13,6 +14,7 @@ use Carbon\CarbonImmutable;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Livewire\Livewire;
 use Saade\FilamentFullCalendar\Data\FetchInfo;
+use Spatie\Permission\Models\Permission;
 use Tests\TestCase;
 
 class AcademicCalendarTest extends TestCase
@@ -256,5 +258,84 @@ class AcademicCalendarTest extends TestCase
         $page->call('mountAction', 'deleteEvent', ['id' => $createdEvent->id]);
         $page->call('callMountedAction');
         $this->assertDatabaseMissing('academic_events', ['id' => $createdEvent->id]);
+    }
+
+    public function test_student_can_view_calendar_but_cannot_see_or_manage_academic_years(): void
+    {
+        $viewPermission = Permission::firstOrCreate(['name' => 'ViewAny:AcademicYear', 'guard_name' => 'web']);
+        $role = Role::where('name', 'Siswa')->first();
+        $role->givePermissionTo($viewPermission);
+
+        $student = User::factory()->create([
+            'role_id' => $role->id,
+        ]);
+        $student->assignRole('Siswa');
+        $this->actingAs($student);
+
+        $academicYear = AcademicYear::create([
+            'name' => '2026/2027 - Ganjil',
+            'is_active' => true,
+            'start_date' => '2026-07-01',
+            'end_date' => '2026-12-31',
+        ]);
+
+        $event = AcademicEvent::create([
+            'academic_year_id' => $academicYear->id,
+            'title' => 'Masa Pengenalan Lingkungan Sekolah',
+            'category' => AcademicEventCategory::KEGIATAN_SISWA,
+            'target_grades' => ['X'],
+            'is_holiday' => false,
+            'disable_kbm' => false,
+            'requires_attendance' => true,
+            'start_date' => '2026-07-15',
+            'end_date' => '2026-07-17',
+            'is_all_day' => true,
+        ]);
+
+        $page = Livewire::test(ListAcademicYears::class)
+            ->set('selectedYearId', $academicYear->id)
+            ->set('currentMonth', 7)
+            ->set('currentYear', 2026);
+
+        $page->assertSuccessful();
+        $page->assertSee('Kalender Akademik');
+        $page->assertSee('Masa Pengenalan Lingkungan Sekolah');
+
+        // Student CANNOT see "Data Tahun Ajaran" tab
+        $page->assertDontSee('Data Tahun Ajaran');
+        $page->assertDontSee('Tarik Libur Nasional');
+        $page->assertDontSee('Tambah Agenda');
+        $page->assertDontSee('Buat Tahun Ajaran');
+
+        // Student CANNOT switch to 'years' tab
+        $page->call('switchTab', 'years');
+        $page->assertSet('currentViewTab', 'calendar');
+
+        // Student CANNOT create or save events
+        $page->call('openCreateEventModal', '2026-07-20');
+        $page->assertSet('showEventModal', false);
+
+        $page->set('eventTitle', 'Agenda Liar');
+        $page->set('eventCategory', 'kegiatan_siswa');
+        $page->set('eventStartDate', '2026-07-20');
+        $page->set('eventEndDate', '2026-07-20');
+        $page->call('saveEvent');
+
+        $this->assertDatabaseMissing('academic_events', [
+            'title' => 'Agenda Liar',
+        ]);
+
+        // Student CANNOT delete events
+        $page->call('deleteEvent', $event->id);
+        $this->assertDatabaseHas('academic_events', [
+            'id' => $event->id,
+        ]);
+
+        // Student is forbidden from create and edit academic year routes
+        $responseCreate = $this->get(AcademicYearResource::getUrl('create'));
+        $responseCreate->assertForbidden();
+
+        $responseEdit = $this->get(AcademicYearResource::getUrl('edit', ['record' => $academicYear]));
+        $responseEdit->assertForbidden();
     }
 }

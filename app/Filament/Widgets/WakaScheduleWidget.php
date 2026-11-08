@@ -6,6 +6,7 @@ use App\Models\ClassLevel;
 use App\Models\Classroom;
 use App\Models\Major;
 use App\Models\Schedule;
+use App\Models\SchoolSession;
 use App\Models\SystemConfiguration;
 use App\Models\User;
 use Carbon\Carbon;
@@ -136,8 +137,6 @@ class WakaScheduleWidget extends Widget
         $targetDate = filled($this->selectedDate)
             ? Carbon::parse($this->selectedDate)->startOfDay()
             : Carbon::today();
-        $isToday = $targetDate->isToday();
-        $isPastDate = $targetDate->isBefore(Carbon::today());
         $now = Carbon::now();
 
         $majors = Major::orderBy('code')->get();
@@ -176,17 +175,32 @@ class WakaScheduleWidget extends Widget
             $query->where('classroom_id', $this->selectedClassroom);
         }
 
-        $allSchedules = $query->orderBy('start_time')->get()->map(function (Schedule $schedule) use ($isToday, $isPastDate, $now) {
+        $daySessions = SchoolSession::getSessionsForDay($this->selectedDay ?? 'Senin');
+
+        $allSchedules = $query->orderBy('start_time')->get()->map(function (Schedule $schedule) use ($targetDate, $now, $daySessions) {
             $journal = $schedule->journals->first();
             $hasJournal = $journal !== null;
-            $endTime = Carbon::parse($schedule->end_time);
-            $isOverdue = ! $hasJournal && ($isPastDate || ($isToday && $now->greaterThan($endTime->copy()->addMinutes(45))));
+
+            $startSession = $schedule->start_session ? ($daySessions[$schedule->start_session] ?? null) : null;
+            $endSession = $schedule->end_session ? ($daySessions[$schedule->end_session] ?? null) : null;
+
+            $startTimeStr = $startSession ? $startSession['start'] : substr((string) $schedule->start_time, 0, 5);
+            $endTimeStr = $endSession ? $endSession['end'] : substr((string) $schedule->end_time, 0, 5);
+
+            // Batas waktu pengisian jurnal adalah 1 hari (24 jam sejak jadwal pembelajaran selesai)
+            $scheduleEndDateTime = Carbon::parse($targetDate->toDateString().' '.$endTimeStr);
+            $isExpired = ! $hasJournal && $now->greaterThan($scheduleEndDateTime->copy()->addDay());
 
             return [
                 'id' => $schedule->id,
                 'journal_id' => $journal?->id,
-                'start_time' => substr($schedule->start_time, 0, 5),
-                'end_time' => substr($schedule->end_time, 0, 5),
+                'start_time' => $startTimeStr,
+                'end_time' => $endTimeStr,
+                'start_session' => $schedule->start_session,
+                'end_session' => $schedule->end_session,
+                'session_label' => $schedule->start_session && $schedule->end_session
+                    ? ($schedule->start_session === $schedule->end_session ? "Jam ke - {$schedule->start_session}" : "Jam ke {$schedule->start_session} - {$schedule->end_session}")
+                    : null,
                 'subject_name' => $schedule->subject?->name ?? '-',
                 'teacher_name' => $schedule->teacher?->full_name ?? '-',
                 'classroom_name' => $schedule->classroom?->name ?? '-',
@@ -195,7 +209,10 @@ class WakaScheduleWidget extends Widget
                 'room_name' => $schedule->room?->name ?? '-',
                 'teaching_material' => $journal?->teaching_material,
                 'has_journal' => $hasJournal,
-                'is_overdue' => $isOverdue,
+                'is_expired' => $isExpired,
+                'is_overdue' => $isExpired,
+                'status' => $hasJournal ? 'filled' : ($isExpired ? 'not_filled' : 'unfilled'),
+                'status_label' => $hasJournal ? 'Sudah diisi' : ($isExpired ? 'Tidak mengisi jurnal' : 'Belum diisi'),
             ];
         });
 
@@ -215,13 +232,13 @@ class WakaScheduleWidget extends Widget
 
         $totalSchedules = $allSchedules->count();
         $filledCount = $allSchedules->where('has_journal', true)->count();
-        $unfilledCount = $totalSchedules - $filledCount;
-        $overdueCount = $allSchedules->where('is_overdue', true)->count();
+        $notFilledCount = $allSchedules->where('is_expired', true)->count();
+        $unfilledCount = $allSchedules->where('has_journal', false)->where('is_expired', false)->count();
 
         $schedules = match ($this->selectedStatus) {
             'filled' => $allSchedules->where('has_journal', true)->values(),
-            'unfilled' => $allSchedules->where('has_journal', false)->values(),
-            'overdue' => $allSchedules->where('is_overdue', true)->values(),
+            'unfilled' => $allSchedules->where('has_journal', false)->where('is_expired', false)->values(),
+            'not_filled', 'overdue' => $allSchedules->where('is_expired', true)->values(),
             default => $allSchedules,
         };
 
@@ -234,7 +251,8 @@ class WakaScheduleWidget extends Widget
             'totalSchedules' => $totalSchedules,
             'filledCount' => $filledCount,
             'unfilledCount' => $unfilledCount,
-            'overdueCount' => $overdueCount,
+            'notFilledCount' => $notFilledCount,
+            'overdueCount' => $notFilledCount,
             'activeCycle' => $config->active_cycle,
             'formattedDate' => $targetDate->translatedFormat('d M Y'),
         ];

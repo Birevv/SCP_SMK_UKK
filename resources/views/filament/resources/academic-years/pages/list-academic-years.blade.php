@@ -825,32 +825,34 @@
                     </h1>
                 </div>
 
-                <!-- Navigasi Tab -->
-                <div class="scp-cal-tabs">
-                    <button
-                        type="button"
-                        wire:click="switchTab('calendar')"
-                        class="scp-cal-tab-btn {{ $currentViewTab === 'calendar' ? 'active' : '' }}">
-                        <x-filament::icon icon="heroicon-o-calendar" class="w-4 h-4" />
-                        <span>Kalender Akademik</span>
-                    </button>
+                <!-- Navigasi Tab (Hanya tampil jika user memiliki hak akses kelola tahun ajaran) -->
+                @if ($this->canManage())
+                    <div class="scp-cal-tabs">
+                        <button
+                            type="button"
+                            wire:click="switchTab('calendar')"
+                            class="scp-cal-tab-btn {{ $currentViewTab === 'calendar' ? 'active' : '' }}">
+                            <x-filament::icon icon="heroicon-o-calendar" class="w-4 h-4" />
+                            <span>Kalender Akademik</span>
+                        </button>
 
-                    <button
-                        type="button"
-                        wire:click="switchTab('years')"
-                        class="scp-cal-tab-btn {{ $currentViewTab === 'years' ? 'active' : '' }}">
-                        <x-filament::icon icon="heroicon-o-table-cells" class="w-4 h-4" />
-                        <span>Data Tahun Ajaran</span>
-                        <span class="scp-cal-tab-badge">
-                            {{ $this->academicYears->count() }}
-                        </span>
-                    </button>
-                </div>
+                        <button
+                            type="button"
+                            wire:click="switchTab('years')"
+                            class="scp-cal-tab-btn {{ $currentViewTab === 'years' ? 'active' : '' }}">
+                            <x-filament::icon icon="heroicon-o-table-cells" class="w-4 h-4" />
+                            <span>Data Tahun Ajaran</span>
+                            <span class="scp-cal-tab-badge">
+                                {{ $this->academicYears->count() }}
+                            </span>
+                        </button>
+                    </div>
+                @endif
             </div>
 
             <!-- Sisi Kanan Header: Action Button -->
             <div style="display: flex; align-items: center; gap: 8px;">
-                @if ($currentViewTab === 'years')
+                @if ($currentViewTab === 'years' && $this->canManage())
                     <a
                         href="{{ \App\Filament\Resources\AcademicYears\AcademicYearResource::getUrl('create') }}"
                         style="padding: 8px 16px; display: inline-flex; align-items: center; gap: 6px; white-space: nowrap; border-radius: 8px; background-color: #2563eb; color: #ffffff; font-size: 0.875rem; font-weight: 600; text-decoration: none;">
@@ -861,7 +863,7 @@
             </div>
         </div>
 
-        @if ($currentViewTab === 'years')
+        @if ($currentViewTab === 'years' && $this->canManage())
             <!-- TAB 2: DATA TAHUN AJARAN (TABEL RESMI FILAMENT) -->
             <div class="mt-2">
                 {{ $this->table }}
@@ -911,12 +913,12 @@
 
                         <!-- Sisi Kanan: Action Buttons -->
                         <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
-                            <span style="font-size: 0.75rem; color: #6b7280; display: inline-flex; align-items: center; gap: 4px; margin-right: 4px;" class="hidden md:inline-flex dark:text-gray-400">
-                                <x-filament::icon icon="heroicon-m-cursor-arrow-rays" class="w-3.5 h-3.5 text-primary-500" />
-                                <span>Geser / swipe tanggal untuk agenda multi-hari</span>
-                            </span>
-
                             @if ($this->canManage())
+                                <span style="font-size: 0.75rem; color: #6b7280; display: inline-flex; align-items: center; gap: 4px; margin-right: 4px;" class="hidden md:inline-flex dark:text-gray-400">
+                                    <x-filament::icon icon="heroicon-m-cursor-arrow-rays" class="w-3.5 h-3.5 text-primary-500" />
+                                    <span>Geser / swipe tanggal untuk agenda multi-hari</span>
+                                </span>
+
                                 <button
                                     type="button"
                                     wire:click="openSyncModal"
@@ -924,9 +926,7 @@
                                     <x-filament::icon icon="heroicon-o-arrow-path" class="w-4 h-4 text-primary-500" />
                                     <span>Tarik Libur Nasional</span>
                                 </button>
-                            @endif
 
-                            @if ($this->canManage())
                                 <button
                                     type="button"
                                     wire:click="openCreateEventModal"
@@ -1211,7 +1211,7 @@
                                                         @touchstart="startDrag('{{ $day['date'] }}', $event)"
                                                     @endif
                                                     :class="isInRange('{{ $day['date'] }}') ? 'scp-calendar-cell-selected' : ''"
-                                                    class="scp-cal-td {{ $cellBgClass }} align-top transition duration-150 hover:bg-blue-50/40 dark:hover:bg-gray-800/50 cursor-pointer">
+                                                    class="scp-cal-td {{ $cellBgClass }} align-top transition duration-150 hover:bg-blue-50/40 dark:hover:bg-gray-800/50 {{ $this->canManage() ? 'cursor-pointer' : 'cursor-default' }}">
                                                     
                                                     <!-- Top Row: Angka Tanggal Saja di Pojok Kanan Atas -->
                                                     <div style="display: flex; justify-content: flex-end; margin-bottom: 4px; padding: 0 8px; pointer-events: none;">
@@ -1257,31 +1257,58 @@
                                                                         }
                                                                     @endphp
                                                                     <!-- Multi-day Event: Satu Garis Menyambung (Continuous Bar) -->
-                                                                    <button
-                                                                        type="button"
-                                                                        wire:click.stop="openEditEventModal({{ $event->id }})"
-                                                                        class="scp-event-bar {{ $barClass }} scp-solid-{{ $event->category instanceof \App\Enums\AcademicEventCategory ? $event->category->value : $event->category }}">
-                                                                        @if ($showTitle)
-                                                                            @if ($event->target_grades)
-                                                                                <span style="font-weight: 700; font-size: 0.625rem; opacity: 0.9;">[{{ implode(',', $event->target_grades) }}]</span>
+                                                                    @if ($this->canManage())
+                                                                        <button
+                                                                            type="button"
+                                                                            wire:click.stop="openEditEventModal({{ $event->id }})"
+                                                                            class="scp-event-bar {{ $barClass }} scp-solid-{{ $event->category instanceof \App\Enums\AcademicEventCategory ? $event->category->value : $event->category }}">
+                                                                            @if ($showTitle)
+                                                                                @if ($event->target_grades)
+                                                                                    <span style="font-weight: 700; font-size: 0.625rem; opacity: 0.9;">[{{ implode(',', $event->target_grades) }}]</span>
+                                                                                @endif
+                                                                                <span>{{ $event->title }}</span>
+                                                                            @else
+                                                                                <span style="visibility: hidden;">&nbsp;</span>
                                                                             @endif
-                                                                            <span>{{ $event->title }}</span>
-                                                                        @else
-                                                                            <span style="visibility: hidden;">&nbsp;</span>
-                                                                        @endif
-                                                                    </button>
+                                                                        </button>
+                                                                    @else
+                                                                        <div
+                                                                            class="scp-event-bar {{ $barClass }} scp-solid-{{ $event->category instanceof \App\Enums\AcademicEventCategory ? $event->category->value : $event->category }}"
+                                                                            style="cursor: default;">
+                                                                            @if ($showTitle)
+                                                                                @if ($event->target_grades)
+                                                                                    <span style="font-weight: 700; font-size: 0.625rem; opacity: 0.9;">[{{ implode(',', $event->target_grades) }}]</span>
+                                                                                @endif
+                                                                                <span>{{ $event->title }}</span>
+                                                                            @else
+                                                                                <span style="visibility: hidden;">&nbsp;</span>
+                                                                            @endif
+                                                                        </div>
+                                                                    @endif
                                                                 @else
                                                                     <!-- 1-day Event: Titik Warna Kategori (Dot) Diikuti Teks Singkat Satu Baris -->
-                                                                    <button
-                                                                        type="button"
-                                                                        wire:click.stop="openEditEventModal({{ $event->id }})"
-                                                                        class="scp-day-event-btn">
-                                                                        <span class="w-2 h-2 rounded-full shrink-0 scp-dot-{{ $event->category instanceof \App\Enums\AcademicEventCategory ? $event->category->value : $event->category }}"></span>
-                                                                        @if ($event->target_grades)
-                                                                            <span style="font-size: 0.625rem; font-weight: 700; color: #6b7280; flex-shrink: 0;" class="dark:text-gray-400">[{{ implode(',', $event->target_grades) }}]</span>
-                                                                        @endif
-                                                                        <span class="truncate">{{ $event->title }}</span>
-                                                                    </button>
+                                                                    @if ($this->canManage())
+                                                                        <button
+                                                                            type="button"
+                                                                            wire:click.stop="openEditEventModal({{ $event->id }})"
+                                                                            class="scp-day-event-btn">
+                                                                            <span class="w-2 h-2 rounded-full shrink-0 scp-dot-{{ $event->category instanceof \App\Enums\AcademicEventCategory ? $event->category->value : $event->category }}"></span>
+                                                                            @if ($event->target_grades)
+                                                                                <span style="font-size: 0.625rem; font-weight: 700; color: #6b7280; flex-shrink: 0;" class="dark:text-gray-400">[{{ implode(',', $event->target_grades) }}]</span>
+                                                                            @endif
+                                                                            <span class="truncate">{{ $event->title }}</span>
+                                                                        </button>
+                                                                    @else
+                                                                        <div
+                                                                            class="scp-day-event-btn"
+                                                                            style="cursor: default;">
+                                                                            <span class="w-2 h-2 rounded-full shrink-0 scp-dot-{{ $event->category instanceof \App\Enums\AcademicEventCategory ? $event->category->value : $event->category }}"></span>
+                                                                            @if ($event->target_grades)
+                                                                                <span style="font-size: 0.625rem; font-weight: 700; color: #6b7280; flex-shrink: 0;" class="dark:text-gray-400">[{{ implode(',', $event->target_grades) }}]</span>
+                                                                            @endif
+                                                                            <span class="truncate">{{ $event->title }}</span>
+                                                                        </div>
+                                                                    @endif
                                                                 @endif
 
                                                                 <!-- Popover Tooltip Saat Hover -->

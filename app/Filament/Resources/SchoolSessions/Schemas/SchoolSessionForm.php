@@ -2,7 +2,7 @@
 
 namespace App\Filament\Resources\SchoolSessions\Schemas;
 
-use Carbon\Carbon;
+use App\Models\SchoolSession;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Schemas\Components\Utilities\Get;
@@ -57,7 +57,7 @@ class SchoolSessionForm
                         $startTime = $get('start_time');
                         if ($startTime && $state) {
                             try {
-                                $start = Carbon::createFromFormat('H:i', substr((string) $startTime, 0, 5));
+                                $start = SchoolSession::parseTimeCarbon((string) $startTime);
                                 $set('end_time', $start->addMinutes((int) $state)->format('H:i'));
                             } catch (\Throwable $e) {
                                 // ignore parse error
@@ -67,14 +67,14 @@ class SchoolSessionForm
 
                 TextInput::make('start_time')
                     ->label('Jam Mulai')
-                    ->placeholder('HH:mm (misal: 07:15)')
+                    ->placeholder('HH:mm (misal: 07:15 atau 07.15)')
                     ->required()
                     ->live()
                     ->afterStateUpdated(function ($state, Set $set, Get $get) {
                         $duration = (int) ($get('duration_minutes') ?: 40);
                         if ($state && $duration > 0) {
                             try {
-                                $start = Carbon::createFromFormat('H:i', substr((string) $state, 0, 5));
+                                $start = SchoolSession::parseTimeCarbon((string) $state);
                                 $set('end_time', $start->addMinutes($duration)->format('H:i'));
                             } catch (\Throwable $e) {
                                 // ignore parse error
@@ -84,7 +84,7 @@ class SchoolSessionForm
 
                 TextInput::make('end_time')
                     ->label('Jam Selesai')
-                    ->placeholder('HH:mm (misal: 07:55)')
+                    ->placeholder('HH:mm (misal: 07:55 atau 07.55)')
                     ->required(),
             ]);
     }

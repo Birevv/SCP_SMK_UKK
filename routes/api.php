@@ -4,6 +4,7 @@ use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\ForgotPasswordOtpController;
 use App\Http\Controllers\Api\Homeroom\DashboardController as HomeroomDashboardController;
 use App\Http\Controllers\Api\Homeroom\LeaveRequestController as HomeroomLeaveRequestController;
+use App\Http\Controllers\Api\Homeroom\StudentController as HomeroomStudentController;
 use App\Http\Controllers\Api\ReferenceController;
 use App\Http\Controllers\Api\StudentApiController;
 use App\Http\Controllers\Api\Teacher\DashboardController as TeacherDashboardController;
@@ -37,6 +38,7 @@ Route::middleware('auth:sanctum')->group(function () {
     // Student API (Hanya Siswa)
     Route::prefix('student')->middleware('role:Siswa')->group(function () {
         Route::get('/dashboard', [StudentApiController::class, 'dashboard']);
+        Route::get('/schedules', [StudentApiController::class, 'schedules']);
         Route::get('/schedules/today', [StudentApiController::class, 'todaySchedule']);
         Route::get('/attendance-summary', [StudentApiController::class, 'attendanceSummary']);
         Route::get('/attendance-history', [StudentApiController::class, 'attendanceHistory']);
@@ -58,6 +60,7 @@ Route::middleware('auth:sanctum')->group(function () {
     // Homeroom & Tim Kesiswaan (Wali Kelas & Guru BK) API
     Route::prefix('homeroom')->middleware('role:Wali Kelas|Guru BK')->group(function () {
         Route::get('/dashboard', [HomeroomDashboardController::class, 'index']);
+        Route::get('/students', [HomeroomStudentController::class, 'index']);
         Route::get('/leave-requests', [HomeroomLeaveRequestController::class, 'index']);
         Route::get('/leave-requests/{leaveRequest}', [HomeroomLeaveRequestController::class, 'show']);
         Route::put('/leave-requests/{leaveRequest}/verify', [HomeroomLeaveRequestController::class, 'verify']);

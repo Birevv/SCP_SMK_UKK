@@ -3,6 +3,7 @@
 namespace App\Filament\Resources\SchoolSessions\Pages;
 
 use App\Filament\Resources\SchoolSessions\SchoolSessionResource;
+use App\Models\Schedule;
 use App\Models\SchoolSession;
 use Filament\Actions\Action;
 use Filament\Actions\CreateAction;
@@ -137,6 +138,8 @@ class ListSchoolSessions extends ListRecords
                         );
                     }
 
+                    Schedule::syncTimesFromSchoolSessions();
+
                     Notification::make()
                         ->title('Konfigurasi Sesi Berhasil Disimpan')
                         ->body("Durasi {$duration} menit per sesi berhasil diterapkan untuk hari: ".implode(', ', $days).'.')
@@ -153,6 +156,7 @@ class ListSchoolSessions extends ListRecords
                 ->modalDescription('Seluruh hari akan di-reset ke standar default: 40 menit per 1 sesi, s/d Jam ke-10 (15:30) untuk Senin-Kamis, dan s/d Jam ke-8 (14:00) untuk Jumat.')
                 ->action(function () {
                     SchoolSession::seedDefaults();
+                    Schedule::syncTimesFromSchoolSessions();
 
                     Notification::make()
                         ->title('Berhasil Di-reset')

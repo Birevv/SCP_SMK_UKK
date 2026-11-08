@@ -90,6 +90,7 @@ class DashboardController extends Controller
                 'sakit' => $sakit,
                 'alpa' => $alpa,
                 'total_students' => $totalStudents,
+                'percentage' => $percentage,
                 'precentage' => $percentage,
             ],
             'pending_leave_requests' => $pendingLeaves,

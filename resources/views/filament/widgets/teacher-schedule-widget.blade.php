@@ -106,11 +106,11 @@
                         <div class="pt-2 border-t border-gray-100 dark:border-gray-800 flex items-center justify-between">
                             @if ($s['has_journal'])
                                 <x-filament::badge color="success" size="sm" icon="heroicon-o-check-circle">
-                                    Jurnal Selesai
+                                    Sudah Diisi
                                 </x-filament::badge>
-                            @elseif ($s['is_overdue'])
-                                <x-filament::badge color="danger" size="sm" icon="heroicon-o-exclamation-triangle">
-                                    Terlambat >45m
+                            @elseif ($s['is_expired'] ?? $s['is_overdue'])
+                                <x-filament::badge color="danger" size="sm" icon="heroicon-o-x-circle">
+                                    Tidak mengisi jurnal
                                 </x-filament::badge>
                             @else
                                 <x-filament::badge color="warning" size="sm">

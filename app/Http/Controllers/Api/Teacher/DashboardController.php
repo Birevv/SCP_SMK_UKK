@@ -54,16 +54,17 @@ class DashboardController extends Controller
                 ];
             });
 
-        $now = Carbon::now();
+        $now = Carbon::now('Asia/Jakarta');
         $pendingJournals = $todaySchedules->filter(function ($s) use ($now) {
-            $endTime = Carbon::parse($s['end_time']);
+            $endTime = Carbon::parse($s['end_time'], 'Asia/Jakarta');
 
-            return ! $s['has_journal'] && $now->greaterThan($endTime->addMinutes(45));
+            return ! $s['has_journal'] && $now->greaterThan($endTime->addMinutes(30));
         })->values()->map(fn ($s) => [
             'schedule_id' => $s['id'],
             'subject_name' => $s['subject_name'],
             'classroom_name' => $s['classroom_name'],
-            'message' => 'Jurnal belum diisi (>45 menit terlambat)',
+            'minutes_late' => 30,
+            'message' => 'Jurnal belum diisi (>30 menit terlambat)',
         ]);
 
         return $this->successResponse([

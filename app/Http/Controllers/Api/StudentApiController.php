@@ -9,6 +9,7 @@ use App\Http\Resources\Api\AttendanceHistoryResource;
 use App\Http\Resources\Api\LeaveRequestResource;
 use App\Http\Resources\Api\ScheduleResource;
 use App\Models\AcademicEvent;
+use App\Models\AcademicYear;
 use App\Models\Attendance;
 use App\Models\LeaveRequest;
 use App\Models\Schedule;
@@ -21,28 +22,56 @@ class StudentApiController extends Controller
 {
     use ApiResponser;
 
-    public function attendanceSummary(Request $request): JsonResponse
+    protected function getActiveAcademicYear(): ?AcademicYear
+    {
+        return AcademicYear::getActive();
+    }
+
+    protected function getStudentAttendances(Request $request)
     {
         $student = $request->user();
-        $today = Carbon::today();
-        $attendances = Attendance::whereBelongsTo($student, 'student')
-            ->whereMonth('date', $today->month)
-            ->whereYear('date', $today->year)
-            ->get();
+        $activeYear = $this->getActiveAcademicYear();
 
-        $dayName = $today->locale('id')->isoFormat('dddd');
+        $query = Attendance::whereBelongsTo($student, 'student');
+        if ($activeYear) {
+            $query->where(function ($q) use ($activeYear) {
+                $q->whereHas('journal.schedule', function ($sq) use ($activeYear) {
+                    $sq->where('academic_year_id', $activeYear->id);
+                });
+                if ($activeYear->start_date && $activeYear->end_date) {
+                    $q->orWhereBetween('date', [$activeYear->start_date, $activeYear->end_date]);
+                }
+            });
+        }
 
-        $classroomIds = $student->classrooms->pluck('id');
-        $classroomName = $student->classrooms->pluck('name')->join(', ');
+        return $query->get();
+    }
 
+    protected function formatAttendanceStatistics($attendances): array
+    {
         $hadir = $attendances->where('status', 'Hadir')->count();
         $sakit = $attendances->where('status', 'Sakit')->count();
         $izin = $attendances->where('status', 'Izin')->count();
         $alpa = $attendances->where('status', 'Alpa')->count();
         $total = $attendances->count();
 
-        $percentage = $total > 0 ? round(($hadir / $total) * 100, 1) : 0;
+        // Sesuai F-REPO-02: Hadir / Total Pertemuan * 100%
+        // Jika total pertemuan == 0, percentage null (atau 0.0) untuk menghindari division by zero
+        $percentage = $total > 0 ? round(($hadir / $total) * 100, 1) : null;
 
+        return [
+            'hadir' => $hadir,
+            'sakit' => $sakit,
+            'izin' => $izin,
+            'alpa' => $alpa,
+            'total' => $total,
+            'percentage' => $percentage,
+            'has_data' => $total > 0,
+        ];
+    }
+
+    protected function getTodayAcademicEventData($student, Carbon $today, ?AcademicYear $activeYear): ?array
+    {
         $gradeName = $student->classroom?->classLevel?->name;
         $todayEvent = AcademicEvent::query()
             ->forDateRange($today, $today)
@@ -51,6 +80,54 @@ class StudentApiController extends Controller
                     ->orWhereJsonContains('target_grades', $gradeName);
             })
             ->first();
+
+        if (! $todayEvent) {
+            return null;
+        }
+
+        $category = $todayEvent->category instanceof AcademicEventCategory
+            ? $todayEvent->category
+            : AcademicEventCategory::tryFrom((string) $todayEvent->category);
+
+        $statusLabel = 'Kegiatan Sekolah';
+        if ($todayEvent->is_holiday) {
+            $statusLabel = 'Hari Libur';
+        } elseif ($todayEvent->disable_kbm) {
+            $statusLabel = 'Non-KBM';
+        }
+
+        return [
+            'id' => $todayEvent->id,
+            'title' => $todayEvent->title,
+            'category' => $category?->value ?? (string) $todayEvent->category,
+            'category_label' => $category?->getLabel() ?? 'Kegiatan Akademik',
+            'is_holiday' => (bool) $todayEvent->is_holiday,
+            'disable_kbm' => (bool) $todayEvent->disable_kbm,
+            'requires_attendance' => (bool) $todayEvent->requires_attendance,
+            'is_configured' => true,
+            'status_label' => $statusLabel,
+        ];
+    }
+
+    protected function isCalendarConfigured(?AcademicYear $activeYear): bool
+    {
+        if ($activeYear) {
+            return AcademicEvent::where('academic_year_id', $activeYear->id)->exists();
+        }
+
+        return AcademicEvent::exists();
+    }
+
+    public function attendanceSummary(Request $request): JsonResponse
+    {
+        $student = $request->user();
+        $today = Carbon::today('Asia/Jakarta');
+        $activeYear = $this->getActiveAcademicYear();
+
+        $attendances = $this->getStudentAttendances($request);
+        $stats = $this->formatAttendanceStatistics($attendances);
+        $todayEventData = $this->getTodayAcademicEventData($student, $today, $activeYear);
+        $hasCalendarConfigured = $this->isCalendarConfigured($activeYear);
 
         $recentHistory = Attendance::with(['journal.schedule.teacher', 'journal.schedule.subject'])
             ->whereBelongsTo($student, 'student')
@@ -69,23 +146,10 @@ class StudentApiController extends Controller
         return $this->successResponse([
             'student_name' => $student->full_name,
             'classroom' => $student->classroom?->name,
-            'today_event' => $todayEvent ? [
-                'id' => $todayEvent->id,
-                'title' => $todayEvent->title,
-                'category' => $todayEvent->category instanceof AcademicEventCategory ? $todayEvent->category->value : (string) $todayEvent->category,
-                'category_label' => $todayEvent->category instanceof AcademicEventCategory ? $todayEvent->category->getLabel() : 'Kegiatan',
-                'is_holiday' => (bool) $todayEvent->is_holiday,
-                'disable_kbm' => (bool) $todayEvent->disable_kbm,
-                'requires_attendance' => (bool) $todayEvent->requires_attendance,
-            ] : null,
-            'statistics' => [
-                'hadir' => $hadir,
-                'sakit' => $sakit,
-                'izin' => $izin,
-                'alpa' => $alpa,
-                'total' => $total,
-                'percentage' => $percentage,
-            ],
+            'active_academic_year' => $activeYear?->name,
+            'today_event' => $todayEventData,
+            'has_calendar_configured' => $hasCalendarConfigured,
+            'statistics' => $stats,
             'recent_history' => $recentHistory,
         ], 'Ringkasan Presensi Berhasil Diambil');
     }
@@ -136,25 +200,19 @@ class StudentApiController extends Controller
     public function dashboard(Request $request): JsonResponse
     {
         $student = $request->user();
-        $today = Carbon::today();
+        $today = Carbon::today('Asia/Jakarta');
         $dayName = $today->locale('id')->isoFormat('dddd');
+        $activeYear = $this->getActiveAcademicYear();
 
         $classroomIds = $student->classrooms()->pluck('classrooms.id');
         $classroomName = $student->classrooms->pluck('name')->join(', ');
 
-        $attendances = Attendance::whereBelongsTo($student, 'student')
-            ->whereMonth('date', $today->month)
-            ->whereYear('date', $today->year)
-            ->get();
+        $attendances = $this->getStudentAttendances($request);
+        $stats = $this->formatAttendanceStatistics($attendances);
+        $todayEventData = $this->getTodayAcademicEventData($student, $today, $activeYear);
+        $hasCalendarConfigured = $this->isCalendarConfigured($activeYear);
 
-        $hadir = $attendances->where('status', 'Hadir')->count();
-        $sakit = $attendances->where('status', 'Sakit')->count();
-        $izin = $attendances->where('status', 'Izin')->count();
-        $alpa = $attendances->where('status', 'Alpa')->count();
-        $total = $attendances->count();
-        $percentage = $total > 0 ? round(($hadir / $total) * 100, 1) : 0;
-
-        $todaySchedules = Schedule::with(['subject', 'classroom', 'room'])
+        $todaySchedules = Schedule::with(['subject', 'classroom', 'room', 'teacher'])
             ->whereIn('classroom_id', $classroomIds)
             ->where('day_of_week', $dayName)
             ->forActiveCycle()
@@ -169,18 +227,58 @@ class StudentApiController extends Controller
             'student_name' => $student->full_name,
             'classroom' => $classroomName,
             'current_date' => $today->locale('id')->isoFormat('dddd, D MMMM Y'),
-            'attendance_summary' => [
+            'active_academic_year' => $activeYear?->name,
+            'today_event' => $todayEventData,
+            'has_calendar_configured' => $hasCalendarConfigured,
+            'attendance_summary' => array_merge([
                 'month' => $today->locale('id')->isoFormat('MMMM'),
-                'hadir' => $hadir,
-                'sakit' => $sakit,
-                'izin' => $izin,
-                'alpa' => $alpa,
-                'total' => $total,
-                'percentage' => $percentage,
-            ],
+            ], $stats),
             'today_schedules' => ScheduleResource::collection($todaySchedules),
             'pending_leave_count' => $pendingLeaveCount,
         ], 'Dashboard siswa berhasil diambil');
+    }
+
+    public function schedules(Request $request): JsonResponse
+    {
+        $student = $request->user();
+        $classroomIds = $student->classrooms()->pluck('classrooms.id')->toArray();
+        if (empty($classroomIds) && $student->classroom_id) {
+            $classroomIds = [$student->classroom_id];
+        }
+
+        $query = Schedule::with(['subject', 'classroom', 'room', 'teacher'])
+            ->whereIn('classroom_id', $classroomIds);
+
+        if ($request->filled('cycle_type')) {
+            $query->where('cycle_type', $request->cycle_type);
+        } else {
+            $query->forActiveCycle();
+        }
+
+        if ($request->filled('day_of_week')) {
+            $query->where('day_of_week', $request->day_of_week);
+        }
+
+        $dayOrder = ['Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat'];
+        $schedules = $query->orderBy('start_time')->get();
+
+        $schedules = $schedules->sort(function ($a, $b) use ($dayOrder) {
+            $dayA = array_search($a->day_of_week, $dayOrder);
+            $dayB = array_search($b->day_of_week, $dayOrder);
+            $dayA = $dayA === false ? 99 : $dayA;
+            $dayB = $dayB === false ? 99 : $dayB;
+
+            if ($dayA === $dayB) {
+                return strcmp($a->start_time ?? '', $b->start_time ?? '');
+            }
+
+            return $dayA <=> $dayB;
+        })->values();
+
+        return $this->successResponse(
+            ScheduleResource::collection($schedules),
+            'Daftar jadwal pelajaran berhasil diambil'
+        );
     }
 
     public function todaySchedule(Request $request): JsonResponse
@@ -188,9 +286,12 @@ class StudentApiController extends Controller
         $student = $request->user();
         $dayName = Carbon::today()->locale('id')->isoFormat('dddd');
 
-        $classroomIds = $student->classrooms()->pluck('classrooms.id');
+        $classroomIds = $student->classrooms()->pluck('classrooms.id')->toArray();
+        if (empty($classroomIds) && $student->classroom_id) {
+            $classroomIds = [$student->classroom_id];
+        }
 
-        $schedules = Schedule::with(['subject', 'classroom', 'room'])
+        $schedules = Schedule::with(['subject', 'classroom', 'room', 'teacher'])
             ->whereIn('classroom_id', $classroomIds)
             ->where('day_of_week', $dayName)
             ->forActiveCycle()

@@ -33,7 +33,7 @@ class AdminPanelProvider extends PanelProvider
         return $panel
             ->default()
             ->id('admin')
-            ->path('')
+            ->path('app')
             ->spa()
             ->login(Login::class)
             ->passwordReset(OtpPasswordReset::class, SetNewPassword::class)

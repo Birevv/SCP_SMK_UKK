@@ -25,8 +25,10 @@ class StoreLeaveRequest extends FormRequest
      */
     public function rules(): array
     {
+        $minPastDate = now()->timezone('Asia/Jakarta')->subDays(7)->toDateString();
+
         return [
-            'start_date' => ['required', 'date', 'after_or_equal:today'],
+            'start_date' => ['required', 'date', 'after_or_equal:'.$minPastDate],
             'end_date' => ['required', 'date', 'after_or_equal:start_date'],
             'reason_type' => ['required', 'in:Sakit,Izin,Pulang Cepat,Kegiatan Luar,sakit,izin,pulang_cepat,kegiatan_luar'],
             'leave_time' => ['nullable', 'string', 'required_if:reason_type,Pulang Cepat,Kegiatan Luar,pulang_cepat,kegiatan_luar'],
@@ -38,7 +40,7 @@ class StoreLeaveRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'start_date.after_or_equal' => 'Tanggal mulai perizinan minimal mengisi hari ini.',
+            'start_date.after_or_equal' => 'Tanggal mulai perizinan maksimal 7 hari ke belakang dari hari ini.',
             'end_date.after_or_equal' => 'Tanggal selesai harus sama dengan atau setelah tanggal mulai.',
         ];
     }

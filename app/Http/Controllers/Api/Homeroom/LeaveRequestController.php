@@ -88,6 +88,7 @@ class LeaveRequestController extends Controller
                 'reason_type' => $leaveRequest->reason_type,
                 'start_date' => $leaveRequest->start_date?->format('Y-m-d'),
                 'end_date' => $leaveRequest->end_date?->format('Y-m-d'),
+                'duration_days' => $leaveRequest->start_date && $leaveRequest->end_date ? $leaveRequest->start_date->diffInDays($leaveRequest->end_date) + 1 : null,
                 'duartion_days' => $leaveRequest->start_date && $leaveRequest->end_date ? $leaveRequest->start_date->diffInDays($leaveRequest->end_date) + 1 : null,
                 'description' => $leaveRequest->description,
                 'attachment_url' => $leaveRequest->attachment_photo ? Storage::url($leaveRequest->attachment_photo) : null,
