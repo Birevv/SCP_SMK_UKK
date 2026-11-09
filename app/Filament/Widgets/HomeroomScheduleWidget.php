@@ -129,22 +129,36 @@ class HomeroomScheduleWidget extends Widget
 
         $targetDate = $weekStart->copy()->addDays($targetDayIndex - 1)->startOfDay();
 
-        $allGrades = ClassLevel::orderBy('level')->get();
-        $activeAcademicYearId = AcademicYear::getActiveId();
+        $isSuperAdminOrWaka = $user->hasRole('Super Admin')
+            || $user->role?->name === 'Super Admin'
+            || $user->hasRole('Waka Kurikulum')
+            || $user->role?->name === 'Waka Kurikulum';
 
         // Get accessible classrooms
         $userClassrooms = $user->classrooms;
-        $isBk = $user->hasRole('Guru BK') || $user->role?->name === 'Guru BK';
+        if ($userClassrooms->isEmpty() && $user->classroom_id && $user->classroom) {
+            $userClassrooms = collect([$user->classroom]);
+        }
 
-        $availableClassroomsQuery = $isBk || $userClassrooms->isEmpty()
-            ? Classroom::query()
-            : Classroom::whereIn('id', $userClassrooms->pluck('id'));
+        if (! $isSuperAdminOrWaka && $userClassrooms->isNotEmpty()) {
+            $allGrades = ClassLevel::whereHas('classrooms', fn ($q) => $q->whereIn('id', $userClassrooms->pluck('id')))->orderBy('level')->get();
+            $availableClassroomsQuery = Classroom::whereIn('id', $userClassrooms->pluck('id'));
+        } else {
+            $allGrades = ClassLevel::orderBy('level')->get();
+            $availableClassroomsQuery = Classroom::query();
+        }
+
+        $activeAcademicYearId = AcademicYear::getActiveId();
 
         if ($this->selectedGrade && $this->selectedGrade !== 'ALL') {
             $availableClassroomsQuery->forGrade($this->selectedGrade);
         }
 
         $availableClassrooms = $availableClassroomsQuery->orderBy('name')->get();
+
+        if ($availableClassrooms->isNotEmpty() && ! $availableClassrooms->contains('id', $this->selectedClassroomId)) {
+            $this->selectedClassroomId = $availableClassrooms->first()->id;
+        }
 
         $query = Schedule::with(['subject', 'classroom.classLevel', 'classroom.major', 'teacher', 'room'])
             ->where('cycle_type', $config->active_cycle)

@@ -46,11 +46,26 @@ class HomeroomStatsWidget extends BaseWidget
             return [];
         }
 
-        $classroom = $user->classrooms()->first();
+        $userClassrooms = $user->classrooms;
+        if ($userClassrooms->isEmpty() && $user->classroom_id && $user->classroom) {
+            $userClassrooms = collect([$user->classroom]);
+        }
+
         $today = Carbon::today();
 
-        if ($classroom) {
-            $studentIds = User::whereHas('classrooms', fn ($q) => $q->where('classrooms.id', $classroom->id))
+        if ($userClassrooms->count() > 1) {
+            $classroomIds = $userClassrooms->pluck('id');
+            $studentIds = User::whereHas('classrooms', fn ($q) => $q->whereIn('classrooms.id', $classroomIds)->where('user_class.status', 'Aktif'))
+                ->where(function ($query) {
+                    $query->whereHas('roles', fn ($q) => $q->where('name', 'Siswa'))
+                        ->orWhereHas('role', fn ($q) => $q->where('name', 'Siswa'));
+                })
+                ->pluck('id');
+
+            $scopeLabel = $userClassrooms->count().' Kelas Binaan (Guru BK)';
+        } elseif ($userClassrooms->count() === 1) {
+            $classroom = $userClassrooms->first();
+            $studentIds = User::whereHas('classrooms', fn ($q) => $q->where('classrooms.id', $classroom->id)->where('user_class.status', 'Aktif'))
                 ->where(function ($query) {
                     $query->whereHas('roles', fn ($q) => $q->where('name', 'Siswa'))
                         ->orWhereHas('role', fn ($q) => $q->where('name', 'Siswa'));

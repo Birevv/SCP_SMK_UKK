@@ -87,12 +87,13 @@ class ListSchedules extends ListRecords
                         ->acceptedFileTypes([
                             'application/pdf',
                         ])
+                        ->maxSize(51200)
                         ->required()
                         ->live(debounce: 500)
                         ->afterStateUpdated(function ($state, callable $get, callable $set, SmartImportDetectorService $detector) {
                             $this->refreshScheduleDetectionPreview($get, $set, $detector);
                         })
-                        ->helperText('Wajib diisi. Unggah dokumen PDF Jadwal Kelas hasil FET (contoh: JADWAL_KELAS_PUT_1.pdf).'),
+                        ->helperText('Wajib diisi. Unggah dokumen PDF Jadwal Kelas hasil FET (contoh: JADWAL_KELAS_PUT_1.pdf). Maksimal 50 MB.'),
 
                     FileUpload::make('room_schedule_file')
                         ->label('2. File PDF Jadwal Ruang')
@@ -102,12 +103,13 @@ class ListSchedules extends ListRecords
                         ->acceptedFileTypes([
                             'application/pdf',
                         ])
+                        ->maxSize(51200)
                         ->required()
                         ->live(debounce: 500)
                         ->afterStateUpdated(function ($state, callable $get, callable $set, SmartImportDetectorService $detector) {
                             $this->refreshScheduleDetectionPreview($get, $set, $detector);
                         })
-                        ->helperText('Wajib diisi. Unggah dokumen PDF Jadwal Ruang (contoh: JADWAL_RUANG_PUT_1_REVISI_SEPT.pdf).'),
+                        ->helperText('Wajib diisi. Unggah dokumen PDF Jadwal Ruang (contoh: JADWAL_RUANG_PUT_1_REVISI_SEPT.pdf). Maksimal 50 MB.'),
 
                     Placeholder::make('detected_preview')
                         ->label('Hasil Deteksi Otomatis')

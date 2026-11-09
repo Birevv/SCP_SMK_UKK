@@ -5,6 +5,7 @@ namespace App\Filament\Resources\Journals;
 use App\Filament\Resources\Journals\Pages\CreateJournal;
 use App\Filament\Resources\Journals\Pages\EditJournal;
 use App\Filament\Resources\Journals\Pages\ListJournals;
+use App\Filament\Resources\Journals\Pages\ViewJournal;
 use App\Filament\Resources\Journals\RelationManagers\AttendancesRelationManager;
 use App\Filament\Resources\Journals\Schemas\JournalForm;
 use App\Filament\Resources\Journals\Tables\JournalsTable;
@@ -75,6 +76,7 @@ class JournalResource extends Resource
         return [
             'index' => ListJournals::route('/'),
             'create' => CreateJournal::route('/create'),
+            'view' => ViewJournal::route('/{record}'),
             'edit' => EditJournal::route('/{record}/edit'),
         ];
     }

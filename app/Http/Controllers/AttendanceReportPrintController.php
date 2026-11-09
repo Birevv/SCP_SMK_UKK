@@ -8,6 +8,7 @@ use App\Models\Classroom;
 use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 class AttendanceReportPrintController extends Controller
 {
@@ -21,8 +22,34 @@ class AttendanceReportPrintController extends Controller
         $startDate = $request->query('start_date', Carbon::now()->startOfMonth()->toDateString());
         $endDate = $request->query('end_date', Carbon::now()->endOfMonth()->toDateString());
 
-        if (! $classroomId) {
-            $classroomId = Classroom::first()?->id;
+        /** @var User|null $user */
+        $user = Auth::user();
+        $isSuperAdminOrWaka = $user?->hasRole('Super Admin')
+            || $user?->role?->name === 'Super Admin'
+            || $user?->hasRole('Waka Kurikulum')
+            || $user?->role?->name === 'Waka Kurikulum';
+
+        if (! $isSuperAdminOrWaka) {
+            $userClassroomIds = $user?->classrooms()->pluck('classrooms.id')->toArray() ?? [];
+            if (empty($userClassroomIds) && $user?->classroom_id) {
+                $userClassroomIds = [$user->classroom_id];
+            }
+
+            if (! empty($userClassroomIds)) {
+                if (! $classroomId) {
+                    $classroomId = $userClassroomIds[0];
+                } elseif (! in_array((int) $classroomId, array_map('intval', $userClassroomIds), true)) {
+                    abort(403, 'Akses ditolak. Anda tidak memiliki akses ke kelas ini.');
+                }
+            } else {
+                if (! $classroomId) {
+                    $classroomId = Classroom::first()?->id;
+                }
+            }
+        } else {
+            if (! $classroomId) {
+                $classroomId = Classroom::first()?->id;
+            }
         }
 
         $selectedClassroom = Classroom::find($classroomId);

@@ -47,8 +47,9 @@ class CreateSchedule extends CreateRecord
                             'text/plain',
                             'application/pdf',
                         ])
+                        ->maxSize(51200)
                         ->required()
-                        ->helperText('Format kolom: Guru, NIP (opsional), Mata Pelajaran, Kelas, Ruangan, Hari, Jam Mulai, Jam Selesai, Putaran. Maksimal ukuran file: 2 MB (batas PHP bawaan). Pastikan dokumen berisi data tabel yang sesuai.'),
+                        ->helperText('Format kolom: Guru, NIP (opsional), Mata Pelajaran, Kelas, Ruangan, Hari, Jam Mulai, Jam Selesai, Putaran. Maksimal ukuran file: 50 MB. Pastikan dokumen berisi data tabel yang sesuai.'),
                 ])
                 ->action(function (array $data) {
                     $filePath = Storage::disk('local')->path($data['file']);

@@ -38,19 +38,55 @@ class AttendanceReport extends Page implements HasForms
 
     public ?string $end_date = null;
 
-    public function mount(): void
+    public function getAvailableClassrooms(): array
     {
         /** @var User|null $user */
         $user = Auth::user();
+        if (! $user) {
+            return [];
+        }
 
+        $isSuperAdminOrWaka = $user->hasRole('Super Admin')
+            || $user->role?->name === 'Super Admin'
+            || $user->hasRole('Waka Kurikulum')
+            || $user->role?->name === 'Waka Kurikulum';
+
+        if ($isSuperAdminOrWaka) {
+            return Classroom::query()->orderBy('name')->pluck('name', 'id')->toArray();
+        }
+
+        // Untuk Walikelas dan Guru BK: hanya menampilkan kelas yang diampu
+        $userClassrooms = $user->classrooms()
+            ->wherePivot('status', 'Aktif')
+            ->orderBy('name')
+            ->pluck('classrooms.name', 'classrooms.id')
+            ->toArray();
+
+        if (empty($userClassrooms)) {
+            $userClassrooms = $user->classrooms()
+                ->orderBy('name')
+                ->pluck('classrooms.name', 'classrooms.id')
+                ->toArray();
+        }
+
+        if (empty($userClassrooms) && $user->classroom_id && $user->classroom) {
+            $userClassrooms = [$user->classroom_id => $user->classroom->name];
+        }
+
+        if (empty($userClassrooms)) {
+            return Classroom::query()->orderBy('name')->pluck('name', 'id')->toArray();
+        }
+
+        return $userClassrooms;
+    }
+
+    public function mount(): void
+    {
         $this->start_date = Carbon::now()->startOfMonth()->toDateString();
         $this->end_date = Carbon::now()->endOfMonth()->toDateString();
 
-        if ($user && $user->classrooms()->exists()) {
-            $this->classroom_id = $user->classrooms()->first()->id;
-        } else {
-            $this->classroom_id = Classroom::first()?->id;
-        }
+        $availableClassrooms = $this->getAvailableClassrooms();
+        $this->classroom_id = ! empty($availableClassrooms) ? (int) array_key_first($availableClassrooms) : null;
 
         $this->form->fill([
             'classroom_id' => $this->classroom_id,
@@ -70,7 +106,7 @@ class AttendanceReport extends Page implements HasForms
             ->schema([
                 Select::make('classroom_id')
                     ->label('Pilih Kelas')
-                    ->options(Classroom::query()->pluck('name', 'id'))
+                    ->options(fn () => $this->getAvailableClassrooms())
                     ->required()
                     ->live(),
 
@@ -90,6 +126,11 @@ class AttendanceReport extends Page implements HasForms
     public function getReportDataProperty(): array
     {
         if (! $this->classroom_id || ! $this->start_date || ! $this->end_date) {
+            return [];
+        }
+
+        $availableClassrooms = $this->getAvailableClassrooms();
+        if (! array_key_exists((int) $this->classroom_id, $availableClassrooms) && ! array_key_exists((string) $this->classroom_id, $availableClassrooms)) {
             return [];
         }
 

@@ -47,6 +47,7 @@ class ListClassrooms extends ListRecords
                             'text/plain',
                             'application/pdf',
                         ])
+                        ->maxSize(51200)
                         ->required()
                         ->live()
                         ->afterStateUpdated(function ($state, $set, SmartImportDetectorService $detector) {

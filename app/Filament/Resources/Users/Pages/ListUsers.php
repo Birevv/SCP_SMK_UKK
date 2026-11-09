@@ -50,12 +50,13 @@ class ListUsers extends ListRecords
                             'text/plain',
                             'application/pdf',
                         ])
+                        ->maxSize(51200)
                         ->required()
                         ->live(debounce: 500)
                         ->afterStateUpdated(function ($state, callable $get, callable $set, SmartImportDetectorService $detector) {
                             $this->refreshUserDetectionPreview($get, $set, $detector);
                         })
-                        ->helperText('Wajib diisi. File pembagian Wali Kelas dan Guru BK (Wali BK) per rombel.'),
+                        ->helperText('Wajib diisi. File pembagian Wali Kelas dan Guru BK (Wali BK) per rombel. Maksimal 50 MB.'),
 
                     FileUpload::make('file_guru')
                         ->label('2. File Data Pegawai / Guru (NIP) (Excel / CSV)')
@@ -68,12 +69,13 @@ class ListUsers extends ListRecords
                             'text/csv',
                             'text/plain',
                         ])
+                        ->maxSize(51200)
                         ->required()
                         ->live(debounce: 500)
                         ->afterStateUpdated(function ($state, callable $get, callable $set, SmartImportDetectorService $detector) {
                             $this->refreshUserDetectionPreview($get, $set, $detector);
                         })
-                        ->helperText('Wajib diisi. File Data Nominatif Pegawai 2026. Melengkapi NIP guru dan menambahkan guru yang belum terimport (data TU & outsourcing otomatis diabaikan).'),
+                        ->helperText('Wajib diisi. File Data Nominatif Pegawai 2026. Melengkapi NIP guru dan menambahkan guru yang belum terimport (data TU & outsourcing otomatis diabaikan). Maksimal 50 MB.'),
 
                     FileUpload::make('file_siswa')
                         ->label('3. File Data Siswa / Rombel (Excel / CSV)')
@@ -86,6 +88,7 @@ class ListUsers extends ListRecords
                             'text/csv',
                             'text/plain',
                         ])
+                        ->maxSize(51200)
                         ->required()
                         ->live(debounce: 500)
                         ->afterStateUpdated(function ($state, callable $get, callable $set, SmartImportDetectorService $detector) {

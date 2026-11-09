@@ -45,8 +45,9 @@ class CreateUser extends CreateRecord
                             'text/plain',
                             'application/pdf',
                         ])
+                        ->maxSize(51200)
                         ->required()
-                        ->helperText('Format kolom: Nama Lengkap, Username (opsional), Role, NISN/NIP, Email, Telepon, Kelas, Status, Password. Maksimal ukuran file: 2 MB (batas PHP bawaan). Pastikan dokumen berisi data tabel yang sesuai.'),
+                        ->helperText('Format kolom: Nama Lengkap, Username (opsional), Role, NISN/NIP, Email, Telepon, Kelas, Status, Password. Maksimal ukuran file: 50 MB. Pastikan dokumen berisi data tabel yang sesuai.'),
                 ])
                 ->action(function (array $data) {
                     $filePath = Storage::disk('local')->path($data['file']);

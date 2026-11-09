@@ -26,18 +26,24 @@ class StudentController extends Controller
     {
         $teacher = $request->user();
         $isBK = $teacher->hasRole('Guru BK') || $teacher->role?->name === 'Guru BK';
+        $isSuperAdmin = $teacher->hasRole('Super Admin') || $teacher->role?->name === 'Super Admin';
+
+        $teacherClassrooms = $teacher->classrooms;
+        if ($teacherClassrooms->isEmpty() && $teacher->classroom_id && $teacher->classroom) {
+            $teacherClassrooms = collect([$teacher->classroom]);
+        }
+        $teacherClassroomIds = $teacherClassrooms->pluck('id');
 
         if ($request->filled('classroom_id')) {
             $classroom = Classroom::find($request->classroom_id);
             if (! $classroom) {
                 return $this->errorResponse('Kelas tidak ditemukan', 404);
             }
-            if (! $isBK && ! $teacher->hasRole('Super Admin')) {
-                $teacherClassroomIds = $teacher->classrooms()->pluck('classrooms.id');
-                if (! $teacherClassroomIds->contains($classroom->id)) {
-                    return $this->errorResponse('Anda tidak memiliki akses ke kelas ini', 403);
-                }
+            if (! $isSuperAdmin && $teacherClassroomIds->isNotEmpty() && ! $teacherClassroomIds->contains($classroom->id)) {
+                return $this->errorResponse('Anda tidak memiliki akses ke kelas ini', 403);
             }
+        } elseif ($teacherClassroomIds->isNotEmpty()) {
+            $classroom = Classroom::find($teacherClassroomIds->first());
         } elseif ($isBK) {
             $classroom = Classroom::orderBy('name')->first();
         } else {

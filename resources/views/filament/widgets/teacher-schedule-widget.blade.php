@@ -119,8 +119,13 @@
                                 </x-filament::badge>
 
                                 @if (! empty($s['journal_id']))
+                                    @php
+                                        $viewUrl = \App\Filament\Resources\Journals\JournalResource::hasPage('view')
+                                            ? \App\Filament\Resources\Journals\JournalResource::getUrl('view', ['record' => $s['journal_id']])
+                                            : \App\Filament\Resources\Journals\JournalResource::getUrl('edit', ['record' => $s['journal_id']]);
+                                    @endphp
                                     <a
-                                        href="{{ \App\Filament\Resources\Journals\JournalResource::getUrl('view', ['record' => $s['journal_id']]) }}"
+                                        href="{{ $viewUrl }}"
                                         class="inline-flex items-center gap-1 text-xs font-semibold text-primary-600 dark:text-primary-400 hover:underline"
                                     >
                                         <span>Lihat Jurnal</span>
