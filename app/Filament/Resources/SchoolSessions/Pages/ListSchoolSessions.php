@@ -169,25 +169,36 @@ class ListSchoolSessions extends ListRecords
 
     public function getTabs(): array
     {
-        $baseQuery = fn () => static::getResource()::getEloquentQuery();
+        $counts = once(function () {
+            /** @var Builder $query */
+            $query = static::getResource()::getEloquentQuery();
+
+            return $query
+                ->toBase()
+                ->selectRaw('day_of_week, count(*) as aggregate')
+                ->groupBy('day_of_week')
+                ->pluck('aggregate', 'day_of_week');
+        });
+
+        $total = (int) $counts->sum();
 
         return [
             'all' => Tab::make('Semua Hari')
-                ->badge(fn () => $baseQuery()->count()),
+                ->badge($total),
             'senin' => Tab::make('Senin')
-                ->badge(fn () => $baseQuery()->where('day_of_week', 'Senin')->count())
+                ->badge((int) ($counts['Senin'] ?? 0))
                 ->modifyQueryUsing(fn (Builder $query) => $query->where('day_of_week', 'Senin')),
             'selasa' => Tab::make('Selasa')
-                ->badge(fn () => $baseQuery()->where('day_of_week', 'Selasa')->count())
+                ->badge((int) ($counts['Selasa'] ?? 0))
                 ->modifyQueryUsing(fn (Builder $query) => $query->where('day_of_week', 'Selasa')),
             'rabu' => Tab::make('Rabu')
-                ->badge(fn () => $baseQuery()->where('day_of_week', 'Rabu')->count())
+                ->badge((int) ($counts['Rabu'] ?? 0))
                 ->modifyQueryUsing(fn (Builder $query) => $query->where('day_of_week', 'Rabu')),
             'kamis' => Tab::make('Kamis')
-                ->badge(fn () => $baseQuery()->where('day_of_week', 'Kamis')->count())
+                ->badge((int) ($counts['Kamis'] ?? 0))
                 ->modifyQueryUsing(fn (Builder $query) => $query->where('day_of_week', 'Kamis')),
             'jumat' => Tab::make('Jumat')
-                ->badge(fn () => $baseQuery()->where('day_of_week', 'Jumat')->count())
+                ->badge((int) ($counts['Jumat'] ?? 0))
                 ->modifyQueryUsing(fn (Builder $query) => $query->where('day_of_week', 'Jumat')),
         ];
     }

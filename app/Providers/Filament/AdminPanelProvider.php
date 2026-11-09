@@ -17,6 +17,7 @@ use Filament\Panel;
 use Filament\PanelProvider;
 use Filament\Support\Assets\Css;
 use Filament\Support\Colors\Color;
+use Filament\View\PanelsRenderHook;
 use Illuminate\Cookie\Middleware\AddQueuedCookiesToResponse;
 use Illuminate\Cookie\Middleware\EncryptCookies;
 use Illuminate\Foundation\Http\Middleware\PreventRequestForgery;
@@ -46,6 +47,8 @@ class AdminPanelProvider extends PanelProvider
             ->brandLogoHeight('2.5rem')
             ->favicon(asset(file_exists(public_path('images/logo_smk.png')) ? 'images/logo_smk.png' : (file_exists(public_path('storage/assets/SMK_Negeri_1_Bantul_logo (1).png')) ? 'storage/assets/SMK_Negeri_1_Bantul_logo (1).png' : 'storage/Assets/SMK_Negeri_1_Bantul_logo (1).png')))
             ->profile(EditProfile::class, isSimple: false)
+            ->databaseNotifications()
+            ->databaseNotificationsPolling('30s')
             ->colors([
                 'primary' => Color::Blue,
                 'teal' => Color::Teal,
@@ -63,6 +66,14 @@ class AdminPanelProvider extends PanelProvider
                 Css::make('fullcalendar-styles', asset('css/filament/fullcalendar.css?v='.(file_exists(public_path('css/filament/fullcalendar.css')) ? filemtime(public_path('css/filament/fullcalendar.css')) : time()))),
                 Css::make('custom-filament-styles', asset('css/filament/custom.css?v='.(file_exists(public_path('css/filament/custom.css')) ? filemtime(public_path('css/filament/custom.css')) : time()))),
             ])
+            ->renderHook(
+                PanelsRenderHook::SIMPLE_PAGE_START,
+                fn () => view('filament.pages.auth.top-back-link'),
+            )
+            ->renderHook(
+                PanelsRenderHook::AUTH_LOGIN_FORM_AFTER,
+                fn () => view('filament.pages.auth.back-to-landing'),
+            )
             ->discoverResources(in: app_path('Filament/Resources'), for: 'App\Filament\Resources')
             ->discoverPages(in: app_path('Filament/Pages'), for: 'App\Filament\Pages')
             ->pages([

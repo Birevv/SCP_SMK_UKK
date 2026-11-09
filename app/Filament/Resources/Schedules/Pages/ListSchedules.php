@@ -3,9 +3,11 @@
 namespace App\Filament\Resources\Schedules\Pages;
 
 use App\Filament\Resources\Schedules\ScheduleResource;
+use App\Jobs\ImportSchedulePairJob;
 use App\Models\Schedule;
 use App\Services\DocumentParserService;
 use App\Services\SmartImportDetectorService;
+use App\Support\ImportHelper;
 use Filament\Actions\Action;
 use Filament\Actions\CreateAction;
 use Filament\Forms\Components\FileUpload;
@@ -16,7 +18,6 @@ use Filament\Resources\Pages\ListRecords;
 use Filament\Schemas\Components\Tabs\Tab;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Log;
 use Illuminate\Support\HtmlString;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
@@ -197,9 +198,6 @@ class ListSchedules extends ListRecords
                     array $data,
                     SmartImportDetectorService $detector
                 ) {
-                    @set_time_limit(300);
-                    @ini_set('max_execution_time', '300');
-
                     $classFileRel = $data['class_schedule_file'] ?? null;
                     $roomFileRel = $data['room_schedule_file'] ?? null;
 
@@ -216,40 +214,17 @@ class ListSchedules extends ListRecords
                         return;
                     }
 
-                    try {
-                        $parsed = $detector->detectAndParseSchedulePair($classFilePath, $roomFilePath);
-                        $cycle = $data['cycle_type'] ?? ($parsed['cycle_type'] ?? 'Putaran 1');
-                        $result = $detector->import($parsed, Auth::user(), $cycle);
+                    $cycle = $data['cycle_type'] ?? 'Putaran 1';
 
-                        @unlink($classFilePath);
-                        @unlink($roomFilePath);
+                    ImportHelper::dispatch(
+                        new ImportSchedulePairJob($classFilePath, $roomFilePath, Auth::user(), $cycle)
+                    );
 
-                        $formatName = $parsed['detected_format'] ?? 'PDF Gabungan Jadwal Kelas & Ruang';
-                        $statsText = [];
-                        foreach ($result['stats'] as $k => $v) {
-                            $statsText[] = ucwords(str_replace('_', ' ', $k)).': '.(is_array($v) ? count($v) : $v);
-                        }
-
-                        Notification::make()
-                            ->title("Import Berhasil: {$formatName}")
-                            ->body($result['message']."\n".implode(' | ', array_slice($statsText, 0, 5)))
-                            ->success()
-                            ->send();
-                    } catch (\Throwable $e) {
-                        Log::error('Gagal import pasangan PDF jadwal: '.$e->getMessage());
-                        if ($classFilePath) {
-                            @unlink($classFilePath);
-                        }
-                        if ($roomFilePath) {
-                            @unlink($roomFilePath);
-                        }
-
-                        Notification::make()
-                            ->title('Gagal Mengimpor Jadwal PDF')
-                            ->body($e->getMessage())
-                            ->danger()
-                            ->send();
-                    }
+                    Notification::make()
+                        ->title('Import Jadwal Sedang Diproses')
+                        ->body('File PDF jadwal Anda sedang diproses di latar belakang. Anda akan menerima notifikasi setelah proses selesai.')
+                        ->info()
+                        ->send();
                 }),
             Action::make('download_template')
                 ->label('Template CSV')
@@ -268,16 +243,30 @@ class ListSchedules extends ListRecords
 
     public function getTabs(): array
     {
-        $baseQuery = fn () => static::getResource()::getEloquentQuery();
+        $counts = once(function () {
+            /** @var Builder $query */
+            $query = static::getResource()::getEloquentQuery();
+
+            return $query
+                ->without(['teacher', 'classroom.major', 'classroom', 'room', 'subject', 'academicYear'])
+                ->toBase()
+                ->selectRaw('cycle_type, count(*) as aggregate')
+                ->groupBy('cycle_type')
+                ->pluck('aggregate', 'cycle_type');
+        });
+
+        $count1 = (int) ($counts['Putaran 1'] ?? 0);
+        $count2 = (int) ($counts['Putaran 2'] ?? 0);
+        $total = (int) $counts->sum();
 
         return [
             'all' => Tab::make('Semua Putaran')
-                ->badge(fn () => $baseQuery()->count()),
+                ->badge($total),
             'putaran_1' => Tab::make('Putaran 1')
-                ->badge(fn () => $baseQuery()->where('cycle_type', 'Putaran 1')->count())
+                ->badge($count1)
                 ->modifyQueryUsing(fn (Builder $query) => $query->where('cycle_type', 'Putaran 1')),
             'putaran_2' => Tab::make('Putaran 2')
-                ->badge(fn () => $baseQuery()->where('cycle_type', 'Putaran 2')->count())
+                ->badge($count2)
                 ->modifyQueryUsing(fn (Builder $query) => $query->where('cycle_type', 'Putaran 2')),
         ];
     }

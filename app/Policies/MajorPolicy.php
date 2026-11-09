@@ -6,8 +6,8 @@ namespace App\Policies;
 
 use App\Models\Major;
 use App\Models\User;
+use App\Support\PermissionHelper;
 use Illuminate\Auth\Access\HandlesAuthorization;
-use Spatie\Permission\Models\Permission;
 
 class MajorPolicy
 {
@@ -15,7 +15,7 @@ class MajorPolicy
 
     public function viewAny(User $user): bool
     {
-        if (Permission::where('name', 'ViewAny:Major')->exists()) {
+        if (PermissionHelper::exists('ViewAny:Major')) {
             return $user->can('ViewAny:Major');
         }
 
@@ -24,7 +24,7 @@ class MajorPolicy
 
     public function view(User $user, Major $major): bool
     {
-        if (Permission::where('name', 'View:Major')->exists()) {
+        if (PermissionHelper::exists('View:Major')) {
             return $user->can('View:Major');
         }
 
@@ -33,7 +33,7 @@ class MajorPolicy
 
     public function create(User $user): bool
     {
-        if (Permission::where('name', 'Create:Major')->exists()) {
+        if (PermissionHelper::exists('Create:Major')) {
             return $user->can('Create:Major');
         }
 
@@ -45,7 +45,7 @@ class MajorPolicy
 
     public function update(User $user, Major $major): bool
     {
-        if (Permission::where('name', 'Update:Major')->exists()) {
+        if (PermissionHelper::exists('Update:Major')) {
             return $user->can('Update:Major');
         }
 
@@ -57,7 +57,7 @@ class MajorPolicy
 
     public function delete(User $user, Major $major): bool
     {
-        if (Permission::where('name', 'Delete:Major')->exists()) {
+        if (PermissionHelper::exists('Delete:Major')) {
             return $user->can('Delete:Major');
         }
 
@@ -69,7 +69,7 @@ class MajorPolicy
 
     public function deleteAny(User $user): bool
     {
-        if (Permission::where('name', 'DeleteAny:Major')->exists()) {
+        if (PermissionHelper::exists('DeleteAny:Major')) {
             return $user->can('DeleteAny:Major');
         }
 

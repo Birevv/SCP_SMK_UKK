@@ -10,12 +10,12 @@ use App\Models\Schedule;
 use App\Models\Subject;
 use App\Models\SystemConfiguration;
 use App\Models\User;
+use App\Support\PermissionHelper;
 use Carbon\Carbon;
 use Filament\Facades\Filament;
 use Filament\Widgets\StatsOverviewWidget as BaseWidget;
 use Filament\Widgets\StatsOverviewWidget\Stat;
 use Illuminate\Support\Facades\Auth;
-use Spatie\Permission\Models\Permission;
 
 class StatsOverviewWidget extends BaseWidget
 {
@@ -33,7 +33,7 @@ class StatsOverviewWidget extends BaseWidget
             return true;
         }
 
-        if (Permission::where('name', 'View:StatsOverviewWidget')->exists()) {
+        if (PermissionHelper::exists('View:StatsOverviewWidget')) {
             return $user->can('View:StatsOverviewWidget');
         }
 

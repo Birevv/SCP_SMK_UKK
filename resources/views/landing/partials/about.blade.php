@@ -30,33 +30,33 @@
                 </div>
             </div>
 
-            {{-- Kolom Kanan: Dark Navy Panel dengan Jarak Lega Tanpa Teks Kecil Berdesakan --}}
+            {{-- Kolom Kanan: Card Panel Keunggulan Sistem (Mode Terang = GELAP, Mode Gelap = TERANG) --}}
             <div class="lg:col-span-6">
-                <div class="rounded-2xl bg-[#1E293B] border border-slate-700/80 p-8 sm:p-10 shadow-sheet text-white">
-                    <div class="flex items-center justify-between pb-6 border-b border-slate-700/80">
-                        <h3 class="text-lg font-semibold text-white">Keunggulan Sistem</h3>
-                        <span class="text-xs font-medium text-blue-400 uppercase tracking-wider">SCP Terintegrasi</span>
+                <div class="rounded-2xl bg-[#1E293B] dark:bg-white border border-slate-700/80 dark:border-slate-200/90 p-8 sm:p-10 shadow-sheet text-white dark:text-slate-900 transition-colors">
+                    <div class="flex items-center justify-between pb-6 border-b border-slate-700/80 dark:border-slate-200">
+                        <h3 class="text-lg font-semibold text-white dark:text-slate-900">Keunggulan Sistem</h3>
+                        <span class="text-xs font-semibold text-blue-400 dark:text-[#1D4ED8] uppercase tracking-wider">SCP Terintegrasi</span>
                     </div>
 
-                    <ul class="divide-y divide-slate-700/80 text-[15px]">
+                    <ul class="divide-y divide-slate-700/80 dark:divide-slate-200 text-[15px]">
                         <li class="py-4.5 first:pt-5">
-                            <span class="font-medium text-slate-100">Pengelolaan akademik terpusat.</span>
+                            <span class="font-medium text-slate-100 dark:text-slate-900">Pengelolaan akademik terpusat.</span>
                         </li>
 
                         <li class="py-4.5">
-                            <span class="font-medium text-slate-100">Validasi jadwal otomatis.</span>
+                            <span class="font-medium text-slate-100 dark:text-slate-900">Validasi jadwal otomatis.</span>
                         </li>
 
                         <li class="py-4.5">
-                            <span class="font-medium text-slate-100">Integrasi jurnal dan presensi.</span>
+                            <span class="font-medium text-slate-100 dark:text-slate-900">Integrasi jurnal dan presensi.</span>
                         </li>
 
                         <li class="py-4.5">
-                            <span class="font-medium text-slate-100">Verifikasi perizinan.</span>
+                            <span class="font-medium text-slate-100 dark:text-slate-900">Verifikasi perizinan.</span>
                         </li>
 
                         <li class="py-4.5 last:pb-2">
-                            <span class="font-medium text-slate-100">Rekapitulasi siap cetak.</span>
+                            <span class="font-medium text-slate-100 dark:text-slate-900">Rekapitulasi siap cetak.</span>
                         </li>
                     </ul>
                 </div>

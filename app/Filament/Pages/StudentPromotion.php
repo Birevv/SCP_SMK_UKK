@@ -419,7 +419,9 @@ class StudentPromotion extends Page implements HasForms, HasTable
                     ->label('Kelas')
                     ->badge()
                     ->color('gray')
-                    ->searchable(),
+                    ->searchable(query: function (Builder $query, string $search): Builder {
+                        return $query->whereHas('classrooms', fn ($q) => $q->where('classrooms.name', 'like', "%{$search}%"));
+                    }),
 
                 TextColumn::make('status')
                     ->label('Status')

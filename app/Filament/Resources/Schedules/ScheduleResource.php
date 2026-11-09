@@ -42,7 +42,7 @@ class ScheduleResource extends Resource
     public static function getEloquentQuery(): Builder
     {
         $query = parent::getEloquentQuery()
-            ->with(['teacher', 'classroom', 'room', 'subject', 'academicYear']);
+            ->with(['teacher', 'classroom.major', 'room', 'subject', 'academicYear']);
 
         /** @var User|null $user */
         $user = Auth::user();

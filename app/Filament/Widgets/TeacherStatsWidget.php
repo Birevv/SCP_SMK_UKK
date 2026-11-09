@@ -7,12 +7,12 @@ use App\Models\Journal;
 use App\Models\Schedule;
 use App\Models\SystemConfiguration;
 use App\Models\User;
+use App\Support\PermissionHelper;
 use Carbon\Carbon;
 use Filament\Facades\Filament;
 use Filament\Widgets\StatsOverviewWidget as BaseWidget;
 use Filament\Widgets\StatsOverviewWidget\Stat;
 use Illuminate\Support\Facades\Auth;
-use Spatie\Permission\Models\Permission;
 
 class TeacherStatsWidget extends BaseWidget
 {
@@ -30,7 +30,7 @@ class TeacherStatsWidget extends BaseWidget
             return false;
         }
 
-        if (Permission::where('name', 'View:TeacherStatsWidget')->exists()) {
+        if (PermissionHelper::exists('View:TeacherStatsWidget')) {
             return $user->can('View:TeacherStatsWidget');
         }
 

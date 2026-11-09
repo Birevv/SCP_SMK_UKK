@@ -6,8 +6,8 @@ namespace App\Policies;
 
 use App\Models\Rombel;
 use App\Models\User;
+use App\Support\PermissionHelper;
 use Illuminate\Auth\Access\HandlesAuthorization;
-use Spatie\Permission\Models\Permission;
 
 class RombelPolicy
 {
@@ -15,7 +15,7 @@ class RombelPolicy
 
     public function viewAny(User $user): bool
     {
-        if (Permission::where('name', 'ViewAny:Rombel')->exists()) {
+        if (PermissionHelper::exists('ViewAny:Rombel')) {
             return $user->can('ViewAny:Rombel');
         }
 
@@ -24,7 +24,7 @@ class RombelPolicy
 
     public function view(User $user, Rombel $rombel): bool
     {
-        if (Permission::where('name', 'View:Rombel')->exists()) {
+        if (PermissionHelper::exists('View:Rombel')) {
             return $user->can('View:Rombel');
         }
 
@@ -33,7 +33,7 @@ class RombelPolicy
 
     public function create(User $user): bool
     {
-        if (Permission::where('name', 'Create:Rombel')->exists()) {
+        if (PermissionHelper::exists('Create:Rombel')) {
             return $user->can('Create:Rombel');
         }
 
@@ -45,7 +45,7 @@ class RombelPolicy
 
     public function update(User $user, Rombel $rombel): bool
     {
-        if (Permission::where('name', 'Update:Rombel')->exists()) {
+        if (PermissionHelper::exists('Update:Rombel')) {
             return $user->can('Update:Rombel');
         }
 
@@ -57,7 +57,7 @@ class RombelPolicy
 
     public function delete(User $user, Rombel $rombel): bool
     {
-        if (Permission::where('name', 'Delete:Rombel')->exists()) {
+        if (PermissionHelper::exists('Delete:Rombel')) {
             return $user->can('Delete:Rombel');
         }
 
@@ -69,7 +69,7 @@ class RombelPolicy
 
     public function deleteAny(User $user): bool
     {
-        if (Permission::where('name', 'DeleteAny:Rombel')->exists()) {
+        if (PermissionHelper::exists('DeleteAny:Rombel')) {
             return $user->can('DeleteAny:Rombel');
         }
 

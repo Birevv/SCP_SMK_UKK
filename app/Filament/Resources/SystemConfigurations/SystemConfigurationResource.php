@@ -40,7 +40,7 @@ class SystemConfigurationResource extends Resource
 
     public static function canCreate(): bool
     {
-        return SystemConfiguration::count() < 1;
+        return ! SystemConfiguration::current()->exists;
     }
 
     public static function canDelete(Model $record): bool

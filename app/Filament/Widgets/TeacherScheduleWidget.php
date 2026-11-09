@@ -10,11 +10,11 @@ use App\Models\Schedule;
 use App\Models\SchoolSession;
 use App\Models\SystemConfiguration;
 use App\Models\User;
+use App\Support\PermissionHelper;
 use Carbon\Carbon;
 use Filament\Facades\Filament;
 use Filament\Widgets\Widget;
 use Illuminate\Support\Facades\Auth;
-use Spatie\Permission\Models\Permission;
 
 class TeacherScheduleWidget extends Widget
 {
@@ -42,7 +42,7 @@ class TeacherScheduleWidget extends Widget
             return false;
         }
 
-        if (Permission::where('name', 'View:TeacherScheduleWidget')->exists()) {
+        if (PermissionHelper::exists('View:TeacherScheduleWidget')) {
             return $user->can('View:TeacherScheduleWidget');
         }
 

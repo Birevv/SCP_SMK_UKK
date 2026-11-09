@@ -4,10 +4,10 @@ namespace App\Filament\Widgets;
 
 use App\Models\Attendance;
 use App\Models\User;
+use App\Support\PermissionHelper;
 use Filament\Facades\Filament;
 use Filament\Widgets\Widget;
 use Illuminate\Support\Facades\Auth;
-use Spatie\Permission\Models\Permission;
 
 class StudentAttendanceWidget extends Widget
 {
@@ -27,7 +27,7 @@ class StudentAttendanceWidget extends Widget
             return false;
         }
 
-        if (Permission::where('name', 'View:StudentAttendanceWidget')->exists()) {
+        if (PermissionHelper::exists('View:StudentAttendanceWidget')) {
             return $user->can('View:StudentAttendanceWidget');
         }
 

@@ -4,6 +4,7 @@ namespace App\Filament\Widgets;
 
 use App\Models\SystemConfiguration;
 use App\Models\User;
+use App\Support\PermissionHelper;
 use Filament\Actions\Action;
 use Filament\Actions\Concerns\InteractsWithActions;
 use Filament\Actions\Contracts\HasActions;
@@ -13,7 +14,6 @@ use Filament\Schemas\Concerns\InteractsWithSchemas;
 use Filament\Schemas\Contracts\HasSchemas;
 use Filament\Widgets\Widget;
 use Illuminate\Support\Facades\Auth;
-use Spatie\Permission\Models\Permission;
 
 class SystemConfigWidget extends Widget implements HasActions, HasSchemas
 {
@@ -40,7 +40,7 @@ class SystemConfigWidget extends Widget implements HasActions, HasSchemas
             return true;
         }
 
-        if (Permission::where('name', 'View:SystemConfigWidget')->exists()) {
+        if (PermissionHelper::exists('View:SystemConfigWidget')) {
             return $user->can('View:SystemConfigWidget');
         }
 
@@ -71,11 +71,13 @@ class SystemConfigWidget extends Widget implements HasActions, HasSchemas
             ->modalSubmitActionLabel('Ya, Ganti Putaran')
             ->modalIcon('heroicon-o-arrow-path')
             ->action(function () {
-                $config = SystemConfiguration::first() ?? new SystemConfiguration;
-                $config->update([
-                    'active_cycle' => $config->active_cycle === 'Putaran 1' ? 'Putaran 2' : 'Putaran 1',
+                $config = SystemConfiguration::current();
+                $newCycle = $config->active_cycle === 'Putaran 1' ? 'Putaran 2' : 'Putaran 1';
+                $config->fill([
+                    'active_cycle' => $newCycle,
                     'updated_by' => Auth::id(),
                 ]);
+                $config->save();
 
                 $freshCycle = $config->fresh()->active_cycle;
 
@@ -105,11 +107,12 @@ class SystemConfigWidget extends Widget implements HasActions, HasSchemas
             ->modalSubmitActionLabel(fn () => SystemConfiguration::current()->is_schedule_locked ? 'Ya, Buka Kunci' : 'Ya, Kunci Jadwal')
             ->modalIcon(fn () => SystemConfiguration::current()->is_schedule_locked ? 'heroicon-o-lock-open' : 'heroicon-o-lock-closed')
             ->action(function () {
-                $config = SystemConfiguration::first() ?? new SystemConfiguration;
-                $config->update([
+                $config = SystemConfiguration::current();
+                $config->fill([
                     'is_schedule_locked' => ! $config->is_schedule_locked,
                     'updated_by' => Auth::id(),
                 ]);
+                $config->save();
 
                 $status = $config->fresh()->is_schedule_locked ? 'dikunci' : 'dibuka';
 

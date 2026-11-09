@@ -5,12 +5,12 @@ namespace App\Filament\Widgets;
 use App\Models\Attendance;
 use App\Models\LeaveRequest;
 use App\Models\User;
+use App\Support\PermissionHelper;
 use Carbon\Carbon;
 use Filament\Facades\Filament;
 use Filament\Widgets\StatsOverviewWidget as BaseWidget;
 use Filament\Widgets\StatsOverviewWidget\Stat;
 use Illuminate\Support\Facades\Auth;
-use Spatie\Permission\Models\Permission;
 
 class HomeroomStatsWidget extends BaseWidget
 {
@@ -31,7 +31,7 @@ class HomeroomStatsWidget extends BaseWidget
             return false;
         }
 
-        if (Permission::where('name', 'View:HomeroomStatsWidget')->exists()) {
+        if (PermissionHelper::exists('View:HomeroomStatsWidget')) {
             return $user->can('View:HomeroomStatsWidget');
         }
 

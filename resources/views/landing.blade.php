@@ -43,6 +43,8 @@
         @include('landing.partials.hero', [
             'loginUrl' => $loginUrl,
             'apkUrl' => $apkUrl,
+            'apkVersion' => $apkVersion,
+            'apkSha256' => $apkSha256,
         ])
 
         {{-- SECTION C: FEATURE HIGHLIGHT --}}
@@ -62,20 +64,14 @@
 
         {{-- SECTION H: FAQ --}}
         @include('landing.partials.faq', ['loginUrl' => $loginUrl])
-
-        {{-- SECTION I: DOWNLOAD APLIKASI MOBILE / CTA --}}
-        @include('landing.partials.mobile', [
-            'loginUrl' => $loginUrl,
-            'apkUrl' => $apkUrl,
-            'apkVersion' => $apkVersion,
-            'apkSha256' => $apkSha256,
-        ])
     </main>
 
-    {{-- SECTION J: FOOTER --}}
+    {{-- SECTION I: FOOTER --}}
     @include('landing.partials.footer', [
         'loginUrl' => $loginUrl,
         'apkUrl' => $apkUrl,
+        'apkVersion' => $apkVersion,
+        'apkSha256' => $apkSha256,
     ])
 </body>
 </html>

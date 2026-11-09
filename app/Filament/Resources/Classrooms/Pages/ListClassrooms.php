@@ -5,8 +5,10 @@ declare(strict_types=1);
 namespace App\Filament\Resources\Classrooms\Pages;
 
 use App\Filament\Resources\Classrooms\ClassroomResource;
+use App\Jobs\ImportSmartFileJob;
 use App\Models\Classroom;
 use App\Services\SmartImportDetectorService;
+use App\Support\ImportHelper;
 use Filament\Actions\Action;
 use Filament\Actions\CreateAction;
 use Filament\Forms\Components\FileUpload;
@@ -115,28 +117,18 @@ class ListClassrooms extends ListRecords
                             return null;
                         }),
                 ])
-                ->action(function (array $data, SmartImportDetectorService $detector) {
+                ->action(function (array $data) {
                     $filePath = Storage::disk('local')->path($data['file']);
 
-                    try {
-                        $parsed = $detector->detectAndParse($filePath);
-                        $result = $detector->import($parsed, Auth::user());
-                        @unlink($filePath);
+                    ImportHelper::dispatch(
+                        new ImportSmartFileJob($filePath, Auth::user())
+                    );
 
-                        $formatName = $parsed['detected_format'] ?? $parsed['type'];
-                        Notification::make()
-                            ->title("Import Berhasil: {$formatName}")
-                            ->body($result['message'])
-                            ->success()
-                            ->send();
-                    } catch (\Throwable $e) {
-                        @unlink($filePath);
-                        Notification::make()
-                            ->title('Gagal Memproses Dokumen')
-                            ->body($e->getMessage())
-                            ->danger()
-                            ->send();
-                    }
+                    Notification::make()
+                        ->title('Import Kelas & Siswa Sedang Diproses')
+                        ->body('File Anda sedang diproses di latar belakang. Anda akan menerima notifikasi setelah proses selesai.')
+                        ->info()
+                        ->send();
                 }),
         ];
     }

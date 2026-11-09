@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\AttendanceReportPrintController;
+use App\Http\Controllers\DownloadPageController;
 use App\Http\Controllers\JournalPhotoUploadController;
 use App\Http\Controllers\LandingController;
 use App\Http\Middleware\LandingSecurityHeaders;
@@ -36,6 +37,20 @@ Route::get('/', LandingController::class)
     ])
     ->middleware(LandingSecurityHeaders::class)
     ->name('landing');
+
+// Halaman Unduh Aplikasi Mobile SCP (Stateless)
+Route::get('/download', DownloadPageController::class)
+    ->withoutMiddleware([
+        EncryptCookies::class,
+        AddQueuedCookiesToResponse::class,
+        StartSession::class,
+        AuthenticateSession::class,
+        ShareErrorsFromSession::class,
+        PreventRequestForgery::class,
+        VerifyCsrfToken::class,
+    ])
+    ->middleware(LandingSecurityHeaders::class)
+    ->name('download');
 
 // Redirect Permanen URL Auth Lama ke Panel (/app)
 Route::get('/login', [LandingController::class, 'redirectToLogin'])

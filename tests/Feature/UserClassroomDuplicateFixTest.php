@@ -70,7 +70,7 @@ class UserClassroomDuplicateFixTest extends TestCase
 
         // Test form create user
         $component = Livewire::actingAs($this->admin)->test(CreateUser::class);
-        $options = $component->instance()->form->getComponent('classrooms')->getOptions();
+        $options = $component->instance()->form->getComponent('activeClassrooms')->getOptions();
 
         $this->assertNotEmpty($options);
         // Pastikan tidak ada nama kelas yang duplikat dalam options
@@ -113,7 +113,7 @@ class UserClassroomDuplicateFixTest extends TestCase
 
         Livewire::actingAs($this->admin)
             ->test(ListUsers::class)
-            ->filterTable('classrooms', $classA->id)
+            ->filterTable('activeClassrooms', $classA->id)
             ->assertCanSeeTableRecords([$studentA])
             ->assertCanNotSeeTableRecords([$studentB]);
     }

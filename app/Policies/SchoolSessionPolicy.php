@@ -5,9 +5,9 @@ declare(strict_types=1);
 namespace App\Policies;
 
 use App\Models\SchoolSession;
+use App\Support\PermissionHelper;
 use Illuminate\Auth\Access\HandlesAuthorization;
 use Illuminate\Foundation\Auth\User as AuthUser;
-use Spatie\Permission\Models\Permission;
 
 class SchoolSessionPolicy
 {
@@ -15,7 +15,7 @@ class SchoolSessionPolicy
 
     public function viewAny(AuthUser $authUser): bool
     {
-        if (Permission::where('name', 'ViewAny:SchoolSession')->exists()) {
+        if (PermissionHelper::exists('ViewAny:SchoolSession')) {
             return $authUser->can('ViewAny:SchoolSession');
         }
 
@@ -27,7 +27,7 @@ class SchoolSessionPolicy
 
     public function view(AuthUser $authUser, SchoolSession $schoolSession): bool
     {
-        if (Permission::where('name', 'View:SchoolSession')->exists()) {
+        if (PermissionHelper::exists('View:SchoolSession')) {
             return $authUser->can('View:SchoolSession');
         }
 
@@ -39,7 +39,7 @@ class SchoolSessionPolicy
 
     public function create(AuthUser $authUser): bool
     {
-        if (Permission::where('name', 'Create:SchoolSession')->exists()) {
+        if (PermissionHelper::exists('Create:SchoolSession')) {
             return $authUser->can('Create:SchoolSession');
         }
 
@@ -51,7 +51,7 @@ class SchoolSessionPolicy
 
     public function update(AuthUser $authUser, SchoolSession $schoolSession): bool
     {
-        if (Permission::where('name', 'Update:SchoolSession')->exists()) {
+        if (PermissionHelper::exists('Update:SchoolSession')) {
             return $authUser->can('Update:SchoolSession');
         }
 
@@ -63,7 +63,7 @@ class SchoolSessionPolicy
 
     public function delete(AuthUser $authUser, SchoolSession $schoolSession): bool
     {
-        if (Permission::where('name', 'Delete:SchoolSession')->exists()) {
+        if (PermissionHelper::exists('Delete:SchoolSession')) {
             return $authUser->can('Delete:SchoolSession');
         }
 
@@ -75,7 +75,7 @@ class SchoolSessionPolicy
 
     public function deleteAny(AuthUser $authUser): bool
     {
-        if (Permission::where('name', 'DeleteAny:SchoolSession')->exists()) {
+        if (PermissionHelper::exists('DeleteAny:SchoolSession')) {
             return $authUser->can('DeleteAny:SchoolSession');
         }
 
@@ -87,7 +87,7 @@ class SchoolSessionPolicy
 
     public function restore(AuthUser $authUser, SchoolSession $schoolSession): bool
     {
-        if (Permission::where('name', 'Restore:SchoolSession')->exists()) {
+        if (PermissionHelper::exists('Restore:SchoolSession')) {
             return $authUser->can('Restore:SchoolSession');
         }
 
@@ -97,7 +97,7 @@ class SchoolSessionPolicy
 
     public function forceDelete(AuthUser $authUser, SchoolSession $schoolSession): bool
     {
-        if (Permission::where('name', 'ForceDelete:SchoolSession')->exists()) {
+        if (PermissionHelper::exists('ForceDelete:SchoolSession')) {
             return $authUser->can('ForceDelete:SchoolSession');
         }
 

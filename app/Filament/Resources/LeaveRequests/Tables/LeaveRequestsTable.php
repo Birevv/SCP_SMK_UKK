@@ -4,6 +4,7 @@ namespace App\Filament\Resources\LeaveRequests\Tables;
 
 use App\Models\LeaveRequest;
 use App\Models\SchoolSession;
+use App\Support\PermissionHelper;
 use Filament\Actions\Action;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteAction;
@@ -16,7 +17,6 @@ use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Auth;
-use Spatie\Permission\Models\Permission;
 
 class LeaveRequestsTable
 {
@@ -143,7 +143,7 @@ class LeaveRequestsTable
                             return true;
                         }
 
-                        if (Permission::where('name', 'approve_leave_request')->exists()) {
+                        if (PermissionHelper::exists('approve_leave_request')) {
                             return $user->can('approve_leave_request');
                         }
 
@@ -192,7 +192,7 @@ class LeaveRequestsTable
                             return true;
                         }
 
-                        if (Permission::where('name', 'approve_leave_request')->exists()) {
+                        if (PermissionHelper::exists('approve_leave_request')) {
                             return $user->can('approve_leave_request');
                         }
 

@@ -9,12 +9,12 @@ use App\Models\Schedule;
 use App\Models\Subject;
 use App\Models\SystemConfiguration;
 use App\Models\User;
+use App\Support\PermissionHelper;
 use Carbon\Carbon;
 use Filament\Facades\Filament;
 use Filament\Widgets\StatsOverviewWidget as BaseWidget;
 use Filament\Widgets\StatsOverviewWidget\Stat;
 use Illuminate\Support\Facades\Auth;
-use Spatie\Permission\Models\Permission;
 
 class WakaStatsWidget extends BaseWidget
 {
@@ -32,7 +32,7 @@ class WakaStatsWidget extends BaseWidget
             return true;
         }
 
-        if (Permission::where('name', 'View:WakaStatsWidget')->exists()) {
+        if (PermissionHelper::exists('View:WakaStatsWidget')) {
             return $user->can('View:WakaStatsWidget');
         }
 

@@ -4,8 +4,9 @@ namespace App\Filament\Resources\Users\Pages;
 
 use App\Filament\Concerns\HasCreateConfirmation;
 use App\Filament\Resources\Users\UserResource;
+use App\Jobs\ImportSingleUserFileJob;
 use App\Services\DocumentParserService;
-use App\Services\UserImportService;
+use App\Support\ImportHelper;
 use Filament\Actions\Action;
 use Filament\Forms\Components\FileUpload;
 use Filament\Notifications\Notification;
@@ -47,52 +48,20 @@ class CreateUser extends CreateRecord
                         ->required()
                         ->helperText('Format kolom: Nama Lengkap, Username (opsional), Role, NISN/NIP, Email, Telepon, Kelas, Status, Password. Maksimal ukuran file: 2 MB (batas PHP bawaan). Pastikan dokumen berisi data tabel yang sesuai.'),
                 ])
-                ->action(function (array $data, DocumentParserService $parser, UserImportService $importer) {
+                ->action(function (array $data) {
                     $filePath = Storage::disk('local')->path($data['file']);
-                    $rows = $parser->parse($filePath);
 
-                    if (empty($rows)) {
-                        Notification::make()
-                            ->title('Gagal Membaca File')
-                            ->body('Tidak ditemukan data pengguna yang valid pada file tersebut.')
-                            ->danger()
-                            ->send();
+                    ImportHelper::dispatch(
+                        new ImportSingleUserFileJob($filePath, Auth::user())
+                    );
 
-                        @unlink($filePath);
+                    Notification::make()
+                        ->title('Import Pengguna Sedang Diproses')
+                        ->body('File pengguna Anda sedang diproses di latar belakang. Anda akan menerima notifikasi setelah proses selesai.')
+                        ->info()
+                        ->send();
 
-                        return;
-                    }
-
-                    $result = $importer->import($rows, Auth::user());
-                    @unlink($filePath);
-
-                    $body = "Berhasil memproses: {$result['imported']} user baru ditambahkan, {$result['updated']} user diperbarui.";
-                    if ($result['skipped'] > 0) {
-                        $body .= " {$result['skipped']} baris dilewati.";
-                    }
-
-                    if ($result['imported'] > 0 || $result['updated'] > 0) {
-                        Notification::make()
-                            ->title('Data berhasil diinput')
-                            ->success()
-                            ->send();
-
-                        $this->redirect($this->getResource()::getUrl('index'));
-                    } else {
-                        Notification::make()
-                            ->title('Import Pengguna Belum Berhasil')
-                            ->body($body)
-                            ->warning()
-                            ->send();
-                    }
-
-                    if (! empty($result['errors'])) {
-                        Notification::make()
-                            ->title('Catatan Validasi')
-                            ->body(implode("\n", array_slice($result['errors'], 0, 5)))
-                            ->warning()
-                            ->send();
-                    }
+                    $this->redirect($this->getResource()::getUrl('index'));
                 }),
             Action::make('download_user_template')
                 ->label('Template CSV')

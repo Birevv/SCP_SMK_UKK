@@ -40,7 +40,7 @@
         <div class="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-16 items-start">
             
             {{-- Kolom Kiri: Heading, Deskripsi & Tombol Masuk Panel (5 Kolom) --}}
-            <div class="lg:col-span-5 flex flex-col items-start lg:sticky lg:top-28">
+            <div class="lg:col-span-5 flex flex-col items-start">
                 <span class="text-xs font-semibold tracking-wider text-[#1D4ED8] dark:text-blue-400 mb-3">
                     BANTUAN & PANDUAN
                 </span>
@@ -73,17 +73,19 @@
             {{-- Kolom Kanan: Accordion Elegan dengan Pembatas Horizontal Tipis Saja (7 Kolom, Tanpa Kotak Tebal) --}}
             <div class="lg:col-span-7 divide-y divide-hairline border-t border-b border-hairline">
                 @foreach ($faqs as $index => $faq)
-                    <details class="group py-5 first:pt-4 last:pb-4" @if ($index === 0) open @endif>
+                    <details name="faq-accordion" class="group py-5 first:pt-4 last:pb-4" @if ($index === 0) open @endif>
                         <summary class="flex items-center justify-between gap-4 cursor-pointer select-none text-[16px] font-medium text-ink hover:text-[#1D4ED8] transition-colors ui-focus">
                             <span class="leading-snug">{{ $faq['question'] }}</span>
                             <span class="w-7 h-7 rounded-md bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 flex items-center justify-center shrink-0 text-slate-600 dark:text-slate-300 group-hover:bg-blue-50 group-hover:text-[#1D4ED8] group-hover:border-blue-300 dark:group-hover:bg-blue-950 dark:group-hover:text-blue-300 transition-colors shadow-2xs">
-                                <svg class="faq-icon w-4 h-4 transition-transform duration-150" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                                <svg class="faq-icon w-4 h-4 transition-transform duration-200 ease-out" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
                                     <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
                                 </svg>
                             </span>
                         </summary>
-                        <div class="pt-3 text-[15px] text-ink-secondary leading-relaxed pr-6">
-                            {{ $faq['answer'] }}
+                        <div class="faq-content overflow-hidden">
+                            <div class="pt-3 text-[15px] text-ink-secondary leading-relaxed pr-6">
+                                {{ $faq['answer'] }}
+                            </div>
                         </div>
                     </details>
                 @endforeach

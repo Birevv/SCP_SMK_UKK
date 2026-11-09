@@ -5,11 +5,11 @@ namespace App\Filament\Widgets;
 use App\Models\Schedule;
 use App\Models\SystemConfiguration;
 use App\Models\User;
+use App\Support\PermissionHelper;
 use Carbon\Carbon;
 use Filament\Facades\Filament;
 use Filament\Widgets\Widget;
 use Illuminate\Support\Facades\Auth;
-use Spatie\Permission\Models\Permission;
 
 class UnfilledJournalAlertWidget extends Widget
 {
@@ -31,7 +31,7 @@ class UnfilledJournalAlertWidget extends Widget
             return true;
         }
 
-        if (Permission::where('name', 'View:UnfilledJournalAlertWidget')->exists()) {
+        if (PermissionHelper::exists('View:UnfilledJournalAlertWidget')) {
             return $user->can('View:UnfilledJournalAlertWidget');
         }
 

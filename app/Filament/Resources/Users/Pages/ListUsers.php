@@ -3,9 +3,11 @@
 namespace App\Filament\Resources\Users\Pages;
 
 use App\Filament\Resources\Users\UserResource;
+use App\Jobs\ImportUserFilesJob;
 use App\Models\User;
 use App\Services\DocumentParserService;
 use App\Services\SmartImportDetectorService;
+use App\Support\ImportHelper;
 use Filament\Actions\Action;
 use Filament\Actions\CreateAction;
 use Filament\Forms\Components\FileUpload;
@@ -167,11 +169,7 @@ class ListUsers extends ListRecords
                 ])
                 ->action(function (
                     array $data,
-                    SmartImportDetectorService $detector
                 ) {
-                    @set_time_limit(300);
-                    @ini_set('max_execution_time', '300');
-
                     $waliFile = $data['file_walikelas'] ?? null;
                     $guruFile = $data['file_guru'] ?? null;
                     $siswaFile = $data['file_siswa'] ?? null;
@@ -180,54 +178,25 @@ class ListUsers extends ListRecords
                     $guruPath = $guruFile ? Storage::disk('local')->path($guruFile) : null;
                     $siswaPath = $siswaFile ? Storage::disk('local')->path($siswaFile) : null;
 
-                    $summaryMessages = [];
-
-                    try {
-                        // 1. Process Guru first: updates NIPs and creates any teachers not in timetable
-                        if ($guruPath && file_exists($guruPath)) {
-                            $parsedGuru = $detector->detectAndParse($guruPath);
-                            $resGuru = $detector->import($parsedGuru, Auth::user());
-                            $summaryMessages[] = "✔ Guru: {$resGuru['message']}";
-                            @unlink($guruPath);
-                        }
-
-                        // 2. Process Wali Kelas & Guru BK second: assigns homeroom and counselor roles and links classrooms
-                        if ($waliPath && file_exists($waliPath)) {
-                            $parsedWali = $detector->detectAndParse($waliPath);
-                            $resWali = $detector->import($parsedWali, Auth::user());
-                            $summaryMessages[] = "✔ Wali Kelas & Guru BK: {$resWali['message']}";
-                            @unlink($waliPath);
-                        }
-
-                        // 3. Process Siswa third: imports students and attaches to classrooms
-                        if ($siswaPath && file_exists($siswaPath)) {
-                            $parsedSiswa = $detector->detectAndParse($siswaPath);
-                            $resSiswa = $detector->import($parsedSiswa, Auth::user());
-                            $summaryMessages[] = "✔ Siswa: {$resSiswa['message']}";
-                            @unlink($siswaPath);
-                        }
-
+                    if (! $guruPath && ! $waliPath && ! $siswaPath) {
                         Notification::make()
-                            ->title('Data berhasil diinput')
-                            ->success()
+                            ->title('Tidak Ada File')
+                            ->body('Pilih minimal satu file dokumen untuk diimpor.')
+                            ->warning()
                             ->send();
-                    } catch (\Throwable $e) {
-                        if ($waliPath) {
-                            @unlink($waliPath);
-                        }
-                        if ($guruPath) {
-                            @unlink($guruPath);
-                        }
-                        if ($siswaPath) {
-                            @unlink($siswaPath);
-                        }
 
-                        Notification::make()
-                            ->title('Gagal Mengimpor Data Pengguna')
-                            ->body($e->getMessage())
-                            ->danger()
-                            ->send();
+                        return;
                     }
+
+                    ImportHelper::dispatch(
+                        new ImportUserFilesJob($guruPath, $waliPath, $siswaPath, Auth::user())
+                    );
+
+                    Notification::make()
+                        ->title('Import Pengguna Sedang Diproses')
+                        ->body('Data pengguna sedang diproses di latar belakang. Anda akan menerima notifikasi setelah proses selesai.')
+                        ->info()
+                        ->send();
                 }),
             Action::make('download_user_template')
                 ->label('Template CSV')

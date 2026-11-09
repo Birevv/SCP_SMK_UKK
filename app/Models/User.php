@@ -50,8 +50,8 @@ class User extends Authenticatable implements FilamentUser, HasAvatar, HasName
             return false;
         }
 
-        return $this->hasAnyRole(['Super Admin', 'Waka Kurikulum', 'Guru', 'Wali Kelas', 'Guru BK', 'Siswa'])
-            || in_array($this->role?->name, ['Super Admin', 'Waka Kurikulum', 'Guru', 'Wali Kelas', 'Guru BK', 'Siswa']);
+        return in_array($this->role?->name, ['Super Admin', 'Waka Kurikulum', 'Guru', 'Wali Kelas', 'Guru BK', 'Siswa'])
+            || $this->hasAnyRole(['Super Admin', 'Waka Kurikulum', 'Guru', 'Wali Kelas', 'Guru BK', 'Siswa']);
     }
 
     public function getFilamentName(): string
@@ -122,11 +122,46 @@ class User extends Authenticatable implements FilamentUser, HasAvatar, HasName
         return $this->belongsTo(Classroom::class, 'classroom_id');
     }
 
-    public function getClassroomAttribute()
+    public function getClassroomAttribute(): ?Classroom
     {
-        return $this->classroom
+        if (array_key_exists('resolved_classroom', $this->relations)) {
+            return $this->relations['resolved_classroom'];
+        }
+
+        // 1. Direct belongsTo classroom relation if loaded and exists
+        if ($this->classroom_id && $this->relationLoaded('classroom') && $this->getRelation('classroom')) {
+            $classroom = $this->getRelation('classroom');
+            $this->setRelation('resolved_classroom', $classroom);
+
+            return $classroom;
+        }
+
+        // 2. Active classrooms (belongsToMany) if already eager-loaded
+        if ($this->relationLoaded('activeClassrooms') && $this->activeClassrooms->isNotEmpty()) {
+            $classroom = $this->activeClassrooms->sortByDesc('pivot.id')->first();
+            $this->setRelation('resolved_classroom', $classroom);
+
+            return $classroom;
+        }
+
+        // 3. Classrooms (belongsToMany) if already eager-loaded
+        if ($this->relationLoaded('classrooms')) {
+            $classroom = $this->classrooms->where('pivot.status', 'Aktif')->sortByDesc('pivot.id')->first()
+                ?? $this->classrooms->sortByDesc('pivot.id')->first();
+
+            $this->setRelation('resolved_classroom', $classroom);
+
+            return $classroom;
+        }
+
+        // 4. Fallback: query database once and memoize on this instance
+        $classroom = ($this->classroom_id ? $this->getRelationshipFromMethod('classroom') : null)
             ?? $this->classrooms()->wherePivot('status', 'Aktif')->latest('user_class.id')->first()
             ?? $this->classrooms()->latest('user_class.id')->first();
+
+        $this->setRelation('resolved_classroom', $classroom);
+
+        return $classroom;
     }
 
     public function classrooms(): BelongsToMany

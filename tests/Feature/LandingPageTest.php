@@ -125,6 +125,16 @@ class LandingPageTest extends TestCase
         $response->assertRedirect(route('login'));
     }
 
+    public function test_login_page_renders_redirect_links_back_to_landing_page(): void
+    {
+        $response = $this->get('/app/login');
+
+        $response->assertOk();
+        $response->assertSee(route('landing'));
+        $response->assertSee('Kembali ke Halaman Utama');
+        $response->assertSee('Kembali ke Beranda');
+    }
+
     public function test_landing_page_protects_privacy_and_does_not_leak_personal_data_or_external_cdns(): void
     {
         $response = $this->get('/');

@@ -3,7 +3,7 @@
         <div class="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-16 items-start">
             
             {{-- Sisi Kiri: Judul Editorial Besar & Deskripsi (5 Kolom) --}}
-            <div class="lg:col-span-5 flex flex-col items-start lg:sticky lg:top-28">
+            <div class="lg:col-span-5 flex flex-col items-start">
                 <span class="text-xs font-semibold tracking-wider text-[#1D4ED8] dark:text-blue-400 mb-3">
                     FITUR OPERASIONAL
                 </span>

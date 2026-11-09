@@ -6,8 +6,8 @@ namespace App\Policies;
 
 use App\Models\ClassLevel;
 use App\Models\User;
+use App\Support\PermissionHelper;
 use Illuminate\Auth\Access\HandlesAuthorization;
-use Spatie\Permission\Models\Permission;
 
 class ClassLevelPolicy
 {
@@ -15,7 +15,7 @@ class ClassLevelPolicy
 
     public function viewAny(User $user): bool
     {
-        if (Permission::where('name', 'ViewAny:ClassLevel')->exists()) {
+        if (PermissionHelper::exists('ViewAny:ClassLevel')) {
             return $user->can('ViewAny:ClassLevel');
         }
 
@@ -24,7 +24,7 @@ class ClassLevelPolicy
 
     public function view(User $user, ClassLevel $classLevel): bool
     {
-        if (Permission::where('name', 'View:ClassLevel')->exists()) {
+        if (PermissionHelper::exists('View:ClassLevel')) {
             return $user->can('View:ClassLevel');
         }
 
@@ -33,7 +33,7 @@ class ClassLevelPolicy
 
     public function create(User $user): bool
     {
-        if (Permission::where('name', 'Create:ClassLevel')->exists()) {
+        if (PermissionHelper::exists('Create:ClassLevel')) {
             return $user->can('Create:ClassLevel');
         }
 
@@ -45,7 +45,7 @@ class ClassLevelPolicy
 
     public function update(User $user, ClassLevel $classLevel): bool
     {
-        if (Permission::where('name', 'Update:ClassLevel')->exists()) {
+        if (PermissionHelper::exists('Update:ClassLevel')) {
             return $user->can('Update:ClassLevel');
         }
 
@@ -57,7 +57,7 @@ class ClassLevelPolicy
 
     public function delete(User $user, ClassLevel $classLevel): bool
     {
-        if (Permission::where('name', 'Delete:ClassLevel')->exists()) {
+        if (PermissionHelper::exists('Delete:ClassLevel')) {
             return $user->can('Delete:ClassLevel');
         }
 
@@ -69,7 +69,7 @@ class ClassLevelPolicy
 
     public function deleteAny(User $user): bool
     {
-        if (Permission::where('name', 'DeleteAny:ClassLevel')->exists()) {
+        if (PermissionHelper::exists('DeleteAny:ClassLevel')) {
             return $user->can('DeleteAny:ClassLevel');
         }
 

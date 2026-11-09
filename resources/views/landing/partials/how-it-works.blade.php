@@ -78,51 +78,51 @@
                 </div>
             </div>
 
-            {{-- PANEL 2: UNTUK SISWA DAN PENGELOLA (Dark Navy #1E293B) --}}
-            <div class="rounded-2xl bg-[#1E293B] border border-slate-700/80 p-7 sm:p-9 shadow-sheet text-white flex flex-col justify-between">
+            {{-- PANEL 2: UNTUK SISWA DAN PENGELOLA --}}
+            <div class="rounded-2xl bg-card border border-hairline-strong p-7 sm:p-9 shadow-subtle flex flex-col justify-between">
                 <div>
                     {{-- Header Panel 2 --}}
-                    <div class="flex items-center justify-between pb-6 border-b border-slate-700/80">
+                    <div class="flex items-center justify-between pb-6 border-b border-hairline">
                         <div>
-                            <span class="text-xs font-semibold uppercase tracking-wider text-blue-400">Peran Kesiswaan & Manajemen</span>
-                            <h3 class="text-xl font-semibold text-white mt-0.5">Untuk Siswa dan Pengelola</h3>
+                            <span class="text-xs font-semibold uppercase tracking-wider text-[#1D4ED8] dark:text-blue-400">Peran Kesiswaan & Manajemen</span>
+                            <h3 class="text-xl font-semibold text-ink mt-0.5">Untuk Siswa dan Pengelola</h3>
                         </div>
-                        <span class="text-2xl font-semibold text-slate-400 tabular-nums">02</span>
+                        <span class="text-2xl font-semibold text-ink-muted tabular-nums">02</span>
                     </div>
 
                     {{-- 3 Langkah Terstruktur --}}
-                    <div class="divide-y divide-slate-700/80 mt-6">
+                    <div class="divide-y divide-hairline mt-6">
                         <div class="py-5 first:pt-0 flex items-start gap-4">
-                            <span class="text-sm font-semibold text-blue-400 tabular-nums shrink-0 pt-0.5">
+                            <span class="text-sm font-semibold text-[#1D4ED8] dark:text-blue-400 tabular-nums shrink-0 pt-0.5">
                                 01
                             </span>
                             <div class="min-w-0 flex-1">
-                                <h4 class="text-[15px] font-semibold text-white">Pengajuan Izin</h4>
-                                <p class="text-[14px] text-slate-300 leading-relaxed mt-1">
+                                <h4 class="text-[15px] font-semibold text-ink">Pengajuan Izin</h4>
+                                <p class="text-[14px] text-ink-secondary leading-relaxed mt-1">
                                     Siswa atau orang tua mengajukan surat izin atau sakit secara daring lengkap dengan berkas surat dokter pendukung.
                                 </p>
                             </div>
                         </div>
 
                         <div class="py-5 flex items-start gap-4">
-                            <span class="text-sm font-semibold text-blue-400 tabular-nums shrink-0 pt-0.5">
+                            <span class="text-sm font-semibold text-[#1D4ED8] dark:text-blue-400 tabular-nums shrink-0 pt-0.5">
                                 02
                             </span>
                             <div class="min-w-0 flex-1">
-                                <h4 class="text-[15px] font-semibold text-white">Verifikasi Izin</h4>
-                                <p class="text-[14px] text-slate-300 leading-relaxed mt-1">
+                                <h4 class="text-[15px] font-semibold text-ink">Verifikasi Izin</h4>
+                                <p class="text-[14px] text-ink-secondary leading-relaxed mt-1">
                                     Wali kelas dan Guru BK memeriksa keabsahan surat permohonan izin dan memberikan persetujuan resmi.
                                 </p>
                             </div>
                         </div>
 
                         <div class="py-5 last:pb-0 flex items-start gap-4">
-                            <span class="text-sm font-semibold text-blue-400 tabular-nums shrink-0 pt-0.5">
+                            <span class="text-sm font-semibold text-[#1D4ED8] dark:text-blue-400 tabular-nums shrink-0 pt-0.5">
                                 03
                             </span>
                             <div class="min-w-0 flex-1">
-                                <h4 class="text-[15px] font-semibold text-white">Monitoring Presensi</h4>
-                                <p class="text-[14px] text-slate-300 leading-relaxed mt-1">
+                                <h4 class="text-[15px] font-semibold text-ink">Monitoring Presensi</h4>
+                                <p class="text-[14px] text-ink-secondary leading-relaxed mt-1">
                                     Sekolah memantau rekapitulasi kehadiran rombel dan dapat mencetak laporan absensi bulanan format resmi.
                                 </p>
                             </div>
@@ -130,9 +130,9 @@
                     </div>
                 </div>
 
-                <div class="mt-8 pt-5 border-t border-slate-700/80 flex items-center justify-between text-xs text-slate-400">
+                <div class="mt-8 pt-5 border-t border-hairline flex items-center justify-between text-xs text-ink-muted">
                     <span>Akses: Siswa, Wali Kelas, BK, Waka</span>
-                    <span class="font-medium text-slate-200">Verifikasi Resmi Berjenjang</span>
+                    <span class="font-medium text-ink-secondary">Verifikasi Resmi Berjenjang</span>
                 </div>
             </div>
 

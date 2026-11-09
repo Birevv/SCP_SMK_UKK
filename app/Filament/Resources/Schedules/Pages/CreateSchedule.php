@@ -4,9 +4,10 @@ namespace App\Filament\Resources\Schedules\Pages;
 
 use App\Filament\Concerns\HasCreateConfirmation;
 use App\Filament\Resources\Schedules\ScheduleResource;
+use App\Jobs\ImportSingleScheduleFileJob;
 use App\Models\Schedule;
 use App\Services\DocumentParserService;
-use App\Services\ScheduleImportService;
+use App\Support\ImportHelper;
 use Filament\Actions\Action;
 use Filament\Forms\Components\FileUpload;
 use Filament\Notifications\Notification;
@@ -49,56 +50,20 @@ class CreateSchedule extends CreateRecord
                         ->required()
                         ->helperText('Format kolom: Guru, NIP (opsional), Mata Pelajaran, Kelas, Ruangan, Hari, Jam Mulai, Jam Selesai, Putaran. Maksimal ukuran file: 2 MB (batas PHP bawaan). Pastikan dokumen berisi data tabel yang sesuai.'),
                 ])
-                ->action(function (array $data, DocumentParserService $parser, ScheduleImportService $importer) {
+                ->action(function (array $data) {
                     $filePath = Storage::disk('local')->path($data['file']);
-                    $rows = $parser->parse($filePath);
 
-                    if (empty($rows)) {
-                        Notification::make()
-                            ->title('Gagal Membaca File')
-                            ->body('Tidak ditemukan data jadwal yang dapat diproses. Pastikan format kolom sesuai dengan template.')
-                            ->danger()
-                            ->send();
+                    ImportHelper::dispatch(
+                        new ImportSingleScheduleFileJob($filePath, Auth::user())
+                    );
 
-                        @unlink($filePath);
+                    Notification::make()
+                        ->title('Import Jadwal Sedang Diproses')
+                        ->body('File jadwal Anda sedang diproses di latar belakang. Anda akan menerima notifikasi setelah proses selesai.')
+                        ->info()
+                        ->send();
 
-                        return;
-                    }
-
-                    $result = $importer->import($rows, Auth::user());
-                    @unlink($filePath);
-
-                    $body = "Berhasil mengimpor {$result['imported']} jadwal.";
-                    if ($result['teachers_created'] > 0) {
-                        $body .= " Berhasil mendaftarkan {$result['teachers_created']} guru baru (".implode(', ', $result['teachers_created_names']).').';
-                    }
-                    if ($result['skipped'] > 0) {
-                        $body .= " {$result['skipped']} baris dilewati.";
-                    }
-
-                    if ($result['imported'] > 0) {
-                        Notification::make()
-                            ->title('Import Jadwal Berhasil')
-                            ->body($body)
-                            ->success()
-                            ->send();
-
-                        $this->redirect($this->getResource()::getUrl('index'));
-                    } else {
-                        Notification::make()
-                            ->title('Import Jadwal Belum Berhasil')
-                            ->body($body)
-                            ->warning()
-                            ->send();
-                    }
-
-                    if (! empty($result['errors'])) {
-                        Notification::make()
-                            ->title('Catatan Validasi')
-                            ->body(implode("\n", array_slice($result['errors'], 0, 5)))
-                            ->warning()
-                            ->send();
-                    }
+                    $this->redirect($this->getResource()::getUrl('index'));
                 }),
             Action::make('download_template')
                 ->label('Template CSV')
