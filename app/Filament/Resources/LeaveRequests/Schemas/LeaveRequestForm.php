@@ -206,10 +206,15 @@ class LeaveRequestForm
                     ->disk('public')
                     ->directory('leave_attachments')
                     ->visibility('public')
-                    ->maxSize(10240)
+                    ->maxSize(2048)
                     ->acceptedFileTypes(['image/jpeg', 'image/png', 'image/jpg', 'image/webp', 'application/pdf'])
                     ->openable()
-                    ->downloadable(),
+                    ->downloadable()
+                    ->required()
+                    ->validationMessages([
+                        'required' => 'Dokumen bukti / surat perizinan wajib diunggah.',
+                        'max' => 'Ukuran berkas dokumen bukti maksimal 2 MB (2048 KB).',
+                    ]),
 
                 Select::make('status')
                     ->options([

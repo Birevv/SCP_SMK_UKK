@@ -4,9 +4,12 @@ namespace App\Filament\Pages;
 
 use App\Models\Attendance;
 use App\Models\Classroom;
+use App\Models\Schedule;
 use App\Models\User;
+use App\Support\PermissionHelper;
 use BackedEnum;
 use Carbon\Carbon;
+use Filament\Facades\Filament;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Concerns\InteractsWithForms;
@@ -73,6 +76,22 @@ class AttendanceReport extends Page implements HasForms
             $userClassrooms = [$user->classroom_id => $user->classroom->name];
         }
 
+        // Untuk Guru Mata Pelajaran: kelas tempat guru tersebut mengajar
+        if (empty($userClassrooms) && ($user->hasRole('Guru') || $user->role?->name === 'Guru')) {
+            $scheduledClassroomIds = Schedule::where('teacher_id', $user->id)
+                ->pluck('classroom_id')
+                ->unique()
+                ->filter()
+                ->toArray();
+
+            if (! empty($scheduledClassroomIds)) {
+                $userClassrooms = Classroom::whereIn('id', $scheduledClassroomIds)
+                    ->orderBy('name')
+                    ->pluck('name', 'id')
+                    ->toArray();
+            }
+        }
+
         if (empty($userClassrooms)) {
             return Classroom::query()->orderBy('name')->pluck('name', 'id')->toArray();
         }
@@ -97,7 +116,22 @@ class AttendanceReport extends Page implements HasForms
 
     public static function canAccess(): bool
     {
-        return Auth::user()?->can('View:AttendanceReport') ?? false;
+        /** @var User|null $user */
+        $user = Filament::auth()?->user() ?? Auth::user();
+        if (! $user) {
+            return false;
+        }
+
+        if ($user->hasRole('Super Admin') || $user->role?->name === 'Super Admin') {
+            return true;
+        }
+
+        if (PermissionHelper::exists('View:AttendanceReport')) {
+            return $user->can('View:AttendanceReport');
+        }
+
+        return $user->hasAnyRole(['Waka Kurikulum', 'Wali Kelas', 'Guru BK', 'Guru'])
+            || in_array($user->role?->name, ['Waka Kurikulum', 'Wali Kelas', 'Guru BK', 'Guru'], true);
     }
 
     public function form(Schema $form): Schema

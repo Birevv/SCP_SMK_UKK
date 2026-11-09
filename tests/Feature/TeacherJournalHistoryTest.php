@@ -23,6 +23,8 @@ use Carbon\Carbon;
 use Filament\Facades\Filament;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Livewire\Livewire;
+use Spatie\Permission\Models\Permission;
+use Spatie\Permission\PermissionRegistrar;
 use Tests\TestCase;
 
 class TeacherJournalHistoryTest extends TestCase
@@ -50,6 +52,9 @@ class TeacherJournalHistoryTest extends TestCase
         $guruRole = Role::firstOrCreate(['name' => 'Guru', 'guard_name' => 'web']);
         $siswaRole = Role::firstOrCreate(['name' => 'Siswa', 'guard_name' => 'web']);
         Role::firstOrCreate(['name' => 'Super Admin', 'guard_name' => 'web']);
+
+        $journalPerm = Permission::firstOrCreate(['name' => 'View:JournalHistory', 'guard_name' => 'web']);
+        $guruRole->givePermissionTo($journalPerm);
 
         $academicYear = AcademicYear::create([
             'name' => '2026/2027 - Ganjil',
@@ -216,5 +221,76 @@ class TeacherJournalHistoryTest extends TestCase
             ->assertDontSee('Rata-rata Kehadiran');
 
         Carbon::setTestNow();
+    }
+
+    public function test_waka_cannot_access_journal_history_page_by_default(): void
+    {
+        $wakaRole = Role::firstOrCreate(['name' => 'Waka Kurikulum', 'guard_name' => 'web']);
+        $waka = User::factory()->create(['role_id' => $wakaRole->id]);
+        $waka->assignRole('Waka Kurikulum');
+
+        $this->actingAs($waka);
+
+        $this->assertFalse(JournalHistory::canAccess());
+        $response = $this->get(JournalHistory::getUrl());
+        $response->assertForbidden();
+    }
+
+    public function test_super_admin_cannot_access_journal_history_page_when_permission_inactive(): void
+    {
+        $superAdminRole = Role::where('name', 'Super Admin')->first();
+        $admin = User::factory()->create(['role_id' => $superAdminRole->id]);
+        $admin->assignRole('Super Admin');
+
+        $this->actingAs($admin);
+
+        $this->assertFalse(JournalHistory::canAccess());
+        $response = $this->get(JournalHistory::getUrl());
+        $response->assertForbidden();
+    }
+
+    public function test_super_admin_can_access_journal_history_page_when_permission_is_granted(): void
+    {
+        $superAdminRole = Role::where('name', 'Super Admin')->first();
+        $superAdminRole->givePermissionTo('View:JournalHistory');
+        app(PermissionRegistrar::class)->forgetCachedPermissions();
+
+        $admin = User::factory()->create(['role_id' => $superAdminRole->id]);
+        $admin->assignRole('Super Admin');
+
+        $this->actingAs($admin);
+
+        $this->assertTrue(JournalHistory::canAccess());
+        $response = $this->get(JournalHistory::getUrl());
+        $response->assertOk();
+    }
+
+    public function test_waka_can_access_journal_history_page_when_permission_is_granted(): void
+    {
+        $wakaRole = Role::firstOrCreate(['name' => 'Waka Kurikulum', 'guard_name' => 'web']);
+        $wakaRole->givePermissionTo('View:JournalHistory');
+        app(PermissionRegistrar::class)->forgetCachedPermissions();
+
+        $waka = User::factory()->create(['role_id' => $wakaRole->id]);
+        $waka->assignRole('Waka Kurikulum');
+
+        $this->actingAs($waka);
+
+        $this->assertTrue(JournalHistory::canAccess());
+        $response = $this->get(JournalHistory::getUrl());
+        $response->assertOk();
+    }
+
+    public function test_guru_cannot_access_journal_history_page_when_permission_revoked(): void
+    {
+        $guruRole = Role::where('name', 'Guru')->first();
+        $guruRole->revokePermissionTo('View:JournalHistory');
+        app(PermissionRegistrar::class)->forgetCachedPermissions();
+
+        $this->actingAs($this->teacher1);
+
+        $this->assertFalse(JournalHistory::canAccess());
+        $response = $this->get(JournalHistory::getUrl());
+        $response->assertForbidden();
     }
 }

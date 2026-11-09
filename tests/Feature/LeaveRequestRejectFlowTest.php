@@ -16,6 +16,7 @@ use Filament\Forms\Components\Select;
 use Filament\Schemas\Schema;
 use Filament\Tables\Table;
 use Illuminate\Foundation\Testing\LazilyRefreshDatabase;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Livewire;
 use Spatie\Permission\Models\Permission;
@@ -269,6 +270,7 @@ class LeaveRequestRejectFlowTest extends TestCase
             'end_date' => now()->toDateString(),
             'reason_type' => 'Sakit',
             'description' => 'Sakit susulan 2 hari lalu',
+            'attachment_photo' => UploadedFile::fake()->create('surat_dokter.pdf', 100, 'application/pdf'),
         ]);
 
         $response->assertStatus(201)
@@ -284,6 +286,7 @@ class LeaveRequestRejectFlowTest extends TestCase
             'end_date' => now()->toDateString(),
             'reason_type' => 'Izin',
             'description' => 'Izin keperluan keluarga hari ini',
+            'attachment_photo' => UploadedFile::fake()->image('surat_izin.jpg'),
         ]);
 
         $response->assertStatus(201)
@@ -405,6 +408,7 @@ class LeaveRequestRejectFlowTest extends TestCase
             'reason_type' => 'Pulang Cepat',
             'leave_time' => '10:10',
             'description' => 'Ada keperluan mendesak di rumah jam ke-5',
+            'attachment_photo' => UploadedFile::fake()->create('surat_pulang.pdf', 100, 'application/pdf'),
         ]);
 
         $response->assertStatus(201)

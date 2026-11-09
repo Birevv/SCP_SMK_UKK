@@ -33,7 +33,7 @@ class StoreLeaveRequest extends FormRequest
             'reason_type' => ['required', 'in:Sakit,Izin,Pulang Cepat,Kegiatan Luar,sakit,izin,pulang_cepat,kegiatan_luar'],
             'leave_time' => ['nullable', 'string', 'required_if:reason_type,Pulang Cepat,Kegiatan Luar,pulang_cepat,kegiatan_luar'],
             'description' => ['required', 'string', 'max:500'],
-            'attachment_photo' => ['nullable', 'file', 'mimes:jpg,jpeg,png,pdf', 'max:2048'],
+            'attachment_photo' => ['required', 'file', 'mimes:jpg,jpeg,png,pdf', 'max:2048'],
         ];
     }
 
@@ -42,6 +42,9 @@ class StoreLeaveRequest extends FormRequest
         return [
             'start_date.after_or_equal' => 'Tanggal mulai perizinan maksimal 7 hari ke belakang dari hari ini.',
             'end_date.after_or_equal' => 'Tanggal selesai harus sama dengan atau setelah tanggal mulai.',
+            'attachment_photo.required' => 'Dokumen bukti / surat perizinan wajib diunggah.',
+            'attachment_photo.mimes' => 'Format berkas dokumen bukti harus berupa JPG, JPEG, PNG, atau PDF.',
+            'attachment_photo.max' => 'Ukuran dokumen bukti maksimal 2 MB (2048 KB).',
         ];
     }
 

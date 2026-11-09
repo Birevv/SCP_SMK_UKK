@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\AttendanceReportExportController;
 use App\Http\Controllers\AttendanceReportPrintController;
 use App\Http\Controllers\DownloadPageController;
 use App\Http\Controllers\JournalPhotoUploadController;
@@ -60,10 +61,15 @@ Route::get('/password-reset/{any}', [LandingController::class, 'redirectToPasswo
     ->where('any', '.*')
     ->name('legacy.password-reset');
 
-// Cetak Laporan Rekap Presensi
+// Cetak Laporan Rekap Presensi (PDF / Print View)
 Route::get('/attendance-report/print', [AttendanceReportPrintController::class, 'print'])
     ->middleware(['auth'])
     ->name('attendance-report.print');
+
+// Ekspor Laporan Rekap Presensi (Excel / .xlsx)
+Route::get('/attendance-report/export-excel', [AttendanceReportExportController::class, 'export'])
+    ->middleware(['auth'])
+    ->name('attendance-report.export-excel');
 
 // Upload Foto Realtime Jurnal Mengajar
 Route::post('/journals/upload-realtime-photo', [JournalPhotoUploadController::class, 'upload'])

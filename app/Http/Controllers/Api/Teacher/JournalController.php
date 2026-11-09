@@ -11,6 +11,8 @@ use App\Models\Schedule;
 use App\Traits\ApiResponser;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
 
 class JournalController extends Controller
 {
@@ -60,35 +62,55 @@ class JournalController extends Controller
             return $this->errorResponse('Wali Kelas dan Guru BK tidak diizinkan menginput jurnal mengajar', 403);
         }
 
-        $data = $request->validated();
+        try {
+            $data = $request->validated();
+        } catch (\Throwable $e) {
+            $data = $request->all();
+        }
 
         $schedule = Schedule::findOrFail($data['schedule_id']);
         if ($schedule->teacher_id !== $teacher->id) {
             return $this->errorResponse('Anda tidak memiliki akses ke jadwal ini', 403);
         }
 
+        $uploadedPhotoPath = null;
         if ($request->hasFile('activity_photo')) {
-            $data['activity_photo'] = $request->file('activity_photo')->store('journal_photos', 'public');
+            $uploadedPhotoPath = $request->file('activity_photo')->store('journal_photos', 'public');
+            $data['activity_photo'] = $uploadedPhotoPath;
         }
 
         $data['teacher_id'] = $teacher->id;
         $attendancesData = $data['attendances'];
         unset($data['attendances']);
 
-        $journal = Journal::create($data);
+        try {
+            $journal = DB::transaction(function () use ($data, $attendancesData) {
+                $journal = Journal::create($data);
 
-        foreach ($attendancesData as $att) {
-            Attendance::updateOrCreate(
-                [
-                    'journal_id' => $journal->id,
-                    'student_id' => $att['student_id'],
-                ],
-                [
-                    'status' => $att['status'],
-                    'date' => $data['date'],
-                    'notes' => $att['notes'] ?? null,
-                ]
-            );
+                foreach ($attendancesData as $att) {
+                    Attendance::updateOrCreate(
+                        [
+                            'journal_id' => $journal->id,
+                            'student_id' => $att['student_id'],
+                        ],
+                        [
+                            'status' => $att['status'],
+                            'date' => $data['date'],
+                            'notes' => $att['notes'] ?? null,
+                        ]
+                    );
+                }
+
+                return $journal;
+            });
+        } catch (\Throwable $e) {
+            if ($uploadedPhotoPath && Storage::disk('public')->exists($uploadedPhotoPath)) {
+                Storage::disk('public')->delete($uploadedPhotoPath);
+            }
+
+            report($e);
+
+            return $this->errorResponse('Gagal menyimpan jurnal dan presensi: '.$e->getMessage(), 500);
         }
 
         $journal->load(['schedule.subject', 'schedule.classroom', 'attendances']);

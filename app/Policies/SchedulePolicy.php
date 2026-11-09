@@ -43,7 +43,21 @@ class SchedulePolicy
             return false;
         }
 
-        return $authUser->can('Update:Schedule');
+        if (! $authUser->can('Update:Schedule')) {
+            return false;
+        }
+
+        // Guru hanya dapat mengedit jadwal miliknya sendiri
+        $isSchoolAdmin = $authUser->hasRole('Super Admin')
+            || $authUser->role?->name === 'Super Admin'
+            || $authUser->hasRole('Waka Kurikulum')
+            || $authUser->role?->name === 'Waka Kurikulum';
+
+        if (! $isSchoolAdmin && ($authUser->hasRole('Guru') || $authUser->role?->name === 'Guru')) {
+            return $schedule->teacher_id === $authUser->id;
+        }
+
+        return true;
     }
 
     public function delete(AuthUser $authUser, Schedule $schedule): bool
@@ -52,7 +66,21 @@ class SchedulePolicy
             return false;
         }
 
-        return $authUser->can('Delete:Schedule');
+        if (! $authUser->can('Delete:Schedule')) {
+            return false;
+        }
+
+        // Guru hanya dapat menghapus jadwal miliknya sendiri
+        $isSchoolAdmin = $authUser->hasRole('Super Admin')
+            || $authUser->role?->name === 'Super Admin'
+            || $authUser->hasRole('Waka Kurikulum')
+            || $authUser->role?->name === 'Waka Kurikulum';
+
+        if (! $isSchoolAdmin && ($authUser->hasRole('Guru') || $authUser->role?->name === 'Guru')) {
+            return $schedule->teacher_id === $authUser->id;
+        }
+
+        return true;
     }
 
     public function deleteAny(AuthUser $authUser): bool

@@ -40,7 +40,10 @@ class UnfilledJournalAlertWidget extends Widget
 
     public function getViewData(): array
     {
-        $todayInIndonesian = match (Carbon::now()->dayOfWeekIso) {
+        $tz = config('app.timezone', 'Asia/Jakarta');
+        $now = Carbon::now($tz);
+
+        $todayInIndonesian = match ($now->dayOfWeekIso) {
             1 => 'Senin',
             2 => 'Selasa',
             3 => 'Rabu',
@@ -55,15 +58,15 @@ class UnfilledJournalAlertWidget extends Widget
             ];
         }
 
-        $thresholdTime = Carbon::now()->subMinutes(45)->format('H:i:s');
+        $thresholdTime = $now->copy()->subMinutes(30)->format('H:i:s');
         $activeCycle = SystemConfiguration::current()->active_cycle;
 
         $query = Schedule::with(['classroom', 'room', 'subject', 'teacher'])
             ->where('day_of_week', $todayInIndonesian)
             ->where('cycle_type', $activeCycle)
             ->where('end_time', '<', $thresholdTime)
-            ->whereDoesntHave('journals', function ($query) {
-                $query->whereDate('date', Carbon::today());
+            ->whereDoesntHave('journals', function ($query) use ($now) {
+                $query->whereDate('date', $now->toDateString());
             });
 
         /** @var User|null $user */

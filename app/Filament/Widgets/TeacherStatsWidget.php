@@ -92,7 +92,7 @@ class TeacherStatsWidget extends BaseWidget
                 ->description('Total jurnal yang sudah diisi')
                 ->descriptionIcon('heroicon-o-document-text')
                 ->color('success')
-                ->url(JournalHistory::getUrl()),
+                ->url(JournalHistory::canAccess() ? JournalHistory::getUrl() : null),
             Stat::make('Total Jadwal Aktif', $totalSchedules)
                 ->description($activeCycle)
                 ->descriptionIcon('heroicon-o-clock')

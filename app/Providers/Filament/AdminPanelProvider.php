@@ -8,6 +8,7 @@ use App\Filament\Pages\Auth\SetNewPassword;
 use App\Filament\Pages\Auth\VerifyOtp;
 use App\Filament\Pages\Dashboard;
 use App\Filament\Profile\EditProfile;
+use App\Http\Middleware\DisableBrowserCache;
 use BezhanSalleh\FilamentShield\FilamentShieldPlugin;
 use Filament\Http\Middleware\Authenticate;
 use Filament\Http\Middleware\AuthenticateSession;
@@ -91,6 +92,7 @@ class AdminPanelProvider extends PanelProvider
                 SubstituteBindings::class,
                 DisableBladeIconComponents::class,
                 DispatchServingFilamentEvent::class,
+                DisableBrowserCache::class,
             ])
             ->authMiddleware([
                 Authenticate::class,

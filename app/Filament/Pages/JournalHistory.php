@@ -10,9 +10,11 @@ use App\Models\Journal;
 use App\Models\Schedule;
 use App\Models\Subject;
 use App\Models\User;
+use App\Support\PermissionHelper;
 use BackedEnum;
 use Carbon\Carbon;
 use Filament\Actions\Action;
+use Filament\Facades\Filament;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Concerns\InteractsWithForms;
 use Filament\Forms\Contracts\HasForms;
@@ -51,14 +53,18 @@ class JournalHistory extends Page implements HasForms, HasTable
     public static function canAccess(): bool
     {
         /** @var User|null $user */
-        $user = Auth::user();
+        $user = Filament::auth()?->user() ?? Auth::user();
 
         if (! $user) {
             return false;
         }
 
-        return $user->hasAnyRole(['Guru', 'Super Admin', 'Waka Kurikulum'])
-            || in_array($user->role?->name, ['Guru', 'Super Admin', 'Waka Kurikulum'], true);
+        if (! PermissionHelper::exists('View:JournalHistory')) {
+            return false;
+        }
+
+        return $user->hasPermissionTo('View:JournalHistory')
+            || (bool) $user->role?->hasPermissionTo('View:JournalHistory');
     }
 
     /**

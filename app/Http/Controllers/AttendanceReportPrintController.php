@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Filament\Pages\AttendanceReport;
 use App\Models\Attendance;
 use App\Models\Classroom;
+use App\Models\Schedule;
 use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
@@ -33,6 +34,13 @@ class AttendanceReportPrintController extends Controller
             $userClassroomIds = $user?->classrooms()->pluck('classrooms.id')->toArray() ?? [];
             if (empty($userClassroomIds) && $user?->classroom_id) {
                 $userClassroomIds = [$user->classroom_id];
+            }
+
+            if (empty($userClassroomIds) && ($user?->hasRole('Guru') || $user?->role?->name === 'Guru')) {
+                $userClassroomIds = Schedule::where('teacher_id', $user->id)
+                    ->pluck('classroom_id')
+                    ->unique()
+                    ->toArray();
             }
 
             if (! empty($userClassroomIds)) {

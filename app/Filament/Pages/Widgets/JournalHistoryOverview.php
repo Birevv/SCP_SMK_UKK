@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Filament\Pages\Widgets;
 
+use App\Filament\Pages\JournalHistory;
 use App\Models\Journal;
 use App\Models\User;
 use Carbon\Carbon;
@@ -15,15 +16,7 @@ class JournalHistoryOverview extends BaseWidget
 {
     public static function canView(): bool
     {
-        /** @var User|null $user */
-        $user = Auth::user();
-
-        if (! $user) {
-            return false;
-        }
-
-        return $user->hasAnyRole(['Guru', 'Super Admin', 'Waka Kurikulum'])
-            || in_array($user->role?->name, ['Guru', 'Super Admin', 'Waka Kurikulum'], true);
+        return JournalHistory::canAccess();
     }
 
     /**

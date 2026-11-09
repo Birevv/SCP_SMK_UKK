@@ -53,7 +53,7 @@ class UnfilledJournalAlertTest extends TestCase
             7 => 'Minggu',
         };
 
-        // Buat jadwal yang baru selesai 30 menit yang lalu (<= 45 menit -> BELUM memunculkan alert)
+        // Buat jadwal yang baru selesai 15 menit yang lalu (<= 30 menit -> BELUM memunculkan alert sesuai TC-ALT-01)
         $recentSchedule = Schedule::create([
             'academic_year_id' => $academicYear->id,
             'teacher_id' => $teacher->id,
@@ -62,22 +62,22 @@ class UnfilledJournalAlertTest extends TestCase
             'subject_id' => $subject->id,
             'day_of_week' => $today,
             'start_time' => Carbon::now()->subHours(2)->format('H:i:s'),
-            'end_time' => Carbon::now()->subMinutes(30)->format('H:i:s'),
+            'end_time' => Carbon::now()->subMinutes(15)->format('H:i:s'),
             'cycle_type' => 'Putaran 1',
         ]);
 
         $this->actingAs($teacher);
 
-        // Alert TIDAK boleh muncul karena baru 30 menit (belum > 45 menit)
+        // Alert TIDAK boleh muncul karena baru 15 menit (belum > 30 menit)
         Livewire::test(UnfilledJournalAlertWidget::class)
             ->assertDontSee('Peringatan: Jurnal Mengajar Belum Diisi!');
 
-        // Sekarang ubah jadwal menjadi selesai 60 menit yang lalu (> 45 menit yang lalu)
+        // Sekarang ubah jadwal menjadi selesai 45 menit yang lalu (> 30 menit yang lalu)
         $recentSchedule->update([
-            'end_time' => Carbon::now()->subMinutes(60)->format('H:i:s'),
+            'end_time' => Carbon::now()->subMinutes(45)->format('H:i:s'),
         ]);
 
-        // Alert HARUS muncul karena sudah > 45 menit
+        // Alert HARUS muncul karena sudah > 30 menit
         Livewire::test(UnfilledJournalAlertWidget::class)
             ->assertSee('Peringatan: Jurnal Mengajar Belum Diisi!')
             ->assertSee($subject->name);
@@ -137,15 +137,15 @@ class UnfilledJournalAlertTest extends TestCase
 
         $this->actingAs($teacher);
 
-        // Kasus A: Hari Jumat pukul 14:40 (baru lewat 40 menit setelah jam 14:00 -> belum > 45 menit)
+        // Kasus A: Hari Jumat pukul 14:20 (baru lewat 20 menit setelah jam 14:00 -> belum > 30 menit sesuai TC-ALT-01)
         // Tanggal 2026-10-23 adalah hari Jumat
-        Carbon::setTestNow(Carbon::parse('2026-10-23 14:40:00'));
+        Carbon::setTestNow(Carbon::parse('2026-10-23 14:20:00'));
 
         Livewire::test(UnfilledJournalAlertWidget::class)
             ->assertDontSee('Peringatan: Jurnal Mengajar Belum Diisi!');
 
-        // Kasus B: Hari Jumat pukul 14:50 (sudah lewat 50 menit setelah jam 14:00 -> sudah > 45 menit)
-        Carbon::setTestNow(Carbon::parse('2026-10-23 14:50:00'));
+        // Kasus B: Hari Jumat pukul 14:40 (sudah lewat 40 menit setelah jam 14:00 -> sudah > 30 menit sesuai TC-ALT-01)
+        Carbon::setTestNow(Carbon::parse('2026-10-23 14:40:00'));
 
         Livewire::test(UnfilledJournalAlertWidget::class)
             ->assertSee('Peringatan: Jurnal Mengajar Belum Diisi!')

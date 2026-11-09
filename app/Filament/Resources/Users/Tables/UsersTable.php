@@ -9,10 +9,6 @@ use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteAction;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
-use Filament\Actions\ForceDeleteAction;
-use Filament\Actions\ForceDeleteBulkAction;
-use Filament\Actions\RestoreAction;
-use Filament\Actions\RestoreBulkAction;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
@@ -215,9 +211,10 @@ class UsersTable
                     }),
 
                 EditAction::make(),
-                DeleteAction::make(),
-                RestoreAction::make(),
-                ForceDeleteAction::make(),
+                DeleteAction::make()
+                    ->modalHeading('Arsipkan Pengguna')
+                    ->modalDescription(fn (User $record): string => "Pindahkan '{$record->full_name}' ke Arsip Terhapus (Backup)? Data jurnal dan presensi tetap aman serta dapat dipulihkan kapan saja oleh Super Admin.")
+                    ->successNotificationTitle('Pengguna berhasil dipindahkan ke Arsip Terhapus'),
             ])
             ->toolbarActions([
                 BulkActionGroup::make([
@@ -275,13 +272,10 @@ class UsersTable
                         ->deselectRecordsAfterCompletion(),
                     DeleteBulkAction::make()
                         ->visible(fn (): bool => Gate::allows('deleteAny', User::class))
-                        ->authorizeIndividualRecords(),
-                    ForceDeleteBulkAction::make()
-                        ->visible(fn (): bool => Gate::allows('forceDeleteAny', User::class))
-                        ->authorizeIndividualRecords(),
-                    RestoreBulkAction::make()
-                        ->visible(fn (): bool => Gate::allows('restoreAny', User::class))
-                        ->authorizeIndividualRecords(),
+                        ->authorizeIndividualRecords()
+                        ->modalHeading('Arsipkan Pengguna Terpilih')
+                        ->modalDescription('Pindahkan seluruh pengguna terpilih ke Arsip Terhapus (Backup)? Data akademik tetap aman.')
+                        ->successNotificationTitle('Pengguna terpilih berhasil dipindahkan ke Arsip Terhapus'),
                 ]),
             ]);
     }

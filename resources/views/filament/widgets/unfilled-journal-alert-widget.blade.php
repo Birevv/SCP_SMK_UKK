@@ -16,7 +16,7 @@
                             Peringatan: Jurnal Mengajar Belum Diisi!
                         </h3>
                         <p class="scp-alert-subheading">
-                            Terdapat jadwal yang telah selesai lebih dari 45 menit lalu namun belum memiliki jurnal harian.
+                            Terdapat jadwal yang telah selesai lebih dari 30 menit lalu namun belum memiliki jurnal harian.
                         </p>
                     </div>
                 </div>

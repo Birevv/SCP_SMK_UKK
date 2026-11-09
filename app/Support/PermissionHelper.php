@@ -16,6 +16,7 @@ class PermissionHelper
     public static function clearCache(): void
     {
         static::$permissions = null;
+        app(PermissionRegistrar::class)->forgetCachedPermissions();
     }
 
     /**
@@ -23,14 +24,8 @@ class PermissionHelper
      */
     public static function exists(string $permission): bool
     {
-        if (static::$permissions === null) {
-            static::$permissions = app(PermissionRegistrar::class)
-                ->getPermissions()
-                ->pluck('name')
-                ->flip()
-                ->toArray();
-        }
-
-        return isset(static::$permissions[$permission]);
+        return app(PermissionRegistrar::class)
+            ->getPermissions()
+            ->contains('name', $permission);
     }
 }

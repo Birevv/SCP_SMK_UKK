@@ -4,9 +4,8 @@ namespace App\Filament\Resources\Users\Pages;
 
 use App\Filament\Concerns\HasEditConfirmation;
 use App\Filament\Resources\Users\UserResource;
+use App\Models\User;
 use Filament\Actions\DeleteAction;
-use Filament\Actions\ForceDeleteAction;
-use Filament\Actions\RestoreAction;
 use Filament\Resources\Pages\EditRecord;
 
 class EditUser extends EditRecord
@@ -20,9 +19,10 @@ class EditUser extends EditRecord
     protected function getHeaderActions(): array
     {
         return [
-            DeleteAction::make(),
-            ForceDeleteAction::make(),
-            RestoreAction::make(),
+            DeleteAction::make()
+                ->modalHeading('Arsipkan Pengguna')
+                ->modalDescription(fn (User $record): string => "Pindahkan '{$record->full_name}' ke Arsip Terhapus (Backup)? Data jurnal dan presensi tetap aman serta dapat dipulihkan kapan saja oleh Super Admin.")
+                ->successNotificationTitle('Pengguna berhasil dipindahkan ke Arsip Terhapus'),
         ];
     }
 

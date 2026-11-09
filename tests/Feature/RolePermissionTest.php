@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use App\Filament\Pages\AttendanceReport;
+use App\Filament\Pages\JournalHistory;
 use App\Filament\Resources\AcademicYears\AcademicYearResource;
 use App\Filament\Resources\Classrooms\ClassroomResource;
 use App\Filament\Resources\Journals\JournalResource;
@@ -214,7 +215,7 @@ class RolePermissionTest extends TestCase
         $this->assertTrue(Gate::forUser($superAdmin)->allows('create', Journal::class));
     }
 
-    public function test_teacher_cannot_view_or_print_attendance_report(): void
+    public function test_teacher_and_waka_can_view_attendance_report_while_siswa_cannot(): void
     {
         $superAdminRole = Role::firstOrCreate(['name' => 'Super Admin', 'guard_name' => 'web']);
         $wakaRole = Role::firstOrCreate(['name' => 'Waka Kurikulum', 'guard_name' => 'web']);
@@ -241,10 +242,10 @@ class RolePermissionTest extends TestCase
         $superAdmin = User::factory()->create(['role_id' => $superAdminRole->id]);
         $superAdmin->assignRole('Super Admin');
 
-        // 1. Guru TIDAK BISA mengakses AttendanceReport maupun route print
+        // 1. Guru BISA mengakses AttendanceReport & route print sesuai TC-ALT-04
         $this->actingAs($guru);
-        $this->assertFalse(AttendanceReport::canAccess());
-        $this->get(route('attendance-report.print'))->assertForbidden();
+        $this->assertTrue(AttendanceReport::canAccess());
+        $this->get(route('attendance-report.print'))->assertSuccessful();
 
         // 2. Siswa TIDAK BISA mengakses AttendanceReport maupun route print
         $this->actingAs($siswa);
@@ -402,5 +403,62 @@ class RolePermissionTest extends TestCase
         $this->actingAs($guru, 'web');
         $this->assertTrue(Gate::forUser($guru)->allows('create', Schedule::class));
         $this->assertTrue(ScheduleResource::canCreate());
+    }
+
+    public function test_journal_history_access_is_flexible_and_controlled_by_shield_permissions(): void
+    {
+        $superAdminRole = Role::firstOrCreate(['name' => 'Super Admin', 'guard_name' => 'web']);
+        $wakaRole = Role::firstOrCreate(['name' => 'Waka Kurikulum', 'guard_name' => 'web']);
+        $guruRole = Role::firstOrCreate(['name' => 'Guru', 'guard_name' => 'web']);
+
+        $superAdmin = User::factory()->create(['role_id' => $superAdminRole->id]);
+        $superAdmin->assignRole('Super Admin');
+
+        $waka = User::factory()->create(['role_id' => $wakaRole->id]);
+        $waka->assignRole('Waka Kurikulum');
+
+        $guru = User::factory()->create(['role_id' => $guruRole->id]);
+        $guru->assignRole('Guru');
+
+        // 1. Secara default dari ShieldSeeder:
+        // Guru memiliki permission View:JournalHistory -> BISA akses
+        $this->actingAs($guru);
+        $this->assertTrue(JournalHistory::canAccess());
+
+        // Waka Kurikulum TIDAK memiliki permission -> TIDAK BISA akses
+        $this->actingAs($waka);
+        $this->assertFalse(JournalHistory::canAccess());
+
+        // Super Admin yang permission View:JournalHistory-nya tidak aktif -> TIDAK BISA akses
+        $this->actingAs($superAdmin);
+        $this->assertFalse(JournalHistory::canAccess());
+
+        // 2. FLEKSIBEL: Saat permission diberikan ke Super Admin di Shield
+        $superAdminRole->givePermissionTo('View:JournalHistory');
+        app(PermissionRegistrar::class)->forgetCachedPermissions();
+
+        $this->actingAs($superAdmin);
+        $this->assertTrue(JournalHistory::canAccess());
+
+        // 3. FLEKSIBEL: Saat permission dicabut kembali dari Super Admin di Shield
+        $superAdminRole->revokePermissionTo('View:JournalHistory');
+        app(PermissionRegistrar::class)->forgetCachedPermissions();
+
+        $this->actingAs($superAdmin);
+        $this->assertFalse(JournalHistory::canAccess());
+
+        // 4. FLEKSIBEL: Saat permission diberikan ke Waka di Shield
+        $wakaRole->givePermissionTo('View:JournalHistory');
+        app(PermissionRegistrar::class)->forgetCachedPermissions();
+
+        $this->actingAs($waka);
+        $this->assertTrue(JournalHistory::canAccess());
+
+        // 5. FLEKSIBEL: Saat permission dicabut dari Guru di Shield
+        $guruRole->revokePermissionTo('View:JournalHistory');
+        app(PermissionRegistrar::class)->forgetCachedPermissions();
+
+        $this->actingAs($guru);
+        $this->assertFalse(JournalHistory::canAccess());
     }
 }

@@ -5,7 +5,16 @@
             <form wire:submit.prevent="$refresh" class="space-y-4">
                 {{ $this->form }}
 
-                <div style="margin-top: 2rem; padding-top: 1.25rem; border-top: 1px solid rgba(156, 163, 175, 0.3); display: flex; justify-content: flex-end; clear: both;">
+                <div style="margin-top: 2rem; padding-top: 1.25rem; border-top: 1px solid rgba(156, 163, 175, 0.3); display: flex; justify-content: flex-end; gap: 0.75rem; clear: both; flex-wrap: wrap;">
+                    <x-filament::button
+                        tag="a"
+                        href="{{ route('attendance-report.export-excel', ['classroom_id' => $this->classroom_id, 'start_date' => $this->start_date, 'end_date' => $this->end_date]) }}"
+                        target="_blank"
+                        icon="heroicon-o-document-arrow-down"
+                        color="primary">
+                        Ekspor Excel (.xlsx)
+                    </x-filament::button>
+
                     <x-filament::button
                         tag="a"
                         href="{{ route('attendance-report.print', ['classroom_id' => $this->classroom_id, 'start_date' => $this->start_date, 'end_date' => $this->end_date]) }}"

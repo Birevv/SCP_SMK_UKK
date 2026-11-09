@@ -122,6 +122,12 @@ class SchedulesTable
                     ->searchable()
                     ->preload(),
 
+                SelectFilter::make('teacher_id')
+                    ->label('Guru Pengampu')
+                    ->relationship('teacher', 'full_name')
+                    ->searchable()
+                    ->preload(),
+
                 SelectFilter::make('day_of_week')
                     ->label('Hari')
                     ->options([

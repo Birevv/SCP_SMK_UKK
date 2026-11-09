@@ -16,9 +16,11 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Database\QueryException;
 use Illuminate\Filesystem\FilesystemAdapter;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Laravel\Sanctum\HasApiTokens;
 use Spatie\Permission\Traits\HasRoles;
@@ -42,6 +44,54 @@ class User extends Authenticatable implements FilamentUser, HasAvatar, HasName
                 }
             }
         });
+
+        static::forceDeleting(function (User $user) {
+            if ($reason = $user->getAcademicRecordsRestrictionReason()) {
+                throw new QueryException(
+                    'mysql',
+                    "DELETE FROM users WHERE id = {$user->id}",
+                    [],
+                    new \Exception("SQLSTATE[23000]: Integrity constraint violation: 1451 Cannot delete or update a parent row: a foreign key constraint fails. {$reason}")
+                );
+            }
+        });
+
+        static::deleted(function (User $user) {
+            if ($user->isForceDeleting() === false) {
+                DB::table('sessions')->where('user_id', $user->id)->delete();
+                $user->tokens()->delete();
+            }
+        });
+
+        static::restored(function (User $user) {
+            if ($user->status !== 'Aktif') {
+                $user->updateQuietly(['status' => 'Aktif']);
+            }
+        });
+    }
+
+    public function hasAcademicRecords(): bool
+    {
+        return Journal::where('teacher_id', $this->id)->exists()
+            || Attendance::where('student_id', $this->id)->exists()
+            || Schedule::where('teacher_id', $this->id)->exists();
+    }
+
+    public function getAcademicRecordsRestrictionReason(): ?string
+    {
+        if (Journal::where('teacher_id', $this->id)->exists()) {
+            return "Pengguna '{$this->full_name}' memiliki riwayat jurnal mengajar aktif.";
+        }
+
+        if (Attendance::where('student_id', $this->id)->exists()) {
+            return "Siswa '{$this->full_name}' memiliki riwayat data presensi kehadiran.";
+        }
+
+        if (Schedule::where('teacher_id', $this->id)->exists()) {
+            return "Guru '{$this->full_name}' masih terdaftar dalam jadwal KBM aktif.";
+        }
+
+        return null;
     }
 
     public function canAccessPanel(Panel $panel): bool
@@ -187,6 +237,16 @@ class User extends Authenticatable implements FilamentUser, HasAvatar, HasName
     public function schedules(): HasMany
     {
         return $this->hasMany(Schedule::class, 'teacher_id');
+    }
+
+    public function journals(): HasMany
+    {
+        return $this->hasMany(Journal::class, 'teacher_id');
+    }
+
+    public function attendances(): HasMany
+    {
+        return $this->hasMany(Attendance::class, 'student_id');
     }
 
     public function getAssignmentAttribute(): string

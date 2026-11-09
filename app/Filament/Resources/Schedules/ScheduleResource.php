@@ -46,14 +46,51 @@ class ScheduleResource extends Resource
 
         /** @var User|null $user */
         $user = Auth::user();
+        if (! $user) {
+            return $query;
+        }
 
-        $isSchoolAdmin = $user?->hasRole('Super Admin')
-            || $user?->role?->name === 'Super Admin'
-            || $user?->hasRole('Waka Kurikulum')
-            || $user?->role?->name === 'Waka Kurikulum';
+        $isSchoolAdmin = $user->hasRole('Super Admin')
+            || $user->role?->name === 'Super Admin'
+            || $user->hasRole('Waka Kurikulum')
+            || $user->role?->name === 'Waka Kurikulum';
 
-        if (! $isSchoolAdmin && $user && ($user->hasRole('Guru') || $user->role?->name === 'Guru')) {
+        if ($isSchoolAdmin) {
+            return $query;
+        }
+
+        // Siswa hanya melihat jadwal untuk kelasnya sendiri
+        if ($user->hasRole('Siswa') || $user->role?->name === 'Siswa') {
+            $classIds = $user->classrooms()->pluck('classrooms.id')->toArray();
+            if (empty($classIds) && $user->classroom_id) {
+                $classIds = [$user->classroom_id];
+            }
+            if (! empty($classIds)) {
+                $query->whereIn('classroom_id', $classIds);
+            }
+
+            return $query;
+        }
+
+        // Guru / Wali Kelas: hanya melihat jadwal mengajarnya sendiri
+        if ($user->hasAnyRole(['Guru', 'Wali Kelas']) || in_array($user->role?->name, ['Guru', 'Wali Kelas'], true)) {
             $query->where('teacher_id', $user->id);
+
+            return $query;
+        }
+
+        // Guru BK: jika mengajar mapel tampilkan jadwalnya, jika tidak tampilkan jadwal kelas binaan
+        if ($user->hasRole('Guru BK') || $user->role?->name === 'Guru BK') {
+            if (Schedule::where('teacher_id', $user->id)->exists()) {
+                $query->where('teacher_id', $user->id);
+            } else {
+                $classIds = $user->classrooms()->pluck('classrooms.id')->toArray();
+                if (! empty($classIds)) {
+                    $query->whereIn('classroom_id', $classIds);
+                }
+            }
+
+            return $query;
         }
 
         return $query;
