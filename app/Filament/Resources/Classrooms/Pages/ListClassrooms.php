@@ -124,12 +124,6 @@ class ListClassrooms extends ListRecords
                     ImportHelper::dispatch(
                         new ImportSmartFileJob($filePath, Auth::user())
                     );
-
-                    Notification::make()
-                        ->title('Import Kelas & Siswa Sedang Diproses')
-                        ->body('File Anda sedang diproses di latar belakang. Anda akan menerima notifikasi setelah proses selesai.')
-                        ->info()
-                        ->send();
                 }),
         ];
     }

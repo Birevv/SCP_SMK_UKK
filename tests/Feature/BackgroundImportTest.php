@@ -52,22 +52,23 @@ class BackgroundImportTest extends TestCase
 
         $job = new ImportSingleScheduleFileJob($tmpFile, $this->admin);
 
-        // ImportHelper::dispatch shouldn't throw
         ImportHelper::dispatch($job);
 
-        $this->assertTrue(true);
-        @unlink($tmpFile);
+        $this->assertFileDoesNotExist($tmpFile);
     }
 
-    public function test_import_helper_dispatches_with_queued_connection(): void
+    public function test_import_helper_executes_synchronously_regardless_of_queue_setting(): void
     {
         Config::set('queue.default', 'database');
-        Queue::fake();
 
-        $job = new ImportSingleScheduleFileJob('dummy.csv', $this->admin);
+        $tmpFile = tempnam(sys_get_temp_dir(), 'test_job_').'.csv';
+        file_put_contents($tmpFile, "guru,nip,mata_pelajaran,kelas,ruangan,hari,jam_mulai,jam_selesai,putaran\n");
+
+        $job = new ImportSingleScheduleFileJob($tmpFile, $this->admin);
         ImportHelper::dispatch($job);
 
-        Queue::assertPushed(ImportSingleScheduleFileJob::class);
+        // Job executed immediately: file is processed and cleaned up
+        $this->assertFileDoesNotExist($tmpFile);
     }
 
     public function test_single_schedule_file_job_imports_and_notifies(): void

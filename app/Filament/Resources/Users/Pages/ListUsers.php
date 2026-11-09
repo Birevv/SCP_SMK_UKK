@@ -194,12 +194,6 @@ class ListUsers extends ListRecords
                     ImportHelper::dispatch(
                         new ImportUserFilesJob($guruPath, $waliPath, $siswaPath, Auth::user())
                     );
-
-                    Notification::make()
-                        ->title('Import Pengguna Sedang Diproses')
-                        ->body('Data pengguna sedang diproses di latar belakang. Anda akan menerima notifikasi setelah proses selesai.')
-                        ->info()
-                        ->send();
                 }),
             Action::make('download_user_template')
                 ->label('Template CSV')

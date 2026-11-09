@@ -58,12 +58,6 @@ class CreateSchedule extends CreateRecord
                         new ImportSingleScheduleFileJob($filePath, Auth::user())
                     );
 
-                    Notification::make()
-                        ->title('Import Jadwal Sedang Diproses')
-                        ->body('File jadwal Anda sedang diproses di latar belakang. Anda akan menerima notifikasi setelah proses selesai.')
-                        ->info()
-                        ->send();
-
                     $this->redirect($this->getResource()::getUrl('index'));
                 }),
             Action::make('download_template')

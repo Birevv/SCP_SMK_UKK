@@ -51,6 +51,7 @@ class ImportSmartFileJob implements ShouldQueue
                 ->title("Import Berhasil: {$formatName}")
                 ->body($result['message'] ?? 'Import file berhasil diselesaikan.')
                 ->success()
+                ->send()
                 ->sendToDatabase($this->user);
         } catch (Throwable $e) {
             Log::error('Smart import background job failed: '.$e->getMessage(), [
@@ -64,6 +65,8 @@ class ImportSmartFileJob implements ShouldQueue
                 ->title('Gagal Memproses Dokumen')
                 ->body($e->getMessage())
                 ->danger()
+                ->persistent()
+                ->send()
                 ->sendToDatabase($this->user);
         }
     }

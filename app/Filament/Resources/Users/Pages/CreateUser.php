@@ -56,12 +56,6 @@ class CreateUser extends CreateRecord
                         new ImportSingleUserFileJob($filePath, Auth::user())
                     );
 
-                    Notification::make()
-                        ->title('Import Pengguna Sedang Diproses')
-                        ->body('File pengguna Anda sedang diproses di latar belakang. Anda akan menerima notifikasi setelah proses selesai.')
-                        ->info()
-                        ->send();
-
                     $this->redirect($this->getResource()::getUrl('index'));
                 }),
             Action::make('download_user_template')

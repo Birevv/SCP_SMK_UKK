@@ -44,6 +44,8 @@ class ImportSingleScheduleFileJob implements ShouldQueue
                     ->title('Gagal Membaca File Jadwal')
                     ->body('Tidak ditemukan data jadwal yang dapat diproses. Pastikan format kolom sesuai template.')
                     ->danger()
+                    ->persistent()
+                    ->send()
                     ->sendToDatabase($this->user);
 
                 return;
@@ -65,12 +67,14 @@ class ImportSingleScheduleFileJob implements ShouldQueue
                     ->title('Import Jadwal Selesai')
                     ->body($body)
                     ->success()
+                    ->send()
                     ->sendToDatabase($this->user);
             } else {
                 Notification::make()
                     ->title('Import Jadwal Belum Berhasil')
                     ->body($body)
                     ->warning()
+                    ->send()
                     ->sendToDatabase($this->user);
             }
         } catch (Throwable $e) {
@@ -81,6 +85,8 @@ class ImportSingleScheduleFileJob implements ShouldQueue
                 ->title('Gagal Mengimpor Jadwal')
                 ->body($e->getMessage())
                 ->danger()
+                ->persistent()
+                ->send()
                 ->sendToDatabase($this->user);
         }
     }

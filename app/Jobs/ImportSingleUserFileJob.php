@@ -62,12 +62,14 @@ class ImportSingleUserFileJob implements ShouldQueue
                     ->title('Import Pengguna Selesai')
                     ->body($body)
                     ->success()
+                    ->send()
                     ->sendToDatabase($this->user);
             } else {
                 Notification::make()
                     ->title('Import Pengguna Belum Berhasil')
                     ->body($body)
                     ->warning()
+                    ->send()
                     ->sendToDatabase($this->user);
             }
         } catch (Throwable $e) {
@@ -78,6 +80,8 @@ class ImportSingleUserFileJob implements ShouldQueue
                 ->title('Gagal Mengimpor Data Pengguna')
                 ->body($e->getMessage())
                 ->danger()
+                ->persistent()
+                ->send()
                 ->sendToDatabase($this->user);
         }
     }

@@ -53,6 +53,7 @@ class ImportSchedulePairJob implements ShouldQueue
                 ->title("Import Selesai: {$formatName}")
                 ->body($result['message']."\n".implode(' | ', array_slice($statsText, 0, 5)))
                 ->success()
+                ->send()
                 ->sendToDatabase($this->user);
         } catch (Throwable $e) {
             $this->cleanupFiles();
@@ -62,6 +63,8 @@ class ImportSchedulePairJob implements ShouldQueue
                 ->title('Gagal Mengimpor Jadwal PDF')
                 ->body($e->getMessage())
                 ->danger()
+                ->persistent()
+                ->send()
                 ->sendToDatabase($this->user);
         }
     }

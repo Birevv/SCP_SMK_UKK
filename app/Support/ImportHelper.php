@@ -7,16 +7,12 @@ namespace App\Support;
 class ImportHelper
 {
     /**
-     * Dispatch an import job to run in the background.
-     * When the queue driver is 'sync', afterResponse() ensures that the modal
-     * closes and the response returns immediately to the client before processing.
+     * Dispatch an import job to run immediately (synchronously).
+     * This avoids any dependency on background queue workers, supervisor,
+     * or custom server queue configurations.
      */
     public static function dispatch(object $job): void
     {
-        if (config('queue.default') === 'sync') {
-            dispatch($job)->afterResponse();
-        } else {
-            dispatch($job);
-        }
+        dispatch_sync($job);
     }
 }

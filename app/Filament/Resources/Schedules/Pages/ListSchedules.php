@@ -221,12 +221,6 @@ class ListSchedules extends ListRecords
                     ImportHelper::dispatch(
                         new ImportSchedulePairJob($classFilePath, $roomFilePath, Auth::user(), $cycle)
                     );
-
-                    Notification::make()
-                        ->title('Import Jadwal Sedang Diproses')
-                        ->body('File PDF jadwal Anda sedang diproses di latar belakang. Anda akan menerima notifikasi setelah proses selesai.')
-                        ->info()
-                        ->send();
                 }),
             Action::make('download_template')
                 ->label('Template CSV')

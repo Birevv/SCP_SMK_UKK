@@ -70,6 +70,7 @@ class ImportUserFilesJob implements ShouldQueue
                 ->title('Import Pengguna Selesai')
                 ->body($body)
                 ->success()
+                ->send()
                 ->sendToDatabase($this->user);
         } catch (Throwable $e) {
             $this->cleanupFiles();
@@ -79,6 +80,8 @@ class ImportUserFilesJob implements ShouldQueue
                 ->title('Gagal Mengimpor Data Pengguna')
                 ->body($e->getMessage())
                 ->danger()
+                ->persistent()
+                ->send()
                 ->sendToDatabase($this->user);
         }
     }
