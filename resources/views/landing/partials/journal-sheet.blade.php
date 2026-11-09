@@ -32,7 +32,7 @@
             <p class="text-xs font-medium text-ink-muted tabular-nums">Lembar jurnal harian · Senin, 9 November 2026</p>
             <span class="text-[11px] font-medium px-2 py-0.5 rounded bg-positive-tint text-positive">Terverifikasi</span>
         </div>
-        <h2 class="text-[17px] sm:text-[18px] font-semibold text-ink leading-snug mt-1">Pemrograman Berorientasi Objek</h2>
+        <h2 class="text-[17px] sm:text-[18px] font-bold text-ink leading-snug mt-1">Pemrograman Berorientasi Objek</h2>
         <p class="text-xs text-ink-secondary tabular-nums mt-1">Kelas XI RPL 2 · Lab RPL 1 · Jam ke-3–4 (08.30–10.00)</p>
     </div>
 

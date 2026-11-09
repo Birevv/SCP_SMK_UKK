@@ -45,7 +45,7 @@
                         <li class="py-5 flex flex-col sm:flex-row sm:items-start gap-2 sm:gap-6">
                             <span class="text-[13px] font-medium text-accent-ink tabular-nums sm:w-36 shrink-0 sm:pt-0.5">{{ $step['marker'] }}</span>
                             <div class="min-w-0 flex-1">
-                                <h3 class="text-[16px] font-medium text-ink leading-6">{{ $step['title'] }}</h3>
+                                <h3 class="text-[16px] font-bold text-ink leading-6">{{ $step['title'] }}</h3>
                                 <p class="text-[14px] text-ink-secondary leading-6 mt-1">{{ $step['body'] }}</p>
                             </div>
                         </li>
@@ -71,7 +71,7 @@
 
                     <div>
                         <p class="text-xs text-ink-muted tabular-nums">Jadwal blok dua mingguan · Senin, 9 November 2026</p>
-                        <h3 class="text-[16px] font-medium text-ink mt-0.5">Siklus blok Kelas XI RPL 2</h3>
+                        <h3 class="text-[16px] font-bold text-ink mt-0.5">Siklus blok Kelas XI RPL 2</h3>
                     </div>
 
                     <div class="mt-4 grid grid-cols-2 gap-2 p-2 rounded-lg bg-paper border border-hairline" role="group" aria-label="Status putaran blok">

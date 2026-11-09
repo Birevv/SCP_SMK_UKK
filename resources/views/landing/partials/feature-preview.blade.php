@@ -6,7 +6,7 @@
             <span class="text-xs font-semibold tracking-wider text-[#1D4ED8] dark:text-blue-400 mb-3 block">
                 ANTARMUKA APLIKASI
             </span>
-            <h2 class="text-2xl sm:text-3xl lg:text-[38px] font-semibold text-ink leading-tight tracking-tight">
+            <h2 class="text-2xl sm:text-3xl lg:text-[38px] font-bold text-ink leading-tight tracking-tight">
                 Semua Aktivitas Akademik Lebih Terorganisir.
             </h2>
             <p class="text-[16px] text-ink-secondary leading-relaxed mt-4">
@@ -22,7 +22,7 @@
                     <div>
                         <span class="text-xs font-semibold uppercase tracking-wider text-[#1D4ED8] dark:text-blue-400">Jadwal Pelajaran Operasional</span>
                     </div>
-                    <h3 class="text-lg font-semibold text-ink mt-1">Matriks Jadwal Mingguan Sesuai Putaran Aktif</h3>
+                    <h3 class="text-lg font-bold text-ink mt-1">Matriks Jadwal Mingguan Sesuai Putaran Aktif</h3>
                 </div>
                 <div class="flex items-center gap-2.5">
                     <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-md text-xs font-semibold bg-emerald-50 text-emerald-800 border border-emerald-300 dark:bg-emerald-950 dark:text-emerald-300 dark:border-emerald-800">
@@ -110,7 +110,7 @@
                 <div class="flex items-center justify-between pb-4 mb-5 border-b border-hairline">
                     <div>
                         <span class="text-xs font-semibold uppercase tracking-wider text-[#1D4ED8] dark:text-blue-400">Modul Jurnal Guru</span>
-                        <h3 class="text-lg font-semibold text-ink mt-0.5">Entri Jurnal & Dokumentasi Foto</h3>
+                        <h3 class="text-lg font-bold text-ink mt-0.5">Entri Jurnal & Dokumentasi Foto</h3>
                     </div>
                     <span class="text-xs font-semibold px-2.5 py-1 rounded-md bg-amber-50 text-amber-800 border border-amber-300 dark:bg-amber-950 dark:text-amber-300 dark:border-amber-800">
                         Foto Wajib Diunggah
@@ -152,7 +152,7 @@
                 <div class="flex items-center justify-between pb-4 mb-5 border-b border-hairline">
                     <div>
                         <span class="text-xs font-semibold uppercase tracking-wider text-[#1D4ED8] dark:text-blue-400">Modul Presensi & Rekap</span>
-                        <h3 class="text-lg font-semibold text-ink mt-0.5">Penanda Buku Absen & Format Cetak A4</h3>
+                        <h3 class="text-lg font-bold text-ink mt-0.5">Penanda Buku Absen & Format Cetak A4</h3>
                     </div>
                     <span class="text-xs font-semibold px-2.5 py-1 rounded-md bg-blue-50 text-[#1D4ED8] border border-blue-200 dark:bg-blue-950 dark:text-blue-300 dark:border-blue-800">
                         Sinkron Izin Aktif

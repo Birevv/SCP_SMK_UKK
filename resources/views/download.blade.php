@@ -368,7 +368,7 @@
                                     <path d="M12 3v12m0 0-4-4m4 4 4-4M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2" />
                                 </svg>
                             </div>
-                            <h3 class="text-base font-semibold text-ink leading-tight">Unduh File APK</h3>
+                            <h3 class="text-base font-bold text-ink leading-tight">Unduh File APK</h3>
                             <p class="text-xs text-ink-secondary leading-relaxed mt-2.5">
                                 Tekan tombol Download APK di atas dan tunggu hingga proses pengunduhan file instalasi selesai di perangkat Anda.
                             </p>
@@ -381,7 +381,7 @@
                                     <path d="M9 12.75 11.25 15 15 9.75m-3-7.036A11.959 11.959 0 0 1 3.598 6 11.99 11.99 0 0 0 3 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285Z" />
                                 </svg>
                             </div>
-                            <h3 class="text-base font-semibold text-ink leading-tight">Izinkan Instalasi</h3>
+                            <h3 class="text-base font-bold text-ink leading-tight">Izinkan Instalasi</h3>
                             <p class="text-xs text-ink-secondary leading-relaxed mt-2.5">
                                 Buka file APK yang telah diunduh dan aktifkan izin pemasangan aplikasi dari sumber browser atau file manager Anda.
                             </p>
@@ -394,7 +394,7 @@
                                     <path d="M10.5 1.5H8.25A2.25 2.25 0 0 0 6 3.75v16.5a2.25 2.25 0 0 0 2.25 2.25h7.5A2.25 2.25 0 0 0 18 20.25V3.75a2.25 2.25 0 0 0-2.25-2.25H13.5m-3 0V3h3V1.5m-3 0h3m-3 18.75h3" />
                                 </svg>
                             </div>
-                            <h3 class="text-base font-semibold text-ink leading-tight">Pasang &amp; Masuk</h3>
+                            <h3 class="text-base font-bold text-ink leading-tight">Pasang &amp; Masuk</h3>
                             <p class="text-xs text-ink-secondary leading-relaxed mt-2.5">
                                 Selesaikan proses pemasangan aplikasi, lalu buka School Class Progress dan masuk ke akun Anda untuk mulai mengelola kelas.
                             </p>
@@ -570,7 +570,7 @@
 
                 {{-- Kolom 2: SCP Navigation (Col 3) --}}
                 <div class="lg:col-span-3">
-                    <h3 class="text-xs font-semibold text-slate-300 uppercase tracking-wider mb-3.5">SCP</h3>
+                    <h3 class="text-xs font-bold text-slate-300 uppercase tracking-wider mb-3.5">SCP</h3>
                     <ul class="space-y-2.5 text-sm">
                         <li>
                             <a href="{{ route('landing') }}" class="text-slate-400 hover:text-white transition-colors">Beranda</a>
@@ -592,7 +592,7 @@
 
                 {{-- Kolom 3: Legal (Col 2) --}}
                 <div class="lg:col-span-2">
-                    <h3 class="text-xs font-semibold text-slate-300 uppercase tracking-wider mb-3.5">Legal</h3>
+                    <h3 class="text-xs font-bold text-slate-300 uppercase tracking-wider mb-3.5">Legal</h3>
                     <ul class="space-y-2.5 text-sm">
                         <li>
                             <a href="{{ route('landing') }}#faq" class="text-slate-400 hover:text-white transition-colors">Syarat & Ketentuan</a>
@@ -605,7 +605,7 @@
 
                 {{-- Kolom 4: Hubungi Kami (Col 3) --}}
                 <div class="lg:col-span-3">
-                    <h3 class="text-xs font-semibold text-slate-300 uppercase tracking-wider mb-3.5">Hubungi Kami</h3>
+                    <h3 class="text-xs font-bold text-slate-300 uppercase tracking-wider mb-3.5">Hubungi Kami</h3>
                     <div class="text-sm text-slate-400 space-y-2.5 leading-relaxed">
                         <div class="flex items-center gap-2">
                             <svg class="w-4 h-4 text-slate-400 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">

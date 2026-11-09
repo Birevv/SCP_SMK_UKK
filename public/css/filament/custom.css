@@ -2148,4 +2148,229 @@ html.dark .fi-auth-top-back a:hover,
     transform: translateX(-2px) !important;
 }
 
+/* ==========================================================================
+   Realtime Photo Capture Component (Compact & Light/Dark Theme)
+   ========================================================================== */
+.rtc-box {
+    width: 100% !important;
+    max-width: 580px !important;
+    margin: 0 auto !important;
+    border-radius: 0.75rem !important;
+    border: 1px dashed #cbd5e1 !important;
+    background-color: #f8fafc !important;
+    padding: 1.25rem 1rem !important;
+    text-align: center !important;
+    box-sizing: border-box !important;
+    transition: background-color 0.2s, border-color 0.2s !important;
+}
+html.dark .rtc-box, .dark .rtc-box {
+    border-color: #334155 !important;
+    background-color: #0f172a !important;
+}
+
+.rtc-screen {
+    width: 100% !important;
+    max-width: 540px !important;
+    aspect-ratio: 16 / 9 !important;
+    max-height: 315px !important;
+    margin: 0 auto !important;
+    border-radius: 0.5rem !important;
+    overflow: hidden !important;
+    position: relative !important;
+    background-color: #000000 !important;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2) !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+}
+
+.rtc-video {
+    width: 100% !important;
+    height: 100% !important;
+    object-fit: cover !important;
+    display: block !important;
+    transform: scaleX(-1) !important;
+}
+
+.rtc-preview-img {
+    width: 100% !important;
+    height: 100% !important;
+    object-fit: cover !important;
+    display: block !important;
+}
+
+.rtc-badge-live {
+    position: absolute !important;
+    top: 8px !important;
+    left: 8px !important;
+    z-index: 10 !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 5px !important;
+    padding: 3px 8px !important;
+    border-radius: 9999px !important;
+    background-color: rgba(220, 38, 38, 0.9) !important;
+    color: #ffffff !important;
+    font-size: 10px !important;
+    font-weight: 700 !important;
+    letter-spacing: 0.5px !important;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3) !important;
+}
+
+.rtc-badge-success {
+    position: absolute !important;
+    top: 8px !important;
+    left: 8px !important;
+    z-index: 10 !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 5px !important;
+    padding: 3px 8px !important;
+    border-radius: 9999px !important;
+    background-color: rgba(16, 185, 129, 0.95) !important;
+    color: #ffffff !important;
+    font-size: 10px !important;
+    font-weight: 700 !important;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2) !important;
+}
+
+.rtc-pulse-dot {
+    width: 6px !important;
+    height: 6px !important;
+    border-radius: 50% !important;
+    background-color: #ffffff !important;
+    animation: rtcPulse 1.2s infinite !important;
+}
+
+.rtc-actions {
+    margin-top: 10px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 8px !important;
+    flex-wrap: wrap !important;
+}
+
+.rtc-btn {
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 6px !important;
+    padding: 7px 16px !important;
+    border-radius: 6px !important;
+    font-size: 12.5px !important;
+    font-weight: 600 !important;
+    cursor: pointer !important;
+    transition: all 0.15s ease !important;
+    text-decoration: none !important;
+    line-height: 1.4 !important;
+    box-sizing: border-box !important;
+}
+
+.rtc-btn-shutter {
+    background-color: #2563eb !important;
+    color: #ffffff !important;
+    border: 1px solid #1d4ed8 !important;
+    box-shadow: 0 2px 4px rgba(37, 99, 235, 0.25) !important;
+}
+.rtc-btn-shutter:hover:not(:disabled) {
+    background-color: #1d4ed8 !important;
+}
+.rtc-btn-shutter:disabled {
+    opacity: 0.6 !important;
+    cursor: not-allowed !important;
+}
+
+.rtc-btn-retake {
+    background-color: #ffffff !important;
+    color: #334155 !important;
+    border: 1px solid #cbd5e1 !important;
+}
+.rtc-btn-retake:hover {
+    background-color: #f1f5f9 !important;
+}
+html.dark .rtc-btn-retake, .dark .rtc-btn-retake {
+    background-color: #1e293b !important;
+    color: #f1f5f9 !important;
+    border-color: #475569 !important;
+}
+html.dark .rtc-btn-retake:hover, .dark .rtc-btn-retake:hover {
+    background-color: #334155 !important;
+}
+
+.rtc-btn-remove {
+    background-color: #fef2f2 !important;
+    color: #dc2626 !important;
+    border: 1px solid #fecaca !important;
+}
+.rtc-btn-remove:hover {
+    background-color: #fee2e2 !important;
+}
+html.dark .rtc-btn-remove, .dark .rtc-btn-remove {
+    background-color: rgba(127, 29, 29, 0.3) !important;
+    color: #fca5a5 !important;
+    border-color: rgba(185, 28, 28, 0.5) !important;
+}
+html.dark .rtc-btn-remove:hover, .dark .rtc-btn-remove:hover {
+    background-color: rgba(127, 29, 29, 0.5) !important;
+}
+
+.rtc-empty-icon {
+    width: 40px !important;
+    height: 40px !important;
+    border-radius: 50% !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    margin: 0 auto 8px auto !important;
+    background-color: #e2e8f0 !important;
+    color: #64748b !important;
+}
+html.dark .rtc-empty-icon, .dark .rtc-empty-icon {
+    background-color: #1e293b !important;
+    color: #94a3b8 !important;
+}
+
+.rtc-title {
+    font-size: 13px !important;
+    font-weight: 600 !important;
+    margin: 0 0 4px 0 !important;
+    color: #1e293b !important;
+}
+html.dark .rtc-title, .dark .rtc-title {
+    color: #f8fafc !important;
+}
+
+.rtc-desc {
+    font-size: 11.5px !important;
+    color: #64748b !important;
+    margin: 0 auto 10px auto !important;
+    max-width: 320px !important;
+    line-height: 1.4 !important;
+}
+html.dark .rtc-desc, .dark .rtc-desc {
+    color: #94a3b8 !important;
+}
+
+.rtc-alert {
+    display: flex !important;
+    align-items: flex-start !important;
+    gap: 6px !important;
+    padding: 6px 10px !important;
+    border-radius: 6px !important;
+    font-size: 11px !important;
+    text-align: left !important;
+    margin: 0 auto 10px auto !important;
+    max-width: 360px !important;
+    background-color: #fffbeb !important;
+    border: 1px solid #fde68a !important;
+    color: #92400e !important;
+}
+html.dark .rtc-alert, .dark .rtc-alert {
+    background-color: rgba(120, 53, 15, 0.25) !important;
+    border-color: rgba(180, 83, 9, 0.4) !important;
+    color: #fcd34d !important;
+}
+
+
 

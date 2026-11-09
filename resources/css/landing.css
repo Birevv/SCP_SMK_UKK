@@ -99,7 +99,7 @@
     font-size: 2rem;
     line-height: 1.12;
     letter-spacing: -0.025em;
-    font-weight: 600;
+    font-weight: 700;
 }
 
 @media (min-width: 640px) {
@@ -121,7 +121,7 @@
     font-size: 1.625rem;
     line-height: 1.2;
     letter-spacing: -0.02em;
-    font-weight: 600;
+    font-weight: 700;
 }
 
 @media (min-width: 640px) {

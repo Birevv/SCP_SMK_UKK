@@ -11,7 +11,7 @@
                     TENTANG SISTEM
                 </span>
 
-                <h2 class="text-2xl sm:text-3xl lg:text-[40px] font-semibold text-ink leading-[1.15] tracking-tight">
+                <h2 class="text-2xl sm:text-3xl lg:text-[40px] font-bold text-ink leading-[1.15] tracking-tight">
                     Teknologi yang Mendukung Pengelolaan Akademik.
                 </h2>
 
@@ -34,7 +34,7 @@
             <div class="lg:col-span-6">
                 <div class="rounded-2xl bg-[#1E293B] dark:bg-white border border-slate-700/80 dark:border-slate-200/90 p-8 sm:p-10 shadow-sheet text-white dark:text-slate-900 transition-colors">
                     <div class="flex items-center justify-between pb-6 border-b border-slate-700/80 dark:border-slate-200">
-                        <h3 class="text-lg font-semibold text-white dark:text-slate-900">Keunggulan Sistem</h3>
+                        <h3 class="text-lg font-bold text-white dark:text-slate-900">Keunggulan Sistem</h3>
                         <span class="text-xs font-semibold text-blue-400 dark:text-[#1D4ED8] uppercase tracking-wider">SCP Terintegrasi</span>
                     </div>
 

@@ -45,7 +45,7 @@
                     BANTUAN & PANDUAN
                 </span>
 
-                <h2 class="text-2xl sm:text-3xl lg:text-[38px] font-semibold text-ink leading-[1.16] tracking-tight">
+                <h2 class="text-2xl sm:text-3xl lg:text-[38px] font-bold text-ink leading-[1.16] tracking-tight">
                     Pertanyaan yang Sering Diajukan.
                 </h2>
 

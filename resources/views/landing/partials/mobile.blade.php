@@ -11,7 +11,7 @@
                     AKSES SISTEM SEKOLAH
                 </span>
 
-                <h2 class="text-2xl sm:text-3xl lg:text-[40px] font-semibold text-ink leading-tight tracking-tight">
+                <h2 class="text-2xl sm:text-3xl lg:text-[40px] font-bold text-ink leading-tight tracking-tight">
                     Pengelolaan Akademik Dimulai dari Sistem yang Terintegrasi.
                 </h2>
 

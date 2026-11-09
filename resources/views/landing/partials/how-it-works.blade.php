@@ -9,7 +9,7 @@
             <span class="text-xs font-semibold tracking-wider text-[#1D4ED8] dark:text-blue-400 mb-3 block">
                 ALUR OPERASIONAL
             </span>
-            <h2 class="text-2xl sm:text-3xl lg:text-[38px] font-semibold text-ink leading-tight tracking-tight">
+            <h2 class="text-2xl sm:text-3xl lg:text-[38px] font-bold text-ink leading-tight tracking-tight">
                 Alur Kerja yang Saling Terhubung.
             </h2>
             <p class="text-[16px] text-ink-secondary leading-relaxed mt-4">
@@ -27,7 +27,7 @@
                     <div class="flex items-center justify-between pb-6 border-b border-hairline">
                         <div>
                             <span class="text-xs font-semibold uppercase tracking-wider text-[#1D4ED8] dark:text-blue-400">Peran Pengajar</span>
-                            <h3 class="text-xl font-semibold text-ink mt-0.5">Untuk Guru</h3>
+                            <h3 class="text-xl font-bold text-ink mt-0.5">Untuk Guru</h3>
                         </div>
                         <span class="text-2xl font-semibold text-ink-muted tabular-nums">01</span>
                     </div>
@@ -39,7 +39,7 @@
                                 01
                             </span>
                             <div class="min-w-0 flex-1">
-                                <h4 class="text-[15px] font-semibold text-ink">Akses Jadwal</h4>
+                                <h4 class="text-[15px] font-bold text-ink">Akses Jadwal</h4>
                                 <p class="text-[14px] text-ink-secondary leading-relaxed mt-1">
                                     Guru mengakses jadwal mengajar sesuai pembagian rombel, mata pelajaran, dan putaran blok aktif dua mingguan.
                                 </p>
@@ -51,7 +51,7 @@
                                 02
                             </span>
                             <div class="min-w-0 flex-1">
-                                <h4 class="text-[15px] font-semibold text-ink">Isi Jurnal</h4>
+                                <h4 class="text-[15px] font-bold text-ink">Isi Jurnal</h4>
                                 <p class="text-[14px] text-ink-secondary leading-relaxed mt-1">
                                     Guru mencatat capaian materi pembelajaran harian dan mengunggah foto dokumentasi suasana kelas secara langsung.
                                 </p>
@@ -63,7 +63,7 @@
                                 03
                             </span>
                             <div class="min-w-0 flex-1">
-                                <h4 class="text-[15px] font-semibold text-ink">Pantau Kehadiran</h4>
+                                <h4 class="text-[15px] font-bold text-ink">Pantau Kehadiran</h4>
                                 <p class="text-[14px] text-ink-secondary leading-relaxed mt-1">
                                     Presensi kehadiran siswa tercatat secara akurat dan otomatis tersinkronisasi dengan surat izin yang telah disetujui.
                                 </p>
@@ -85,7 +85,7 @@
                     <div class="flex items-center justify-between pb-6 border-b border-hairline">
                         <div>
                             <span class="text-xs font-semibold uppercase tracking-wider text-[#1D4ED8] dark:text-blue-400">Peran Kesiswaan & Manajemen</span>
-                            <h3 class="text-xl font-semibold text-ink mt-0.5">Untuk Siswa dan Pengelola</h3>
+                            <h3 class="text-xl font-bold text-ink mt-0.5">Untuk Siswa dan Pengelola</h3>
                         </div>
                         <span class="text-2xl font-semibold text-ink-muted tabular-nums">02</span>
                     </div>
@@ -97,7 +97,7 @@
                                 01
                             </span>
                             <div class="min-w-0 flex-1">
-                                <h4 class="text-[15px] font-semibold text-ink">Pengajuan Izin</h4>
+                                <h4 class="text-[15px] font-bold text-ink">Pengajuan Izin</h4>
                                 <p class="text-[14px] text-ink-secondary leading-relaxed mt-1">
                                     Siswa atau orang tua mengajukan surat izin atau sakit secara daring lengkap dengan berkas surat dokter pendukung.
                                 </p>
@@ -109,7 +109,7 @@
                                 02
                             </span>
                             <div class="min-w-0 flex-1">
-                                <h4 class="text-[15px] font-semibold text-ink">Verifikasi Izin</h4>
+                                <h4 class="text-[15px] font-bold text-ink">Verifikasi Izin</h4>
                                 <p class="text-[14px] text-ink-secondary leading-relaxed mt-1">
                                     Wali kelas dan Guru BK memeriksa keabsahan surat permohonan izin dan memberikan persetujuan resmi.
                                 </p>
@@ -121,7 +121,7 @@
                                 03
                             </span>
                             <div class="min-w-0 flex-1">
-                                <h4 class="text-[15px] font-semibold text-ink">Monitoring Presensi</h4>
+                                <h4 class="text-[15px] font-bold text-ink">Monitoring Presensi</h4>
                                 <p class="text-[14px] text-ink-secondary leading-relaxed mt-1">
                                     Sekolah memantau rekapitulasi kehadiran rombel dan dapat mencetak laporan absensi bulanan format resmi.
                                 </p>

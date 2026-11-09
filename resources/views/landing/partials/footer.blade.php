@@ -40,7 +40,7 @@
 
             {{-- Kolom 2: Navigasi (Col 2) --}}
             <div class="lg:col-span-2">
-                <h3 class="text-xs font-semibold text-slate-300 uppercase tracking-wider mb-3.5">Navigasi</h3>
+                <h3 class="text-xs font-bold text-slate-300 uppercase tracking-wider mb-3.5">Navigasi</h3>
                 <ul class="space-y-2.5 text-sm">
                     <li>
                         <a href="#hero" class="text-slate-400 hover:text-white transition-colors">Beranda</a>
@@ -71,7 +71,7 @@
                 <span id="aplikasi" class="sr-only" aria-hidden="true"></span>
                 <span id="download" class="sr-only" aria-hidden="true"></span>
 
-                <h3 class="text-xs font-semibold text-slate-300 uppercase tracking-wider mb-3.5">Aplikasi Mobile</h3>
+                <h3 class="text-xs font-bold text-slate-300 uppercase tracking-wider mb-3.5">Aplikasi Mobile</h3>
                 @if ($apkUrl)
                     <div class="space-y-2">
                         <a
@@ -108,7 +108,7 @@
 
             {{-- Kolom 4: Informasi Sekolah (Col 3) --}}
             <div class="lg:col-span-3">
-                <h3 class="text-xs font-semibold text-slate-300 uppercase tracking-wider mb-3.5">Informasi Sekolah</h3>
+                <h3 class="text-xs font-bold text-slate-300 uppercase tracking-wider mb-3.5">Informasi Sekolah</h3>
                 <div class="text-sm text-slate-400 space-y-1.5 leading-relaxed">
                     <p class="font-medium text-slate-200">SMK Negeri 1 Bantul</p>
                     <p class="text-xs">Jl. Parangtritis Km 11, Sabdodadi, Bantul, D.I. Yogyakarta 55715</p>

@@ -6,7 +6,7 @@
             <span class="text-xs font-semibold tracking-wider text-[#1D4ED8] dark:text-blue-400 mb-3 block">
                 SIKLUS PEMBELAJARAN
             </span>
-            <h2 class="text-2xl sm:text-3xl lg:text-[38px] font-semibold text-ink leading-tight tracking-tight">
+            <h2 class="text-2xl sm:text-3xl lg:text-[38px] font-bold text-ink leading-tight tracking-tight">
                 Dirancang Mengikuti Sistem Pembelajaran Blok Dua Mingguan.
             </h2>
             <p class="text-[16px] text-ink-secondary leading-relaxed mt-4">

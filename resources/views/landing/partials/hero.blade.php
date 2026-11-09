@@ -16,8 +16,8 @@
                 </div>
 
                 {{-- Headline Utama: Wrapping Disengaja & Proporsional --}}
-                <h1 class="text-3xl sm:text-4xl lg:text-[46px] xl:text-[50px] font-semibold text-ink leading-[1.12] tracking-tight mt-4 enter-1">
-                    Seluruh Aktivitas Akademik, Dalam Satu Alur Terintegrasi.
+                <h1 class="text-3xl sm:text-4xl lg:text-[46px] xl:text-[50px] font-bold text-ink leading-[1.12] tracking-tight mt-4 enter-1">
+                    Seluruh Aktivitas Akademik, Dalam Satu <span class="text-[#1D4ED8] dark:text-blue-400">Alur Terintegrasi</span>
                 </h1>
 
                 {{-- Deskripsi Ringkas & Terarah --}}
@@ -125,7 +125,7 @@
                         <div class="pb-3.5 border-b border-hairline flex flex-wrap items-center justify-between gap-2">
                             <div>
                                 <span class="text-xs text-ink-muted tabular-nums">Jadwal Mengajar Hari Ini · Senin, 9 November 2026</span>
-                                <h2 class="text-lg font-semibold text-ink leading-snug mt-0.5">Pemrograman Berorientasi Objek</h2>
+                                <h2 class="text-lg font-bold text-ink leading-snug mt-0.5">Pemrograman Berorientasi Objek</h2>
                                 <p class="text-xs text-ink-secondary tabular-nums mt-0.5">Kelas XI RPL 2 · Lab RPL 1 · Jam ke-3–4 (08.30–10.00)</p>
                             </div>
                             <span class="text-xs font-semibold px-2.5 py-0.5 rounded-md bg-emerald-50 text-emerald-800 border border-emerald-300 dark:bg-emerald-950 dark:text-emerald-300 dark:border-emerald-800">
