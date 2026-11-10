@@ -506,6 +506,29 @@
         .dark .scp-day-weekend {
             background-color: rgba(153, 27, 27, 0.12);
         }
+        /* Blok Tanggalan Libur Nasional (Warna selaras dengan hari Sabtu & Minggu) */
+        .scp-day-holiday {
+            background-color: #fef8f8 !important;
+        }
+        .dark .scp-day-holiday {
+            background-color: rgba(153, 27, 27, 0.12) !important;
+        }
+        .scp-day-holiday-other {
+            background-color: rgba(254, 248, 248, 0.6) !important;
+            opacity: 0.8;
+        }
+        .dark .scp-day-holiday-other {
+            background-color: rgba(153, 27, 27, 0.06) !important;
+            opacity: 0.7;
+        }
+        .scp-day-today-holiday {
+            outline: 2px solid #2563eb !important;
+            outline-offset: -2px;
+        }
+        .dark .scp-day-today-holiday {
+            outline: 2px solid #60a5fa !important;
+            outline-offset: -2px;
+        }
         .scp-cal-cell-header {
             display: flex !important;
             align-items: center !important;
@@ -589,6 +612,35 @@
         }
         .dark .scp-day-num-weekend-other {
             color: rgba(248, 113, 113, 0.4);
+        }
+        .scp-day-num-holiday {
+            font-size: 0.8125rem;
+            color: #ef4444 !important;
+            font-weight: 800 !important;
+            line-height: 20px !important;
+            height: 20px !important;
+            display: inline-flex !important;
+            align-items: center !important;
+            justify-content: flex-end !important;
+            flex-shrink: 0 !important;
+        }
+        .dark .scp-day-num-holiday {
+            color: #f87171 !important;
+            font-weight: 800 !important;
+        }
+        .scp-day-num-holiday-other {
+            font-size: 0.8125rem;
+            color: #fca5a5 !important;
+            font-weight: 700 !important;
+            line-height: 20px !important;
+            height: 20px !important;
+            display: inline-flex !important;
+            align-items: center !important;
+            justify-content: flex-end !important;
+            flex-shrink: 0 !important;
+        }
+        .dark .scp-day-num-holiday-other {
+            color: rgba(248, 113, 113, 0.4) !important;
         }
         .scp-day-num-other {
             font-size: 0.8125rem;
@@ -1355,8 +1407,15 @@
                                         <tr>
                                             @foreach ($week['days'] as $day)
                                                 @php
+                                                    $isNationalHoliday = $day['is_national_holiday'] ?? false;
+
                                                     $cellBgClass = 'scp-day-current';
-                                                    if ($day['is_today']) {
+                                                    if ($isNationalHoliday) {
+                                                        $cellBgClass = $day['is_current_month'] ? 'scp-day-holiday' : 'scp-day-holiday-other';
+                                                        if ($day['is_today']) {
+                                                            $cellBgClass .= ' scp-day-today-holiday';
+                                                        }
+                                                    } elseif ($day['is_today']) {
                                                         $cellBgClass = 'scp-day-today';
                                                     } elseif (! $day['is_current_month']) {
                                                         $cellBgClass = 'scp-day-other';
@@ -1365,7 +1424,9 @@
                                                     }
 
                                                     $numClass = 'scp-day-num';
-                                                    if ($day['is_today']) {
+                                                    if ($isNationalHoliday) {
+                                                        $numClass = $day['is_current_month'] ? 'scp-day-num-holiday' : 'scp-day-num-holiday-other';
+                                                    } elseif ($day['is_today']) {
                                                         $numClass = 'scp-day-num-today';
                                                     } elseif ($day['is_weekend']) {
                                                         $numClass = $day['is_current_month'] ? 'scp-day-num-weekend' : 'scp-day-num-weekend-other';
@@ -1387,7 +1448,7 @@
                                                     <!-- Top Row: Tanggalan Jawa & Hijriah di Kiri, Angka Masehi di Kanan (Tinggi Presisi Terkunci) -->
                                                     <div class="scp-cal-cell-header">
                                                         @if ($showCulturalDates && ! empty($day['pasaran']))
-                                                            <div class="scp-cal-cultural-info text-slate-500 dark:text-gray-400">
+                                                            <div class="scp-cal-cultural-info {{ $isNationalHoliday ? 'text-red-700 dark:text-red-300' : 'text-slate-500 dark:text-gray-400' }}">
                                                                 <span style="font-weight: 600; flex-shrink: 0;" class="{{ ($day['is_gagrak'] ?? false) ? 'text-amber-600 dark:text-amber-400 font-bold' : '' }}">
                                                                     {{ $day['pasaran'] }}
                                                                 </span>

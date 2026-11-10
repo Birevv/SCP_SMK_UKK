@@ -940,6 +940,12 @@ class ListAcademicYears extends ListRecords
                     return $currentDay->between($ev->start_date, $ev->end_date);
                 });
 
+                $hasNationalHoliday = $dayEvents->contains(function ($ev) {
+                    $cat = $ev->category instanceof AcademicEventCategory ? $ev->category->value : (string) $ev->category;
+
+                    return $cat === 'libur_nasional' || ($ev->is_holiday && $cat !== 'libur_sekolah');
+                });
+
                 $cData = $culturalMonthData[$dateStr] ?? $culturalService->getHijriAndJawaDate($currentDay);
 
                 $weekDays[] = [
@@ -949,6 +955,7 @@ class ListAcademicYears extends ListRecords
                     'is_today' => $isToday,
                     'is_weekend' => $isWeekend,
                     'is_sunday' => $isSunday,
+                    'is_national_holiday' => $hasNationalHoliday,
                     'events' => $dayEvents,
                     'pasaran' => $cData['pasaran'] ?? '',
                     'weton' => $cData['weton'] ?? '',

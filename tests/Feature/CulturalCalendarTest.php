@@ -257,6 +257,34 @@ class CulturalCalendarTest extends TestCase
         $this->assertArrayHasKey('hijri_short', $firstDay);
         $this->assertArrayHasKey('hijri_formatted', $firstDay);
         $this->assertNotEmpty($firstDay['pasaran']);
+
+        // Verifikasi blok libur nasional terdeteksi merah otomatis
+        AcademicEvent::create([
+            'academic_year_id' => $academicYear->id,
+            'title' => 'Hari Kemerdekaan RI',
+            'start_date' => '2026-08-17',
+            'end_date' => '2026-08-17',
+            'category' => AcademicEventCategory::LIBUR_NASIONAL,
+            'is_holiday' => true,
+            'is_all_day' => true,
+            'created_by' => $user->id,
+        ]);
+
+        $test->set('currentMonth', 8);
+        $test->set('currentYear', 2026);
+        $weeks = $test->get('calendarWeeks');
+
+        $foundAug17 = false;
+        foreach ($weeks as $w) {
+            foreach ($w['days'] as $d) {
+                if ($d['date'] === '2026-08-17') {
+                    $this->assertTrue($d['is_national_holiday']);
+                    $foundAug17 = true;
+                }
+            }
+        }
+        $this->assertTrue($foundAug17);
+        $test->assertSee('scp-day-holiday');
     }
 
     public function test_sync_year_2027_events_with_full_year_resolution(): void
