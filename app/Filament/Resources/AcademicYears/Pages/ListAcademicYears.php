@@ -8,6 +8,7 @@ use App\Models\AcademicEvent;
 use App\Models\AcademicYear;
 use App\Models\User;
 use App\Services\AcademicCalendarService;
+use App\Services\KaldikImportService;
 use Carbon\Carbon;
 use Filament\Actions\Action;
 use Filament\Actions\DeleteAction;
@@ -17,9 +18,13 @@ use Filament\Notifications\Notification;
 use Filament\Resources\Pages\ListRecords;
 use Filament\Schemas\Components\Grid;
 use Illuminate\Support\Facades\Auth;
+use Livewire\WithFileUploads;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class ListAcademicYears extends ListRecords
 {
+    use WithFileUploads;
+
     protected static string $resource = AcademicYearResource::class;
 
     protected string $view = 'filament.resources.academic-years.pages.list-academic-years';
@@ -76,6 +81,23 @@ class ListAcademicYears extends ListRecords
     public int $syncYear = 2026;
 
     public bool $isSyncing = false;
+
+    // Modal & State Import Kaldik
+    public bool $showImportKaldikModal = false;
+
+    public $kaldikFile = null;
+
+    public ?array $kaldikPreviewData = null;
+
+    public string|int|null $targetKaldikYearId = 'auto';
+
+    public bool $autoSyncKaldikDates = true;
+
+    public bool $isImportingKaldik = false;
+
+    public ?string $kaldikImportError = null;
+
+    public string $kaldikPreviewTab = 'events'; // 'events' or 'effective_weeks'
 
     public function mount(): void
     {
@@ -426,6 +448,59 @@ class ListAcademicYears extends ListRecords
         }
     }
 
+    public function deleteAllMonthEventsAction(): Action
+    {
+        return Action::make('deleteAllMonthEvents')
+            ->label('Hapus Semua Agenda Bulan Ini')
+            ->icon('heroicon-m-trash')
+            ->color('danger')
+            ->size('sm')
+            ->outlined()
+            ->visible(fn (): bool => $this->canManage() && $this->monthEvents->isNotEmpty())
+            ->requiresConfirmation()
+            ->modalHeading(fn () => 'Hapus Semua Agenda Bulan '.Carbon::create($this->currentYear, $this->currentMonth, 1)->locale('id')->translatedFormat('F Y'))
+            ->modalDescription(function () {
+                $count = $this->monthEvents->count();
+                $monthName = Carbon::create($this->currentYear, $this->currentMonth, 1)->locale('id')->translatedFormat('F Y');
+
+                return "Apakah Anda yakin ingin menghapus seluruh {$count} agenda pada bulan {$monthName}? Data agenda yang dihapus tidak dapat dipulihkan.";
+            })
+            ->modalSubmitActionLabel('Ya, Hapus Semua')
+            ->action(function (): void {
+                $this->deleteAllMonthEvents();
+            });
+    }
+
+    public function deleteAllMonthEvents(): void
+    {
+        if (! $this->canManage()) {
+            return;
+        }
+
+        $events = $this->monthEvents;
+        $count = $events->count();
+
+        if ($count === 0) {
+            Notification::make()
+                ->warning()
+                ->title('Tidak Ada Agenda')
+                ->body('Tidak ada agenda yang dapat dihapus pada bulan ini.')
+                ->send();
+
+            return;
+        }
+
+        AcademicEvent::whereIn('id', $events->pluck('id'))->delete();
+
+        $monthName = Carbon::create($this->currentYear, $this->currentMonth, 1)->locale('id')->translatedFormat('F Y');
+
+        Notification::make()
+            ->success()
+            ->title('Semua Agenda Berhasil Dihapus')
+            ->body("Sebanyak {$count} agenda pada bulan {$monthName} telah berhasil dihapus.")
+            ->send();
+    }
+
     public function openSyncModal(): void
     {
         if (! $this->canManage()) {
@@ -475,6 +550,191 @@ class ListAcademicYears extends ListRecords
         } finally {
             $this->isSyncing = false;
         }
+    }
+
+    public function openImportKaldikModal(): void
+    {
+        if (! $this->canManage()) {
+            return;
+        }
+
+        $this->resetImportKaldikState();
+        $this->showImportKaldikModal = true;
+    }
+
+    public function closeImportKaldikModal(): void
+    {
+        $this->showImportKaldikModal = false;
+        $this->resetImportKaldikState();
+    }
+
+    public function resetImportKaldikState(): void
+    {
+        $this->kaldikFile = null;
+        $this->kaldikPreviewData = null;
+        $this->targetKaldikYearId = 'auto';
+        $this->autoSyncKaldikDates = true;
+        $this->isImportingKaldik = false;
+        $this->kaldikImportError = null;
+        $this->kaldikPreviewTab = 'events';
+        $this->resetErrorBag();
+    }
+
+    public function switchKaldikPreviewTab(string $tab): void
+    {
+        $this->kaldikPreviewTab = $tab;
+    }
+
+    public function updatedKaldikFile(): void
+    {
+        if (! $this->kaldikFile) {
+            return;
+        }
+
+        $this->validate([
+            'kaldikFile' => 'required|file|max:20480',
+        ], [
+            'kaldikFile.required' => 'File Kaldik wajib diunggah.',
+            'kaldikFile.file' => 'File yang diunggah tidak valid.',
+            'kaldikFile.max' => 'Ukuran file maksimal 20 MB.',
+        ]);
+
+        try {
+            $service = app(KaldikImportService::class);
+            $realPath = $this->kaldikFile->getRealPath();
+            $this->kaldikPreviewData = $service->parse($realPath);
+            $this->kaldikImportError = null;
+
+            if (empty($this->kaldikPreviewData['events'])) {
+                $this->kaldikImportError = 'Tidak ada agenda yang terdeteksi dari file. Pastikan format file sesuai dengan Kalender Pendidikan resmi SMKN 1 Bantul atau format standar.';
+            }
+        } catch (\Throwable $e) {
+            $this->kaldikImportError = 'Gagal membaca file: '.$e->getMessage();
+            $this->kaldikPreviewData = null;
+        }
+    }
+
+    public function executeImportKaldik(KaldikImportService $service): void
+    {
+        if (! $this->canManage()) {
+            return;
+        }
+
+        if (! $this->kaldikPreviewData || empty($this->kaldikPreviewData['events'])) {
+            if ($this->kaldikFile) {
+                $this->updatedKaldikFile();
+            } else {
+                Notification::make()
+                    ->danger()
+                    ->title('Pilih File Terlebih Dahulu')
+                    ->body('Silakan pilih file Kalender Pendidikan (Kaldik) yang ingin diimpor.')
+                    ->send();
+
+                return;
+            }
+        }
+
+        if (empty($this->kaldikPreviewData['events'])) {
+            Notification::make()
+                ->danger()
+                ->title('Impor Gagal')
+                ->body('Tidak ada data agenda yang dapat diimpor dari file tersebut.')
+                ->send();
+
+            return;
+        }
+
+        $this->isImportingKaldik = true;
+
+        try {
+            $result = $service->import(
+                $this->kaldikPreviewData,
+                $this->targetKaldikYearId,
+                $this->autoSyncKaldikDates,
+                Auth::id()
+            );
+
+            $affectedStr = implode(', ', $result['academic_years_affected']);
+
+            Notification::make()
+                ->success()
+                ->title('Import Kaldik Berhasil!')
+                ->body("Berhasil mengimpor {$result['total_events']} agenda ({$result['created_count']} baru, {$result['updated_count']} diperbarui) ke Tahun Ajaran {$affectedStr}.")
+                ->send();
+
+            // Refresh tampilan & aktifkan semester yang relevan jika ada
+            $importedYear = null;
+            if (is_numeric($this->targetKaldikYearId) && (int) $this->targetKaldikYearId > 0) {
+                $importedYear = AcademicYear::find($this->targetKaldikYearId);
+            } else {
+                $importedYear = AcademicYear::whereIn('name', $result['academic_years_affected'])->first();
+            }
+
+            if ($importedYear) {
+                $this->selectedYearId = $importedYear->id;
+                if ($importedYear->start_date) {
+                    $this->currentMonth = $importedYear->start_date->month;
+                    $this->currentYear = $importedYear->start_date->year;
+                }
+            }
+
+            $this->closeImportKaldikModal();
+        } catch (\Throwable $e) {
+            Notification::make()
+                ->danger()
+                ->title('Import Kaldik Gagal')
+                ->body($e->getMessage())
+                ->send();
+        } finally {
+            $this->isImportingKaldik = false;
+        }
+    }
+
+    public function downloadSampleKaldik(): StreamedResponse
+    {
+        $headers = [
+            'Content-Type' => 'text/csv; charset=UTF-8',
+            'Content-Disposition' => 'attachment; filename="Format_Kaldik_SMKN1_Bantul_2026_2027.csv"',
+        ];
+
+        return response()->stream(function () {
+            $handle = fopen('php://output', 'w');
+            $sampleLines = [
+                'KALENDER PENDIDIKAN TAHUN AJARAN 2026/2027,,,,,,,,,,,,,,,,,,,,,,,,,,,,',
+                'SMKN 1 BANTUL,,,,,,,,,,,,,,,,,,,,,,,,,,,,',
+                ',,,,,,,,,,,,,,,,,,,,,,,,,,,,',
+                'JULI 2026,,,,,,,,AGUSTUS 2026,,,,,,,,SEPTEMBER 2026,,,,,,,,,,,,',
+                'AHAD,,5,12,19,26,,,AHAD,,2,9,16,23,30,,AHAD,,6,13,20,27,,,,,,,',
+                'SENIN,,6,13,20,27,,,SENIN,,3,10,17,24,31,,SENIN,,7,14,21,28,,,,,,,',
+                'SELASA,,7,14,21,28,,,SELASA,,4,11,18,25,,,SELASA,1,8,15,22,29,,,,,,,',
+                'RABU,1,8,15,22,29,,,RABU,,5,12,19,26,,,RABU,2,9,16,23,30,,,,,,,',
+                'KAMIS,2,9,16,23,30,,,KAMIS,,6,13,20,27,,,KAMIS,3,10,17,24,,,,,,,,',
+                'JUMÁT,3,10,17,24,31,,,JUMÁT,,7,14,21,28,,,JUMÁT,4,11,18,25,,,,,,,,',
+                'SABTU,4,11,18,25,,,,SABTU,1,8,15,22,29,,,SABTU,5,12,19,26,,,,,,,,',
+                '1 - 10 Juli 2025 : Libur Akhir Tahun Ajaran 2025/2026,,,,,,,,17 Agustus 2026 : Hari Kemerdekaan RI ke-81,,,,,,,,"14 s.d 18 Sept. 2026: PSTS Ganjil kelas X, XI ",,,,,,,,,,,,',
+                '13 Juli 2026 : Hari Pertama Masuk Sekolah 2026/2027,,,,,,,,25 Agustus 2026 : Maulid Nabi Muhammad SAW,,,,,,,,& PSAS Ganjil kelas XII,,,,,,,,,,,,',
+                '13 - 17 Juli 2026 : MPLS Tahun Ajaran Baru 2026/2027,,,,,,,,,,,,,,,,21 s.d 27 Sept 2026 : Simulasi TKA/AN,,,,,,,,,,,,',
+                '27-31 Juli 2026 : Rentang pelaksanaan TOEIC,,,,,,,,,,,,,,,,,,,,,,,,,,,,',
+                'OKTOBER 2026,,,,,,,,NOVEMBER 2026,,,,,,,,DESEMBER 2026,,,,,,,,,,,,',
+                'AHAD,,4,11,18,25,,,AHAD,,1,8,15,22,29,,AHAD,,6,13,20,27,,,,,,,22000',
+                'SENIN,,5,12,19,26,,,SENIN,,2,9,16,23,30,,SENIN,,7,14,21,28,,,,,,,',
+                'SELASA,,6,13,20,27,,,SELASA,,3,10,17,24,,,SELASA,1,8,15,22,29,,,,,,,',
+                'RABU,,7,14,21,28,,,RABU,,4,11,18,25,,,RABU,2,9,16,23,30,,,,,,,78700',
+                'KAMIS,1,8,15,22,29,,,KAMIS,,5,12,19,26,,,KAMIS,3,10,17,24,31,,,,,,,',
+                'JUMÁT,2,9,16,23,30,,,JUMÁT,,6,13,20,27,,,JUMÁT,4,11,18,25,,,,,,,,',
+                'SABTU,3,10,17,24,31,,,SABTU,,7,14,21,28,,,SABTU,5,12,19,26,,,,,,,,',
+                '26-29 Oktober 2026: TKA & AN kelas XII,,,,,,,,9-13 November 2026 : UKK Mandiri ,,,,,,,,1-4 Desember 2026 : USEK  & PSAS ,,,,,,,,,,,,',
+                '5-8 Oktober 2026 : Gladi Bersih TKA/AN,,,,,,,,16-19 November 2026 : Tes Susulan TKA & AN (Tentatif),,,,,,,,18 Desember 2026 : Penerimaan Rapor Sem. 1,,,,,,,,,,,,',
+                ',,,,,,,,25 November 2026 : Hari Guru Nasional,,,,,,,,21 - 31 Desember 2026 : Libur Akhir Semester 1,,,,,,,,,,,,',
+                ',,,,,,,,26-28 November 2026 : USEK & PSAS Ganjil ,,,,,,,,25 Desember 2026 : Hari Raya Natal,,,,,,,,,,,,',
+                ',,,,,,,,,,,,,,,,26 Desember 2026 : Cuti Bersama Hari Natal,,,,,,,,,,,,',
+                ',,,,,,,,,,,,,,,,14 Desember 2026 : Penerjunan siswa PKL,,,,,,,,,,,,',
+            ];
+            foreach ($sampleLines as $line) {
+                fwrite($handle, $line."\r\n");
+            }
+            fclose($handle);
+        }, 200, $headers);
     }
 
     public function getAcademicYearsProperty()

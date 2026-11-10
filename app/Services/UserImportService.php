@@ -120,14 +120,35 @@ class UserImportService
                 }
             }
 
-            // Check if user already exists by identity_number or username (including trashed)
+            // Check if user already exists by identity_number, username, or teacher name (including trashed)
             $user = null;
             if (! empty($identityNumber)) {
                 $user = User::withTrashed()->where('identity_number', $identityNumber)->first();
             }
-            if (! $user) {
+            if (! $user && ! empty($username)) {
                 $user = User::withTrashed()->where('username', $username)->first();
             }
+            if (! $user && in_array($normalizedRoleName, ['Guru', 'Wali Kelas', 'Guru BK', 'Waka Kurikulum'])) {
+                $cleanNorm = strtoupper(trim((string) preg_replace('/[^a-zA-Z0-9]/', '', (string) (preg_split('/,/', (string) preg_replace('/^(dra\s*\.?|drs\s*\.?|dr\s*\.?|ir\s*\.?|h\s*\.?|hj\s*\.?)\s*/i', '', $fullName))[0] ?? ''))));
+                if (strlen($cleanNorm) >= 6) {
+                    $teacherCandidates = User::withTrashed()
+                        ->where(function ($q) {
+                            $q->whereHas('role', fn ($r) => $r->whereIn('name', ['Guru', 'Wali Kelas', 'Guru BK', 'Waka Kurikulum']))
+                                ->orWhereHas('roles', fn ($r) => $r->whereIn('name', ['Guru', 'Wali Kelas', 'Guru BK', 'Waka Kurikulum']));
+                        })->get();
+                    foreach ($teacherCandidates as $cand) {
+                        $candNorm = strtoupper(trim((string) preg_replace('/[^a-zA-Z0-9]/', '', (string) (preg_split('/,/', (string) preg_replace('/^(dra\s*\.?|drs\s*\.?|dr\s*\.?|ir\s*\.?|h\s*\.?|hj\s*\.?)\s*/i', '', $cand->full_name))[0] ?? ''))));
+                        if ($candNorm === $cleanNorm || (strlen($candNorm) >= 6 && levenshtein($cleanNorm, $candNorm) <= 2 && similar_text($cleanNorm, $candNorm, $pct) && $pct >= 85)) {
+                            $user = $cand;
+                            break;
+                        }
+                    }
+                }
+            }
+
+            $rolesToSync = in_array($normalizedRoleName, ['Wali Kelas', 'Guru BK'])
+                ? ['Guru', $normalizedRoleName]
+                : [$normalizedRoleName];
 
             if ($user) {
                 if ($user->trashed()) {
@@ -149,7 +170,7 @@ class UserImportService
                     'phone' => $phone ?: $user->phone,
                     'status' => in_array($status, ['Aktif', 'Lulus', 'Keluar', 'DO']) ? $status : 'Aktif',
                 ]);
-                $user->syncRoles([$normalizedRoleName]);
+                $user->syncRoles($rolesToSync);
                 $updated++;
             } else {
                 $user = User::create([
@@ -162,7 +183,7 @@ class UserImportService
                     'role_id' => $roleId,
                     'status' => in_array($status, ['Aktif', 'Lulus', 'Keluar', 'DO']) ? $status : 'Aktif',
                 ]);
-                $user->syncRoles([$normalizedRoleName]);
+                $user->syncRoles($rolesToSync);
                 $imported++;
             }
 

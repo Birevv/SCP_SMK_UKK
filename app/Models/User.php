@@ -39,8 +39,11 @@ class User extends Authenticatable implements FilamentUser, HasAvatar, HasName
     {
         static::saved(function (User $user) {
             if ($user->role_id && $user->role) {
-                if (! $user->hasRole($user->role->name)) {
-                    $user->syncRoles([$user->role->name]);
+                $roleName = $user->role->name;
+                if (! $user->hasRole($roleName)) {
+                    if (\Spatie\Permission\Models\Role::where('name', $roleName)->where('guard_name', 'web')->exists()) {
+                        $user->assignRole($roleName);
+                    }
                 }
             }
         });

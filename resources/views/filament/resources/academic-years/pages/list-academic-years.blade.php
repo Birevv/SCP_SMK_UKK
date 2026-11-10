@@ -781,6 +781,71 @@
             background-color: rgba(3, 7, 18, 0.75) !important;
         }
 
+        /* Kaldik Import Modal Styles */
+        .scp-cal-dropzone {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 1.25rem;
+            border: 2px dashed #cbd5e1;
+            border-radius: 0.75rem;
+            background-color: #f8fafc;
+            cursor: pointer;
+            transition: all 0.2s ease-in-out;
+            text-align: center;
+            user-select: none;
+        }
+        .scp-cal-dropzone:hover {
+            border-color: #3b82f6;
+            background-color: #f1f5f9;
+        }
+        .dark .scp-cal-dropzone {
+            border-color: #334155;
+            background-color: rgba(30, 41, 59, 0.5);
+        }
+        .dark .scp-cal-dropzone:hover {
+            border-color: #60a5fa;
+            background-color: rgba(30, 41, 59, 0.8);
+        }
+        .scp-cal-file-card {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 0.75rem;
+            padding: 0.875rem 1rem;
+            border: 1px solid #e2e8f0;
+            border-radius: 0.75rem;
+            background-color: #f8fafc;
+        }
+        .dark .scp-cal-file-card {
+            border-color: #334155;
+            background-color: #1e293b;
+        }
+        .scp-cal-btn-primary {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.375rem;
+            padding: 0.5rem 1.125rem;
+            border-radius: 0.5rem;
+            font-size: 0.875rem;
+            font-weight: 600;
+            color: #ffffff;
+            background-color: #2563eb;
+            border: none;
+            cursor: pointer;
+            transition: background-color 0.15s ease-in-out;
+            white-space: nowrap;
+        }
+        .scp-cal-btn-primary:hover:not(:disabled) {
+            background-color: #1d4ed8;
+        }
+        .scp-cal-btn-primary:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
         /* Print Settings */
         @media print {
             body * {
@@ -853,6 +918,14 @@
             <!-- Sisi Kanan Header: Action Button -->
             <div style="display: flex; align-items: center; gap: 8px;">
                 @if ($currentViewTab === 'years' && $this->canManage())
+                    <button
+                        type="button"
+                        wire:click="openImportKaldikModal"
+                        class="scp-cal-btn-secondary">
+                        <x-filament::icon icon="heroicon-o-arrow-up-tray" class="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
+                        <span>Import Kaldik</span>
+                    </button>
+
                     <a
                         href="{{ \App\Filament\Resources\AcademicYears\AcademicYearResource::getUrl('create') }}"
                         style="padding: 8px 16px; display: inline-flex; align-items: center; gap: 6px; white-space: nowrap; border-radius: 8px; background-color: #2563eb; color: #ffffff; font-size: 0.875rem; font-weight: 600; text-decoration: none;">
@@ -925,6 +998,14 @@
                                     class="scp-cal-btn-secondary">
                                     <x-filament::icon icon="heroicon-o-arrow-path" class="w-4 h-4 text-primary-500" />
                                     <span>Tarik Libur Nasional</span>
+                                </button>
+
+                                <button
+                                    type="button"
+                                    wire:click="openImportKaldikModal"
+                                    class="scp-cal-btn-secondary">
+                                    <x-filament::icon icon="heroicon-o-arrow-up-tray" class="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
+                                    <span>Import Kaldik</span>
                                 </button>
 
                                 <button
@@ -1034,6 +1115,11 @@
                                     Agenda Bulan {{ \Carbon\Carbon::create($currentYear, $currentMonth, 1)->locale('id')->translatedFormat('F Y') }}
                                     <span style="font-size: 0.75rem; color: #6b7280; font-weight: 400;" class="dark:text-gray-400">({{ $this->monthEvents->count() }} agenda ditemukan)</span>
                                 </h3>
+                                @if ($this->canManage() && $this->monthEvents->isNotEmpty())
+                                    <div>
+                                        {{ $this->deleteAllMonthEventsAction }}
+                                    </div>
+                                @endif
                             </div>
 
                             @if ($this->monthEvents->isEmpty())
@@ -1619,6 +1705,225 @@
                             </span>
                         </button>
                     </div>
+                </div>
+            </div>
+        @endif
+
+        <!-- 8. MODAL IMPORT KALENDER PENDIDIKAN (KALDIK) -->
+        @if ($showImportKaldikModal)
+            <div
+                class="scp-cal-modal-backdrop no-print"
+                wire:click.self="closeImportKaldikModal">
+                <div class="scp-cal-modal-card" style="max-width: 540px; width: 100%; max-height: 90vh; display: flex; flex-direction: column;">
+                    
+                    <!-- Header Modal -->
+                    <div class="scp-cal-modal-header" style="flex-shrink: 0; padding-bottom: 12px; margin-bottom: 0;">
+                        <h3 class="scp-cal-modal-title" style="font-size: 1rem; margin: 0; display: flex; align-items: center; gap: 8px;">
+                            <x-filament::icon icon="heroicon-o-arrow-up-tray" class="w-5 h-5 text-primary-600 dark:text-primary-400" />
+                            <span>Import Kalender Pendidikan</span>
+                        </h3>
+                        <button
+                            type="button"
+                            wire:click="closeImportKaldikModal"
+                            style="border: none; background: transparent; color: #9ca3af; cursor: pointer; display: flex; align-items: center; padding: 4px;">
+                            <x-filament::icon icon="heroicon-m-x-mark" class="w-5 h-5" />
+                        </button>
+                    </div>
+
+                    <!-- Body Modal (Scrollable) -->
+                    <div style="flex: 1 1 auto; overflow-y: auto; padding: 1rem 0; display: flex; flex-direction: column; gap: 1rem;">
+                        
+                        <!-- Upload File Input -->
+                        <div>
+                            <label class="scp-cal-form-label" style="margin-bottom: 6px;">
+                                File Kaldik (.xlsx, .xls, .csv) <span class="text-rose-500">*</span>
+                            </label>
+
+                            <input
+                                type="file"
+                                id="kaldikFileInput"
+                                wire:model.live="kaldikFile"
+                                accept=".csv,.xlsx,.xls,.txt"
+                                style="display: none;" />
+
+                            @if (!$kaldikFile)
+                                <label
+                                    for="kaldikFileInput"
+                                    class="scp-cal-dropzone"
+                                    style="padding: 1.25rem 1rem;">
+                                    <x-filament::icon icon="heroicon-o-cloud-arrow-up" class="w-7 h-7 text-gray-400 dark:text-gray-500 mb-2" />
+                                    <span style="font-size: 0.8125rem; font-weight: 600; display: block;" class="text-gray-800 dark:text-gray-200">
+                                        Pilih file Kaldik atau seret ke sini
+                                    </span>
+                                    <span style="font-size: 0.6875rem; color: #6b7280; display: block; margin-top: 2px;" class="dark:text-gray-400">
+                                        Mendukung format resmi Excel &amp; CSV (Maks. 20 MB)
+                                    </span>
+                                </label>
+                            @else
+                                <div class="scp-cal-file-card">
+                                    <div style="display: flex; align-items: center; gap: 10px; min-width: 0;">
+                                        <div style="width: 32px; height: 32px; border-radius: 8px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;" class="bg-primary-50 dark:bg-primary-950/60 text-primary-600 dark:text-primary-400">
+                                            <x-filament::icon icon="heroicon-o-document-text" class="w-4 h-4" />
+                                        </div>
+                                        <div style="min-width: 0;">
+                                            <p style="font-size: 0.8125rem; font-weight: 600; margin: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" class="text-gray-900 dark:text-gray-100">
+                                                {{ $kaldikFile->getClientOriginalName() }}
+                                            </p>
+                                            <p style="font-size: 0.6875rem; color: #6b7280; margin: 0;" class="dark:text-gray-400">
+                                                {{ number_format($kaldikFile->getSize() / 1024, 1) }} KB
+                                            </p>
+                                        </div>
+                                    </div>
+                                    <label
+                                        for="kaldikFileInput"
+                                        style="font-size: 0.75rem; font-weight: 600; cursor: pointer; flex-shrink: 0;"
+                                        class="text-primary-600 dark:text-primary-400 hover:underline">
+                                        Ganti
+                                    </label>
+                                </div>
+                            @endif
+
+                            <div wire:loading wire:target="kaldikFile" class="flex items-center gap-1.5 text-xs text-primary-600 dark:text-primary-400 font-medium mt-2">
+                                <svg class="animate-spin w-3.5 h-3.5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                </svg>
+                                <span>Membaca dan menganalisis file...</span>
+                            </div>
+                        </div>
+
+                        <!-- Target Semester & Opsi -->
+                        <div class="space-y-2.5">
+                            <div>
+                                <label class="scp-cal-form-label" style="margin-bottom: 6px;">
+                                    Target Tahun Ajaran
+                                </label>
+                                <select
+                                    wire:model="targetKaldikYearId"
+                                    class="scp-cal-form-input">
+                                    <option value="auto">Otomatis (Bagi ke Semester Ganjil &amp; Genap)</option>
+                                    @foreach ($this->academicYears as $year)
+                                        <option value="{{ $year->id }}">
+                                            {{ $year->name }} {{ $year->is_active ? '(Aktif)' : '' }}
+                                        </option>
+                                    @endforeach
+                                </select>
+                            </div>
+
+                            <div class="flex items-center justify-between gap-3 text-xs pt-0.5">
+                                <label for="kaldikAutoSyncDates" class="flex items-center gap-2 cursor-pointer text-gray-700 dark:text-gray-300 user-select-none">
+                                    <input
+                                        type="checkbox"
+                                        id="kaldikAutoSyncDates"
+                                        wire:model="autoSyncKaldikDates"
+                                        class="rounded border-gray-300 text-primary-600 focus:ring-primary-500" />
+                                    <span>Sinkronkan batas tanggal semester</span>
+                                </label>
+
+                                <button
+                                    type="button"
+                                    wire:click="downloadSampleKaldik"
+                                    class="text-primary-600 dark:text-primary-400 hover:underline shrink-0 font-medium">
+                                    Unduh Contoh CSV
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Pesan Kesalahan jika ada -->
+                        @if ($kaldikImportError)
+                            <div class="p-2.5 rounded-lg text-xs flex items-center gap-2 bg-rose-50 dark:bg-rose-950/40 text-rose-800 dark:text-rose-300 border border-rose-200 dark:border-rose-900/50">
+                                <x-filament::icon icon="heroicon-o-exclamation-triangle" class="w-4 h-4 text-rose-600 shrink-0" />
+                                <span>{{ $kaldikImportError }}</span>
+                            </div>
+                        @endif
+
+                        <!-- Preview Hasil Deteksi (Ringkas & Sederhana) -->
+                        @if ($kaldikPreviewData && !empty($kaldikPreviewData['events']))
+                            <div class="space-y-2 pt-2 border-t border-gray-200 dark:border-gray-800">
+                                <div class="flex items-center justify-between text-xs font-semibold text-gray-900 dark:text-gray-100">
+                                    <span>{{ count($kaldikPreviewData['events']) }} Agenda Terdeteksi</span>
+                                    <span class="text-2xs font-normal text-gray-500 dark:text-gray-400">
+                                        {{ $kaldikPreviewData['academic_year_name'] ?? '2026/2027' }} • {{ $kaldikPreviewData['school_name'] ?? 'SMKN 1 BANTUL' }}
+                                    </span>
+                                </div>
+
+                                <div class="max-h-52 overflow-y-auto border border-gray-200 dark:border-gray-800 rounded-lg">
+                                    <table class="w-full text-left text-xs border-collapse">
+                                        <thead class="bg-gray-100 dark:bg-gray-800/80 sticky top-0 text-gray-600 dark:text-gray-400 font-semibold text-2xs">
+                                            <tr>
+                                                <th class="p-2 border-b border-gray-200 dark:border-gray-700">Tanggal</th>
+                                                <th class="p-2 border-b border-gray-200 dark:border-gray-700">Agenda</th>
+                                                <th class="p-2 border-b border-gray-200 dark:border-gray-700">Kategori</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody class="divide-y divide-gray-100 dark:divide-gray-800 text-gray-800 dark:text-gray-200 text-2xs">
+                                            @foreach ($kaldikPreviewData['events'] as $eventItem)
+                                                @php
+                                                    $catEnum = \App\Enums\AcademicEventCategory::tryFrom($eventItem['category']);
+                                                @endphp
+                                                <tr class="hover:bg-gray-50 dark:hover:bg-gray-800/50">
+                                                    <td class="p-2 font-mono whitespace-nowrap text-gray-500 dark:text-gray-400">
+                                                        @if ($eventItem['start_date'] === $eventItem['end_date'])
+                                                            {{ \Carbon\Carbon::parse($eventItem['start_date'])->translatedFormat('d M Y') }}
+                                                        @else
+                                                            {{ \Carbon\Carbon::parse($eventItem['start_date'])->translatedFormat('d M') }} - {{ \Carbon\Carbon::parse($eventItem['end_date'])->translatedFormat('d M Y') }}
+                                                        @endif
+                                                    </td>
+                                                    <td class="p-2 font-medium">
+                                                        {{ $eventItem['title'] }}
+                                                    </td>
+                                                    <td class="p-2 whitespace-nowrap">
+                                                        <span class="scp-legend-pill scp-pill-{{ $eventItem['category'] }}" style="padding: 1px 6px; font-size: 0.625rem;">
+                                                            <span class="scp-legend-dot"></span>
+                                                            <span>{{ $catEnum ? $catEnum->getShortLabel() : ucfirst($eventItem['category']) }}</span>
+                                                        </span>
+                                                    </td>
+                                                </tr>
+                                            @endforeach
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        @endif
+
+                    </div>
+
+                    <!-- Footer Action Modal -->
+                    <div class="scp-cal-modal-footer" style="padding-top: 12px; margin-top: 0;">
+                        <div class="text-xs text-gray-500 dark:text-gray-400">
+                            @if ($kaldikPreviewData && !empty($kaldikPreviewData['events']))
+                                <span>Total <strong>{{ count($kaldikPreviewData['events']) }}</strong> agenda</span>
+                            @endif
+                        </div>
+
+                        <div style="display: flex; align-items: center; gap: 8px;">
+                            <button
+                                type="button"
+                                wire:click="closeImportKaldikModal"
+                                class="scp-cal-btn-secondary">
+                                Batal
+                            </button>
+
+                            <button
+                                type="button"
+                                wire:click="executeImportKaldik"
+                                wire:loading.attr="disabled"
+                                class="scp-cal-btn-primary"
+                                @if (!$kaldikPreviewData || empty($kaldikPreviewData['events'])) disabled @endif>
+                                <span wire:loading.remove wire:target="executeImportKaldik">
+                                    Impor Sekarang
+                                </span>
+                                <span wire:loading wire:target="executeImportKaldik" class="inline-flex items-center gap-1.5">
+                                    <svg class="animate-spin w-3.5 h-3.5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                    </svg>
+                                    <span>Mengimpor...</span>
+                                </span>
+                            </button>
+                        </div>
+                    </div>
+
                 </div>
             </div>
         @endif

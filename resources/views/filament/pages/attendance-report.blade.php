@@ -87,7 +87,10 @@
                             {{ $avgPercentage }}%
                         </div>
                         <div class="scp-kpi-sub {{ $avgPercentage >= 75 ? 'scp-text-emerald' : 'scp-text-rose' }}" style="font-weight: 600;">
-                            <span>{{ $avgPercentage >= 75 ? '✓ Memenuhi standar ≥75%' : '⚠ Perlu perhatian khusus' }}</span>
+                            <span class="inline-flex items-center gap-1">
+                                <x-filament::icon icon="{{ $avgPercentage >= 75 ? 'heroicon-m-check-circle' : 'heroicon-m-exclamation-triangle' }}" class="h-3.5 w-3.5 inline" />
+                                <span>{{ $avgPercentage >= 75 ? 'Memenuhi standar ≥75%' : 'Perlu perhatian khusus' }}</span>
+                            </span>
                         </div>
                     </div>
                 </div>

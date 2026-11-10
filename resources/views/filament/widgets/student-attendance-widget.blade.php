@@ -6,7 +6,10 @@
             <div class="bg-gradient-to-r from-primary-600 to-primary-700 text-white rounded-2xl p-5 sm:p-6 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div>
                     <div class="inline-flex items-center gap-2 bg-white/15 px-3 py-1 rounded-full text-xs font-medium backdrop-blur-xs mb-2">
-                        <span>🏫 Kelas {{ $stats['classroom_name'] }}</span>
+                        <span class="inline-flex items-center gap-1">
+                            <x-filament::icon icon="heroicon-m-academic-cap" class="h-3.5 w-3.5 inline" />
+                            <span>Kelas {{ $stats['classroom_name'] }}</span>
+                        </span>
                         <span>•</span>
                         <span>{{ $stats['active_cycle'] }}</span>
                     </div>

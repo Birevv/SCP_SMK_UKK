@@ -3,7 +3,7 @@
         <x-slot name="heading">
             <div class="flex items-center justify-between w-full">
                 <div class="flex items-center gap-2">
-                    <x-filament::icon icon="heroicon-o-clipboard-document-list" class="h-5 w-5 text-warning-500" />
+                    <x-filament::icon icon="heroicon-o-calendar-days" class="h-5 w-5 text-gray-500 dark:text-gray-400" />
                     <span>Jadwal Belajar Kelas (Wali Kelas & Guru BK)</span>
                 </div>
                 <x-filament::badge color="info">
@@ -81,39 +81,39 @@
             </div>
         @else
             {{-- A. TAMPILAN DESKTOP & TABLET: TABEL LENGKAP --}}
-            <div class="hidden sm:block overflow-x-auto rounded-xl border border-gray-200 dark:border-gray-800">
+            <div class="scp-homeroom-desktop-table overflow-x-auto rounded-xl border border-gray-200 dark:border-gray-800">
                 <table class="w-full text-left text-xs">
                     <thead class="bg-gray-50 dark:bg-gray-800/80 text-gray-600 dark:text-gray-300 border-b border-gray-200 dark:border-gray-800 font-semibold">
                         <tr>
-                            <th class="py-2.5 px-3">Waktu</th>
-                            <th class="py-2.5 px-3">Kelas</th>
-                            <th class="py-2.5 px-3">Mata Pelajaran</th>
-                            <th class="py-2.5 px-3">Guru Pengajar</th>
-                            <th class="py-2.5 px-3">Ruangan</th>
-                            <th class="py-2.5 px-3 text-center">Status Jurnal</th>
+                            <th class="py-2.5 px-3.5">Waktu</th>
+                            <th class="py-2.5 px-3.5">Kelas</th>
+                            <th class="py-2.5 px-3.5">Mata Pelajaran</th>
+                            <th class="py-2.5 px-3.5">Guru Pengajar</th>
+                            <th class="py-2.5 px-3.5">Ruangan</th>
+                            <th class="py-2.5 px-3.5 text-center">Status Jurnal</th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-gray-200 dark:divide-gray-800">
                         @foreach ($schedules as $s)
                             <tr class="hover:bg-gray-50/50 dark:hover:bg-gray-800/40 transition-colors">
-                                <td class="py-2 px-3 whitespace-nowrap font-mono text-xs text-gray-700 dark:text-gray-300">
+                                <td class="py-2.5 px-3.5 whitespace-nowrap font-mono text-xs text-gray-700 dark:text-gray-300">
                                     {{ $s['start_time'] }} - {{ $s['end_time'] }}
                                 </td>
-                                <td class="py-2 px-3 whitespace-nowrap">
+                                <td class="py-2.5 px-3.5 whitespace-nowrap">
                                     <x-filament::badge color="info" size="sm">
                                         {{ $s['classroom_name'] }}
                                     </x-filament::badge>
                                 </td>
-                                <td class="py-2 px-3 font-medium text-gray-900 dark:text-white">
+                                <td class="py-2.5 px-3.5 font-medium text-gray-900 dark:text-white">
                                     {{ $s['subject_name'] }}
                                 </td>
-                                <td class="py-2 px-3 text-gray-700 dark:text-gray-200">
+                                <td class="py-2.5 px-3.5 text-gray-700 dark:text-gray-200">
                                     {{ $s['teacher_name'] }}
                                 </td>
-                                <td class="py-2 px-3 text-gray-500 dark:text-gray-400">
+                                <td class="py-2.5 px-3.5 text-gray-500 dark:text-gray-400">
                                     {{ $s['room_name'] }}
                                 </td>
-                                <td class="py-2 px-3 text-center whitespace-nowrap">
+                                <td class="py-2.5 px-3.5 text-center whitespace-nowrap">
                                     @if ($s['has_journal'])
                                         <x-filament::badge color="success" size="sm" icon="heroicon-o-check-circle">
                                             Sudah Diisi
@@ -135,9 +135,9 @@
             </div>
 
             {{-- B. TAMPILAN SMARTPHONE: ADAPTIVE CARD LIST --}}
-            <div class="block sm:hidden space-y-2.5">
+            <div class="scp-homeroom-mobile-cards space-y-2.5">
                 @foreach ($schedules as $s)
-                    <div class="p-3 bg-white dark:bg-gray-900/70 border border-gray-200 dark:border-gray-800 rounded-xl shadow-2xs space-y-2">
+                    <div class="p-3 bg-white dark:bg-gray-900/70 border border-gray-200 dark:border-gray-800 rounded-xl shadow-xs space-y-2">
                         <div class="flex items-center justify-between">
                             <span class="font-mono text-xs font-bold text-primary-600 dark:text-primary-400 bg-primary-50 dark:bg-primary-950/60 px-2 py-0.5 rounded-md">
                                 {{ $s['start_time'] }} - {{ $s['end_time'] }}
@@ -151,8 +151,14 @@
                                 {{ $s['subject_name'] }}
                             </div>
                             <div class="text-[11px] text-gray-500 dark:text-gray-400 flex items-center justify-between mt-1">
-                                <span>👨‍🏫 {{ $s['teacher_name'] }}</span>
-                                <span>📍 {{ $s['room_name'] }}</span>
+                                <span class="inline-flex items-center gap-1 text-gray-600 dark:text-gray-300">
+                                    <x-filament::icon icon="heroicon-m-user" class="h-3.5 w-3.5 text-gray-400 shrink-0" />
+                                    <span>{{ $s['teacher_name'] }}</span>
+                                </span>
+                                <span class="inline-flex items-center gap-1 text-gray-500 dark:text-gray-400">
+                                    <x-filament::icon icon="heroicon-m-map-pin" class="h-3.5 w-3.5 text-gray-400 shrink-0" />
+                                    <span>{{ $s['room_name'] }}</span>
+                                </span>
                             </div>
                         </div>
                         <div class="pt-1.5 border-t border-gray-100 dark:border-gray-800/80 flex items-center justify-between">

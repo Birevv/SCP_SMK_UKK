@@ -544,4 +544,76 @@ class SmartImportDetectorTest extends TestCase
         $this->assertEquals('Aktif', $trashedTeacher->status);
         $this->assertEquals('196904041989031010', $trashedTeacher->identity_number);
     }
+
+    public function test_homeroom_import_matches_teacher_with_spacing_or_typo_variation_without_duplicate(): void
+    {
+        $service = app(SmartImportDetectorService::class);
+        $roleGuru = Role::firstOrCreate(['name' => 'Guru'], ['guard_name' => 'web']);
+        $roleWali = Role::firstOrCreate(['name' => 'Wali Kelas'], ['guard_name' => 'web']);
+
+        // 1. Create teacher with spaces in name (as FET import does): 'YULITA EKA WINAJENG, S.Pd'
+        $yulita = User::create([
+            'full_name' => 'YULITA EKA WINAJENG, S.Pd',
+            'username' => 'guru_72',
+            'email' => 'guru_72@smkn1bantul.sch.id',
+            'password' => bcrypt('password'),
+            'role_id' => $roleGuru->id,
+            'status' => 'Aktif',
+        ]);
+        $yulita->assignRole('Guru');
+
+        // 2. Create teacher with spelling variation: 'TRI SUSILOWATI, S.T., M.Pd'
+        $tri = User::create([
+            'full_name' => 'TRI SUSILOWATI, S.T., M.Pd',
+            'username' => 'guru_13',
+            'email' => 'guru_13@smkn1bantul.sch.id',
+            'password' => bcrypt('password'),
+            'role_id' => $roleGuru->id,
+            'status' => 'Aktif',
+        ]);
+        $tri->assignRole('Guru');
+
+        // Import Homeroom data with condensed name 'YULITA EKAWINAJENG, S.Pd.' and 'TRI SUSILAWATI, S.T., M.Pd.'
+        $homeroomData = [
+            'type' => 'homeroom_and_counselor',
+            'detected_format' => 'Excel / Daftar Wali Kelas & Guru BK (Wali BK)',
+            'academic_year' => '2026/2027 - Ganjil',
+            'total_classes' => 2,
+            'total_homeroom' => 2,
+            'total_counselor' => 0,
+            'assignments' => [
+                [
+                    'classroom' => 'XII TKJ 2',
+                    'raw_classroom' => 'XII TKJ 2',
+                    'wali_kelas' => 'YULITA EKAWINAJENG, S.Pd.',
+                    'guru_bk' => '',
+                ],
+                [
+                    'classroom' => 'XII TKJ 1',
+                    'raw_classroom' => 'XII TKJ 1',
+                    'wali_kelas' => 'TRI SUSILAWATI, S.T., M.Pd.',
+                    'guru_bk' => '',
+                ],
+            ],
+        ];
+
+        $res = $service->import($homeroomData);
+        $this->assertEquals('success', $res['status']);
+
+        // Total users with name Yulita must be exactly 1 (no duplicates!)
+        $this->assertEquals(1, User::where('full_name', 'like', '%Yulita%')->count());
+        $this->assertEquals(1, User::where('full_name', 'like', '%Tri Susil%')->count());
+
+        $yulita->refresh();
+        $this->assertEquals($roleWali->id, $yulita->role_id);
+        $this->assertTrue($yulita->hasRole('Guru'));
+        $this->assertTrue($yulita->hasRole('Wali Kelas'));
+        $this->assertTrue($yulita->classrooms()->where('name', 'XII TKJ 2')->exists());
+
+        $tri->refresh();
+        $this->assertEquals($roleWali->id, $tri->role_id);
+        $this->assertTrue($tri->hasRole('Guru'));
+        $this->assertTrue($tri->hasRole('Wali Kelas'));
+        $this->assertTrue($tri->classrooms()->where('name', 'XII TKJ 1')->exists());
+    }
 }

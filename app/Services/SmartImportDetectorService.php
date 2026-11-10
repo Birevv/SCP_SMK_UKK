@@ -1749,10 +1749,15 @@ class SmartImportDetectorService
             $updatedUsersCount = 0;
 
             $cleanNameHelper = function (string $raw): string {
-                $noTitle = preg_split('/,/', $raw)[0] ?? $raw;
+                $noPrefix = preg_replace('/^(dra\s*\.?|drs\s*\.?|dr\s*\.?|ir\s*\.?|h\s*\.?|hj\s*\.?)\s*/i', '', trim($raw));
+                $noTitle = preg_split('/,/', $noPrefix)[0] ?? $noPrefix;
                 $clean = preg_replace('/[^a-zA-Z0-9\s]/', '', $noTitle);
 
                 return strtoupper(trim((string) preg_replace('/\s+/', ' ', (string) $clean)));
+            };
+
+            $condensedHelper = function (string $raw) use ($cleanNameHelper): string {
+                return str_replace(' ', '', $cleanNameHelper($raw));
             };
 
             $findOrCreateTeacher = function (string $rawName, Role $targetRole, array $spatieRoles) use (
@@ -1761,12 +1766,14 @@ class SmartImportDetectorService
                 &$newUsersCount,
                 &$updatedUsersCount,
                 $cleanNameHelper,
+                $condensedHelper,
                 $roleGuru
             ): User {
                 $clean = $cleanNameHelper($rawName);
-                if (isset($matchedUserCache[$clean])) {
+                $condensed = $condensedHelper($rawName);
+                if (isset($matchedUserCache[$condensed])) {
                     /** @var User $cached */
-                    $cached = $matchedUserCache[$clean];
+                    $cached = $matchedUserCache[$condensed];
                     if ($cached->role_id === $roleGuru->id && $targetRole->id !== $roleGuru->id) {
                         $cached->update(['role_id' => $targetRole->id]);
                     }
@@ -1791,7 +1798,34 @@ class SmartImportDetectorService
                     });
                 }
 
-                // 3. Token match (words length >= 4)
+                // 3. Condensed match (ignoring whitespace differences like EKA WINAJENG vs EKAWINAJENG)
+                if (! $user && ! empty($condensed)) {
+                    $user = $teacherUsers->first(function ($u) use ($condensed, $condensedHelper) {
+                        return $condensedHelper($u->full_name) === $condensed;
+                    });
+                }
+
+                // 4. Fuzzy similarity match on condensed name (handles 1-2 char typos like SUSILOWATI vs SUSILAWATI, AROFAH vs ARAFAH)
+                if (! $user && strlen($condensed) >= 6) {
+                    $bestUser = null;
+                    $bestLev = 999;
+                    foreach ($teacherUsers as $u) {
+                        $uCond = $condensedHelper($u->full_name);
+                        if (strlen($uCond) >= 6) {
+                            $lev = levenshtein($condensed, $uCond);
+                            similar_text($condensed, $uCond, $pct);
+                            if ($lev <= 2 && $pct >= 85 && $lev < $bestLev) {
+                                $bestLev = $lev;
+                                $bestUser = $u;
+                            }
+                        }
+                    }
+                    if ($bestUser) {
+                        $user = $bestUser;
+                    }
+                }
+
+                // 5. Token match (words length >= 4)
                 if (! $user) {
                     $words = array_values(array_filter(explode(' ', $clean), fn ($w) => strlen($w) >= 4));
                     if (count($words) >= 2) {
@@ -1806,6 +1840,24 @@ class SmartImportDetectorService
 
                             return $matches >= min(2, count($words));
                         });
+                    }
+                }
+
+                // 6. Check database-wide (including trashed users) before creating a duplicate
+                if (! $user && strlen($condensed) >= 6) {
+                    $allExisting = User::withTrashed()
+                        ->where(function ($q) {
+                            $q->whereHas('role', fn ($r) => $r->whereIn('name', ['Guru', 'Wali Kelas', 'Guru BK', 'Waka Kurikulum', 'Super Admin']))
+                                ->orWhereHas('roles', fn ($r) => $r->whereIn('name', ['Guru', 'Wali Kelas', 'Guru BK', 'Waka Kurikulum', 'Super Admin']));
+                        })->get();
+
+                    foreach ($allExisting as $cand) {
+                        $cCond = $condensedHelper($cand->full_name);
+                        if ($cCond === $condensed || (strlen($cCond) >= 6 && levenshtein($condensed, $cCond) <= 2 && similar_text($condensed, $cCond, $pct) && $pct >= 85)) {
+                            $user = $cand;
+                            $teacherUsers->push($cand);
+                            break;
+                        }
                     }
                 }
 
@@ -1975,11 +2027,15 @@ class SmartImportDetectorService
                 ->get();
 
             $cleanNameHelper = function (string $raw): string {
-                $noTitle = preg_split('/,/', $raw)[0] ?? $raw;
-                $noPrefix = preg_replace('/^(Dra\.|Drs\.|Dr\.)\s*/i', '', $noTitle);
-                $clean = preg_replace('/[^a-zA-Z0-9\s]/', '', $noPrefix);
+                $noPrefix = preg_replace('/^(dra\s*\.?|drs\s*\.?|dr\s*\.?|ir\s*\.?|h\s*\.?|hj\s*\.?)\s*/i', '', trim($raw));
+                $noTitle = preg_split('/,/', $noPrefix)[0] ?? $noPrefix;
+                $clean = preg_replace('/[^a-zA-Z0-9\s]/', '', $noTitle);
 
                 return strtoupper(trim((string) preg_replace('/\s+/', ' ', (string) $clean)));
+            };
+
+            $condensedHelper = function (string $raw) use ($cleanNameHelper): string {
+                return str_replace(' ', '', $cleanNameHelper($raw));
             };
 
             $updatedNipCount = 0;
@@ -1994,7 +2050,8 @@ class SmartImportDetectorService
                 }
 
                 $clean = $cleanNameHelper($name);
-                if (isset($matchedUserCache[$clean])) {
+                $condensed = $condensedHelper($name);
+                if (isset($matchedUserCache[$condensed])) {
                     continue;
                 }
 
@@ -2010,7 +2067,34 @@ class SmartImportDetectorService
                     });
                 }
 
-                // 3. Token match (words >= 4 chars)
+                // 3. Condensed match (ignoring whitespace differences)
+                if (! $user && ! empty($condensed)) {
+                    $user = $existingTeachers->first(function ($u) use ($condensed, $condensedHelper) {
+                        return $condensedHelper($u->full_name) === $condensed;
+                    });
+                }
+
+                // 4. Fuzzy similarity match on condensed name
+                if (! $user && strlen($condensed) >= 6) {
+                    $bestUser = null;
+                    $bestLev = 999;
+                    foreach ($existingTeachers as $u) {
+                        $uCond = $condensedHelper($u->full_name);
+                        if (strlen($uCond) >= 6) {
+                            $lev = levenshtein($condensed, $uCond);
+                            similar_text($condensed, $uCond, $pct);
+                            if ($lev <= 2 && $pct >= 85 && $lev < $bestLev) {
+                                $bestLev = $lev;
+                                $bestUser = $u;
+                            }
+                        }
+                    }
+                    if ($bestUser) {
+                        $user = $bestUser;
+                    }
+                }
+
+                // 5. Token match (words >= 4 chars)
                 if (! $user) {
                     $words = array_values(array_filter(explode(' ', $clean), fn ($w) => strlen($w) >= 4));
                     if (count($words) >= 2) {
@@ -2028,7 +2112,7 @@ class SmartImportDetectorService
                     }
                 }
 
-                // 4. Match by NIP (identity_number) across all users (active or trashed)
+                // 6. Match by NIP (identity_number) across all users (active or trashed)
                 if (! $user && ! empty($nip)) {
                     $user = $existingTeachers->first(fn ($u) => (string) $u->identity_number === $nip)
                         ?: User::withTrashed()->where('identity_number', $nip)->first();

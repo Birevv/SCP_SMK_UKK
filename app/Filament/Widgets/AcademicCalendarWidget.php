@@ -173,16 +173,9 @@ class AcademicCalendarWidget extends FullCalendarWidget
                 $titlePrefix = '['.implode(',', $event->target_grades).'] ';
             }
 
-            $icon = '';
-            if ($event->category === AcademicEventCategory::UPACARA) {
-                $icon = '📢 ';
-            } elseif ($event->is_holiday) {
-                $icon = '🔴 ';
-            }
-
             return [
                 'id' => $event->id,
-                'title' => $icon.$titlePrefix.$event->title,
+                'title' => $titlePrefix.$event->title,
                 'start' => $event->is_all_day
                     ? $event->start_date->toDateString()
                     : $event->start_date->toDateString().'T'.($event->start_time ?? '00:00:00'),

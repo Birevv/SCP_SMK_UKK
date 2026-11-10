@@ -131,7 +131,7 @@ class ListSchedules extends ListRecords
                             $partialBanner = '';
                             if (! empty($info['partial_upload']) && ! empty($info['missing_file'])) {
                                 $partialBanner = '<div class="mt-2 p-2.5 bg-amber-50 dark:bg-amber-950/50 border border-amber-200 dark:border-amber-800 rounded-md text-xs text-amber-800 dark:text-amber-200 font-medium">'
-                                    .'⚠️ '.e($info['missing_file']).' Kedua file PDF wajib diisi sebelum melakukan import.'
+                                    .e($info['missing_file']).' Kedua file PDF wajib diisi sebelum melakukan import.'
                                     .'</div>';
                             }
 

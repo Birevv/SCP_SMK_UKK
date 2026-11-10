@@ -488,11 +488,11 @@
                     const fontSize = Math.max(12, Math.round(barHeight * 0.32));
                     ctx.font = 'bold ' + fontSize + 'px sans-serif';
                     ctx.fillStyle = '#ffffff';
-                    ctx.fillText('🏫 SCP SMK - BUKTI REALTIME', 14, y + (barHeight * 0.45));
+                    ctx.fillText('SCP SMK - BUKTI REALTIME', 14, y + (barHeight * 0.45));
 
                     ctx.font = '500 ' + Math.max(10, Math.round(fontSize * 0.85)) + 'px monospace';
                     ctx.fillStyle = '#34d399';
-                    ctx.fillText('📅 ' + dateStr, 14, y + (barHeight * 0.82));
+                    ctx.fillText(dateStr, 14, y + (barHeight * 0.82));
                 },
 
                 async uploadCapturedPhoto(dataUrl) {
