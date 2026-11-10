@@ -38,6 +38,20 @@ class AcademicEvent extends Model
         'end_date' => 'date',
     ];
 
+    public function setStartDateAttribute($value): void
+    {
+        $this->attributes['start_date'] = $value instanceof \DateTimeInterface
+            ? $value->format('Y-m-d')
+            : Carbon::parse($value)->format('Y-m-d');
+    }
+
+    public function setEndDateAttribute($value): void
+    {
+        $this->attributes['end_date'] = $value instanceof \DateTimeInterface
+            ? $value->format('Y-m-d')
+            : Carbon::parse($value)->format('Y-m-d');
+    }
+
     public function academicYear(): BelongsTo
     {
         return $this->belongsTo(AcademicYear::class);

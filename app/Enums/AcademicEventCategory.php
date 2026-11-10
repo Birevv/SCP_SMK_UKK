@@ -11,6 +11,8 @@ enum AcademicEventCategory: string implements HasColor, HasIcon, HasLabel
     case LIBUR_NASIONAL = 'libur_nasional';
     case LIBUR_SEKOLAH = 'libur_sekolah';
     case UPACARA = 'upacara';       // Upacara Bendera / Peringatan Hari Besar
+    case KEAGAMAAN_ISLAM = 'keagamaan_islam';
+    case BUDAYA_JAWA = 'budaya_jawa';
     case UJIAN = 'ujian';
     case PKL = 'pkl';           // Praktik Kerja Lapangan (Khusus SMK)
     case UKK = 'ukk';           // Uji Kompetensi Keahlian (Khusus SMK)
@@ -24,6 +26,8 @@ enum AcademicEventCategory: string implements HasColor, HasIcon, HasLabel
             self::LIBUR_NASIONAL => 'Libur Nasional',
             self::LIBUR_SEKOLAH => 'Libur Sekolah / Semester',
             self::UPACARA => 'Upacara Bendera / Peringatan',
+            self::KEAGAMAAN_ISLAM => 'Hari Besar Islam / Hijriah',
+            self::BUDAYA_JAWA => 'Peringatan Tradisi / Budaya Jawa',
             self::UJIAN => 'Ujian / Asesmen',
             self::PKL => 'Praktik Kerja Lapangan (PKL)',
             self::UKK => 'Uji Kompetensi Keahlian (UKK)',
@@ -39,6 +43,8 @@ enum AcademicEventCategory: string implements HasColor, HasIcon, HasLabel
             self::LIBUR_NASIONAL => 'Libur Nasional',
             self::LIBUR_SEKOLAH => 'Libur Sekolah',
             self::UPACARA => 'Upacara',
+            self::KEAGAMAAN_ISLAM => 'Islam / Hijriah',
+            self::BUDAYA_JAWA => 'Budaya Jawa',
             self::UJIAN => 'Ujian',
             self::PKL => 'PKL',
             self::UKK => 'UKK',
@@ -54,6 +60,8 @@ enum AcademicEventCategory: string implements HasColor, HasIcon, HasLabel
             self::LIBUR_NASIONAL => 'danger',   // Merah
             self::LIBUR_SEKOLAH => 'warning',  // Kuning / Oranye
             self::UPACARA => 'rose',     // Rose / Merah Bendera
+            self::KEAGAMAAN_ISLAM => 'success',  // Hijau
+            self::BUDAYA_JAWA => 'warning',  // Oranye Emas Tradisi
             self::UJIAN => 'info',     // Biru
             self::PKL => 'teal',     // Cyan / Teal khas vokasi industri
             self::UKK => 'rose',     // Rose / Merah bata khas uji kompetensi
@@ -69,6 +77,8 @@ enum AcademicEventCategory: string implements HasColor, HasIcon, HasLabel
             self::LIBUR_NASIONAL => 'heroicon-o-flag',
             self::LIBUR_SEKOLAH => 'heroicon-o-sun',
             self::UPACARA => 'heroicon-o-megaphone',
+            self::KEAGAMAAN_ISLAM => 'heroicon-o-moon',
+            self::BUDAYA_JAWA => 'heroicon-o-sparkles',
             self::UJIAN => 'heroicon-o-academic-cap',
             self::PKL => 'heroicon-o-briefcase',
             self::UKK => 'heroicon-o-wrench-screwdriver',
@@ -81,7 +91,7 @@ enum AcademicEventCategory: string implements HasColor, HasIcon, HasLabel
     // Default status libur resmi (tanggal merah)
     public function defaultIsHoliday(): bool
     {
-        return in_array($this, [self::LIBUR_NASIONAL, self::LIBUR_SEKOLAH, self::UPACARA]);
+        return in_array($this, [self::LIBUR_NASIONAL, self::LIBUR_SEKOLAH, self::UPACARA, self::KEAGAMAAN_ISLAM]);
     }
 
     // Default penonaktifan jadwal KBM kelas
@@ -91,6 +101,7 @@ enum AcademicEventCategory: string implements HasColor, HasIcon, HasLabel
             self::LIBUR_NASIONAL,
             self::LIBUR_SEKOLAH,
             self::UPACARA,
+            self::KEAGAMAAN_ISLAM,
             self::UJIAN,
             self::PKL,
             self::UKK,
@@ -101,8 +112,8 @@ enum AcademicEventCategory: string implements HasColor, HasIcon, HasLabel
     public function defaultRequiresAttendance(): bool
     {
         return match ($this) {
-            self::LIBUR_NASIONAL, self::LIBUR_SEKOLAH => false, // Libur murni bebas absen
-            self::UPACARA => true, // Upacara WAJIB hadir absen gerbang!
+            self::LIBUR_NASIONAL, self::LIBUR_SEKOLAH, self::KEAGAMAAN_ISLAM => false, // Libur murni bebas absen
+            self::UPACARA, self::BUDAYA_JAWA => true, // Upacara & Hari Tradisi wajib hadir
             default => true,
         };
     }
@@ -123,6 +134,8 @@ enum AcademicEventCategory: string implements HasColor, HasIcon, HasLabel
             self::LIBUR_NASIONAL => 'bg-red-100 text-red-800 dark:bg-red-950/70 dark:text-red-300 border-l-4 border-red-500',
             self::LIBUR_SEKOLAH => 'bg-amber-100 text-amber-800 dark:bg-amber-950/70 dark:text-amber-300 border-l-4 border-amber-500',
             self::UPACARA => 'bg-rose-100 text-rose-800 dark:bg-rose-950/70 dark:text-rose-300 border-l-4 border-rose-500',
+            self::KEAGAMAAN_ISLAM => 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950/70 dark:text-emerald-300 border-l-4 border-emerald-500',
+            self::BUDAYA_JAWA => 'bg-amber-100 text-amber-800 dark:bg-amber-950/70 dark:text-amber-300 border-l-4 border-amber-500',
             self::UJIAN => 'bg-sky-100 text-sky-800 dark:bg-sky-950/70 dark:text-sky-300 border-l-4 border-sky-500',
             self::PKL => 'bg-teal-100 text-teal-800 dark:bg-teal-950/70 dark:text-teal-300 border-l-4 border-teal-500',
             self::UKK => 'bg-purple-100 text-purple-800 dark:bg-purple-950/70 dark:text-purple-300 border-l-4 border-purple-500',
@@ -138,6 +151,8 @@ enum AcademicEventCategory: string implements HasColor, HasIcon, HasLabel
             self::LIBUR_NASIONAL => 'bg-red-500',
             self::LIBUR_SEKOLAH => 'bg-amber-500',
             self::UPACARA => 'bg-rose-500',
+            self::KEAGAMAAN_ISLAM => 'bg-emerald-600',
+            self::BUDAYA_JAWA => 'bg-amber-600',
             self::UJIAN => 'bg-sky-500',
             self::PKL => 'bg-teal-500',
             self::UKK => 'bg-purple-500',
@@ -153,6 +168,8 @@ enum AcademicEventCategory: string implements HasColor, HasIcon, HasLabel
             self::LIBUR_NASIONAL => 'bg-red-50 text-red-700 dark:bg-red-950/50 dark:text-red-300 border border-red-200 dark:border-red-900',
             self::LIBUR_SEKOLAH => 'bg-amber-50 text-amber-700 dark:bg-amber-950/50 dark:text-amber-300 border border-amber-200 dark:border-amber-900',
             self::UPACARA => 'bg-rose-50 text-rose-700 dark:bg-rose-950/50 dark:text-rose-300 border border-rose-200 dark:border-rose-900',
+            self::KEAGAMAAN_ISLAM => 'bg-emerald-50 text-emerald-700 dark:bg-emerald-950/50 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-900',
+            self::BUDAYA_JAWA => 'bg-amber-50 text-amber-700 dark:bg-amber-950/50 dark:text-amber-300 border border-amber-200 dark:border-amber-900',
             self::UJIAN => 'bg-sky-50 text-sky-700 dark:bg-sky-950/50 dark:text-sky-300 border border-sky-200 dark:border-sky-900',
             self::PKL => 'bg-teal-50 text-teal-700 dark:bg-teal-950/50 dark:text-teal-300 border border-teal-200 dark:border-teal-900',
             self::UKK => 'bg-purple-50 text-purple-700 dark:bg-purple-950/50 dark:text-purple-300 border border-purple-200 dark:border-purple-900',

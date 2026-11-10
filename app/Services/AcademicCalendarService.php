@@ -17,10 +17,11 @@ class AcademicCalendarService
      * Sinkronisasi hari libur nasional dari API resmi dengan dual fallback.
      * Hanya memasukkan tanggal merah yang berada dalam rentang start_date & end_date Tahun Ajaran.
      */
-    public function syncNationalHolidays(AcademicYear $academicYear, int $year): array
+    public function syncNationalHolidays(AcademicYear $academicYear, int $year, bool $forceFullYear = false): array
     {
-        $startDate = $academicYear->start_date ?? Carbon::create($year, 1, 1);
-        $endDate = $academicYear->end_date ?? Carbon::create($year, 12, 31);
+        /** @var CulturalCalendarService $culturalService */
+        $culturalService = app(CulturalCalendarService::class);
+        [$startDate, $endDate] = $culturalService->resolveSyncDateRange($academicYear, $year, $forceFullYear);
 
         $holidays = $this->fetchHolidaysFromApi($year);
         $syncedCount = 0;
@@ -59,6 +60,58 @@ class AcademicCalendarService
 
         return [
             'total_synced' => $syncedCount,
+            'year' => $year,
+            'semester' => $academicYear->name,
+        ];
+    }
+
+    /**
+     * Sinkronisasi hari besar keagamaan Islam & peringatan tradisi Jawa ke dalam Tahun Ajaran.
+     * Mendukung fleksibilitas busana adat tradisional daerah (Gagrak: Kamis Pon / Kamis Pahing / custom).
+     */
+    public function syncCulturalEvents(
+        AcademicYear $academicYear,
+        int $year,
+        bool $syncIslam = true,
+        bool $syncJawa = true,
+        bool $includeGagrak = false,
+        ?string $gagrakHari = null,
+        ?string $gagrakPasaran = null,
+        ?string $gagrakTitle = null,
+        bool $includeKamisPahing = false,
+        bool $forceFullYear = false
+    ): array {
+        /** @var CulturalCalendarService $culturalService */
+        $culturalService = app(CulturalCalendarService::class);
+        $total = 0;
+        $islamCount = 0;
+        $jawaCount = 0;
+
+        if ($syncIslam) {
+            $islamResult = $culturalService->syncIslamicEvents($academicYear, $year, $forceFullYear);
+            $islamCount = $islamResult['total_synced'];
+            $total += $islamCount;
+        }
+
+        if ($syncJawa) {
+            $jawaResult = $culturalService->syncJavaneseCulturalEvents(
+                $academicYear,
+                $year,
+                includeGagrak: $includeGagrak,
+                gagrakHari: $gagrakHari,
+                gagrakPasaran: $gagrakPasaran,
+                gagrakTitle: $gagrakTitle,
+                includeKamisPahing: $includeKamisPahing,
+                forceFullYear: $forceFullYear
+            );
+            $jawaCount = $jawaResult['total_synced'];
+            $total += $jawaCount;
+        }
+
+        return [
+            'total_synced' => $total,
+            'islam_synced' => $islamCount,
+            'jawa_synced' => $jawaCount,
             'year' => $year,
             'semester' => $academicYear->name,
         ];

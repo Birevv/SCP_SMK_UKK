@@ -376,12 +376,12 @@ class AcademicCalendarWidget extends FullCalendarWidget
     {
         return [
             Action::make('syncHolidays')
-                ->label('Tarik Libur Nasional')
+                ->label('Tarik Libur & Hari Besar')
                 ->icon('heroicon-o-arrow-path')
                 ->color('gray')
                 ->visible(fn (): bool => $this->canManage())
-                ->modalHeading('Tarik Libur Nasional (API Sync)')
-                ->modalDescription('Sinkronisasi otomatis hari libur resmi SKB 3 Menteri RI ke dalam Tahun Ajaran aktif.')
+                ->modalHeading('Tarik Libur & Hari Besar (API Sync)')
+                ->modalDescription('Sinkronisasi otomatis hari libur resmi SKB 3 Menteri, hari besar Islam, dan tradisi Jawa ke Tahun Ajaran aktif.')
                 ->form([
                     Forms\Components\Select::make('year')
                         ->label('Pilih Tahun Kalender')
@@ -393,6 +393,15 @@ class AcademicCalendarWidget extends FullCalendarWidget
                             2028 => 'Tahun 2028',
                         ])
                         ->default(now()->year)
+                        ->required(),
+                    Forms\Components\CheckboxList::make('sync_types')
+                        ->label('Pilihan Sumber Data')
+                        ->options([
+                            'national' => 'Libur Nasional Resmi (SKB 3 Menteri)',
+                            'islam' => 'Hari Besar Islam / Hijriah (Idul Fitri, Awal Ramadhan, dll.)',
+                            'jawa' => 'Peringatan Budaya Jawa (1 Suro / Tahun Baru Jawa)',
+                        ])
+                        ->default(['national', 'islam', 'jawa'])
                         ->required(),
                 ])
                 ->action(function (array $data, AcademicCalendarService $service): void {
@@ -408,11 +417,25 @@ class AcademicCalendarWidget extends FullCalendarWidget
                     }
 
                     try {
-                        $result = $service->syncNationalHolidays($yearModel, (int) $data['year']);
+                        $totalSynced = 0;
+                        $types = $data['sync_types'] ?? ['national', 'islam', 'jawa'];
+
+                        if (in_array('national', $types, true)) {
+                            $resNat = $service->syncNationalHolidays($yearModel, (int) $data['year']);
+                            $totalSynced += $resNat['total_synced'];
+                        }
+
+                        $syncIslam = in_array('islam', $types, true);
+                        $syncJawa = in_array('jawa', $types, true);
+                        if ($syncIslam || $syncJawa) {
+                            $resCult = $service->syncCulturalEvents($yearModel, (int) $data['year'], $syncIslam, $syncJawa, true);
+                            $totalSynced += $resCult['total_synced'];
+                        }
+
                         Notification::make()
                             ->success()
                             ->title('Sinkronisasi Berhasil')
-                            ->body("Berhasil mengimpor {$result['total_synced']} hari libur nasional untuk periode {$result['semester']}.")
+                            ->body("Berhasil mengimpor {$totalSynced} agenda resmi untuk periode {$yearModel->name}.")
                             ->send();
 
                         $this->refreshRecords();

@@ -31,6 +31,12 @@
         .scp-pill-upacara { background-color: #ffe4e6; color: #9f1239; border-color: #fda4af; }
         .scp-pill-upacara .scp-legend-dot { background-color: #e11d48; }
 
+        .scp-pill-keagamaan_islam { background-color: #d1fae5; color: #065f46; border-color: #6ee7b7; }
+        .scp-pill-keagamaan_islam .scp-legend-dot { background-color: #059669; }
+
+        .scp-pill-budaya_jawa { background-color: #fef3c7; color: #92400e; border-color: #fcd34d; }
+        .scp-pill-budaya_jawa .scp-legend-dot { background-color: #d97706; }
+
         .scp-pill-ujian { background-color: #e0f2fe; color: #075985; border-color: #7dd3fc; }
         .scp-pill-ujian .scp-legend-dot { background-color: #0284c7; }
 
@@ -53,6 +59,8 @@
         .dark .scp-pill-libur_nasional { background-color: rgba(239, 68, 68, 0.2); color: #fca5a5; border-color: rgba(239, 68, 68, 0.4); }
         .dark .scp-pill-libur_sekolah { background-color: rgba(245, 158, 11, 0.2); color: #fde68a; border-color: rgba(245, 158, 11, 0.4); }
         .dark .scp-pill-upacara { background-color: rgba(244, 63, 94, 0.2); color: #fda4af; border-color: rgba(244, 63, 94, 0.4); }
+        .dark .scp-pill-keagamaan_islam { background-color: rgba(16, 185, 129, 0.2); color: #6ee7b7; border-color: rgba(16, 185, 129, 0.4); }
+        .dark .scp-pill-budaya_jawa { background-color: rgba(245, 158, 11, 0.2); color: #fde68a; border-color: rgba(245, 158, 11, 0.4); }
         .dark .scp-pill-ujian { background-color: rgba(14, 165, 233, 0.2); color: #7dd3fc; border-color: rgba(14, 165, 233, 0.4); }
         .dark .scp-pill-pkl { background-color: rgba(20, 184, 166, 0.2); color: #5eead4; border-color: rgba(20, 184, 166, 0.4); }
         .dark .scp-pill-ukk { background-color: rgba(168, 85, 247, 0.2); color: #d8b4fe; border-color: rgba(168, 85, 247, 0.4); }
@@ -64,6 +72,8 @@
         .scp-dot-libur_nasional { background-color: #dc2626; }
         .scp-dot-libur_sekolah  { background-color: #d97706; }
         .scp-dot-upacara        { background-color: #e11d48; }
+        .scp-dot-keagamaan_islam { background-color: #059669; }
+        .scp-dot-budaya_jawa    { background-color: #d97706; }
         .scp-dot-ujian          { background-color: #0284c7; }
         .scp-dot-pkl            { background-color: #0d9488; }
         .scp-dot-ukk            { background-color: #9333ea; }
@@ -75,6 +85,8 @@
         .scp-solid-libur_nasional { background-color: #fee2e2; color: #991b1b !important; border-color: #fca5a5 !important; }
         .scp-solid-libur_sekolah  { background-color: #fef3c7; color: #92400e !important; border-color: #fcd34d !important; }
         .scp-solid-upacara        { background-color: #ffe4e6; color: #9f1239 !important; border-color: #fda4af !important; }
+        .scp-solid-keagamaan_islam { background-color: #d1fae5; color: #065f46 !important; border-color: #6ee7b7 !important; }
+        .scp-solid-budaya_jawa    { background-color: #fef3c7; color: #92400e !important; border-color: #fcd34d !important; }
         .scp-solid-ujian          { background-color: #e0f2fe; color: #075985 !important; border-color: #7dd3fc !important; }
         .scp-solid-pkl            { background-color: #ccfbf1; color: #115e59 !important; border-color: #5eead4 !important; }
         .scp-solid-ukk            { background-color: #f3e8ff; color: #6b21a8 !important; border-color: #d8b4fe !important; }
@@ -86,6 +98,8 @@
         .dark .scp-solid-libur_nasional { background-color: rgba(239, 68, 68, 0.2); color: #fca5a5 !important; border-color: rgba(239, 68, 68, 0.4) !important; }
         .dark .scp-solid-libur_sekolah  { background-color: rgba(245, 158, 11, 0.2); color: #fde68a !important; border-color: rgba(245, 158, 11, 0.4) !important; }
         .dark .scp-solid-upacara        { background-color: rgba(244, 63, 94, 0.2); color: #fda4af !important; border-color: rgba(244, 63, 94, 0.4) !important; }
+        .dark .scp-solid-keagamaan_islam { background-color: rgba(16, 185, 129, 0.2); color: #6ee7b7 !important; border-color: rgba(16, 185, 129, 0.4) !important; }
+        .dark .scp-solid-budaya_jawa    { background-color: rgba(245, 158, 11, 0.2); color: #fde68a !important; border-color: rgba(245, 158, 11, 0.4) !important; }
         .dark .scp-solid-ujian          { background-color: rgba(14, 165, 233, 0.2); color: #7dd3fc !important; border-color: rgba(14, 165, 233, 0.4) !important; }
         .dark .scp-solid-pkl            { background-color: rgba(20, 184, 166, 0.2); color: #5eead4 !important; border-color: rgba(20, 184, 166, 0.4) !important; }
         .dark .scp-solid-ukk            { background-color: rgba(168, 85, 247, 0.2); color: #d8b4fe !important; border-color: rgba(168, 85, 247, 0.4) !important; }
@@ -492,38 +506,99 @@
         .dark .scp-day-weekend {
             background-color: rgba(153, 27, 27, 0.12);
         }
+        .scp-cal-cell-header {
+            display: flex !important;
+            align-items: center !important;
+            justify-content: space-between !important;
+            height: 20px !important;
+            min-height: 20px !important;
+            max-height: 20px !important;
+            line-height: 20px !important;
+            margin-bottom: 4px !important;
+            padding: 0 6px !important;
+            pointer-events: none !important;
+            box-sizing: border-box !important;
+            overflow: hidden !important;
+        }
+        .scp-cal-cultural-info {
+            display: flex !important;
+            align-items: center !important;
+            gap: 3px !important;
+            font-size: 0.625rem !important;
+            line-height: 20px !important;
+            height: 20px !important;
+            white-space: nowrap !important;
+            overflow: hidden !important;
+            text-overflow: ellipsis !important;
+            flex: 1 1 auto !important;
+            min-width: 0 !important;
+        }
         .scp-day-num {
-            font-size: 0.875rem;
+            font-size: 0.8125rem;
             font-weight: 600;
             color: #1f2937;
+            line-height: 20px !important;
+            height: 20px !important;
+            display: inline-flex !important;
+            align-items: center !important;
+            justify-content: flex-end !important;
+            flex-shrink: 0 !important;
         }
         .dark .scp-day-num {
             color: #e2e8f0;
         }
         .scp-day-num-today {
+            font-size: 0.8125rem;
             color: #2563eb;
             font-weight: 800;
+            line-height: 20px !important;
+            height: 20px !important;
+            display: inline-flex !important;
+            align-items: center !important;
+            justify-content: flex-end !important;
+            flex-shrink: 0 !important;
         }
         .dark .scp-day-num-today {
             color: #60a5fa;
             font-weight: 800;
         }
         .scp-day-num-weekend {
+            font-size: 0.8125rem;
             color: #ef4444;
             font-weight: 800;
+            line-height: 20px !important;
+            height: 20px !important;
+            display: inline-flex !important;
+            align-items: center !important;
+            justify-content: flex-end !important;
+            flex-shrink: 0 !important;
         }
         .dark .scp-day-num-weekend {
             color: #f87171;
             font-weight: 800;
         }
         .scp-day-num-weekend-other {
+            font-size: 0.8125rem;
             color: #fca5a5;
+            line-height: 20px !important;
+            height: 20px !important;
+            display: inline-flex !important;
+            align-items: center !important;
+            justify-content: flex-end !important;
+            flex-shrink: 0 !important;
         }
         .dark .scp-day-num-weekend-other {
             color: rgba(248, 113, 113, 0.4);
         }
         .scp-day-num-other {
+            font-size: 0.8125rem;
             color: #9ca3af;
+            line-height: 20px !important;
+            height: 20px !important;
+            display: inline-flex !important;
+            align-items: center !important;
+            justify-content: flex-end !important;
+            flex-shrink: 0 !important;
         }
         .dark .scp-day-num-other {
             color: #64748b;
@@ -959,6 +1034,7 @@
                                     wire:model.live="selectedYearId"
                                     class="scp-cal-select"
                                     style="font-weight: 600;">
+                                    <option value="">Semua Tahun Ajaran (Lintas Semester)</option>
                                     @foreach ($this->academicYears as $year)
                                         <option value="{{ $year->id }}">
                                             {{ $year->name }} {{ $year->is_active ? '(Aktif)' : '' }}
@@ -994,10 +1070,19 @@
 
                                 <button
                                     type="button"
+                                    wire:click="toggleCulturalDates"
+                                    class="scp-cal-btn-secondary {{ $showCulturalDates ? 'border-primary-500 text-primary-600 dark:text-primary-400 bg-primary-50/50 dark:bg-primary-950/30 font-semibold' : '' }}"
+                                    title="Tampilkan / Sembunyikan penanggalan Jawa (Pasaran) & Hijriah">
+                                    <x-filament::icon icon="heroicon-o-moon" class="w-4 h-4 {{ $showCulturalDates ? 'text-primary-600 dark:text-primary-400' : 'text-gray-500' }}" />
+                                    <span>Jawa & Hijriah</span>
+                                </button>
+
+                                <button
+                                    type="button"
                                     wire:click="openSyncModal"
                                     class="scp-cal-btn-secondary">
                                     <x-filament::icon icon="heroicon-o-arrow-path" class="w-4 h-4 text-primary-500" />
-                                    <span>Tarik Libur Nasional</span>
+                                    <span>Tarik Libur Nasional & Hari Besar</span>
                                 </button>
 
                                 <button
@@ -1299,8 +1384,21 @@
                                                     :class="isInRange('{{ $day['date'] }}') ? 'scp-calendar-cell-selected' : ''"
                                                     class="scp-cal-td {{ $cellBgClass }} align-top transition duration-150 hover:bg-blue-50/40 dark:hover:bg-gray-800/50 {{ $this->canManage() ? 'cursor-pointer' : 'cursor-default' }}">
                                                     
-                                                    <!-- Top Row: Angka Tanggal Saja di Pojok Kanan Atas -->
-                                                    <div style="display: flex; justify-content: flex-end; margin-bottom: 4px; padding: 0 8px; pointer-events: none;">
+                                                    <!-- Top Row: Tanggalan Jawa & Hijriah di Kiri, Angka Masehi di Kanan (Tinggi Presisi Terkunci) -->
+                                                    <div class="scp-cal-cell-header">
+                                                        @if ($showCulturalDates && ! empty($day['pasaran']))
+                                                            <div class="scp-cal-cultural-info text-slate-500 dark:text-gray-400">
+                                                                <span style="font-weight: 600; flex-shrink: 0;" class="{{ ($day['is_gagrak'] ?? false) ? 'text-amber-600 dark:text-amber-400 font-bold' : '' }}">
+                                                                    {{ $day['pasaran'] }}
+                                                                </span>
+                                                                <span style="opacity: 0.35; flex-shrink: 0;">•</span>
+                                                                <span style="font-size: 0.625rem; opacity: 0.85; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="{{ $day['hijri_formatted'] }}">
+                                                                    {{ $day['hijri_short'] }}
+                                                                </span>
+                                                            </div>
+                                                        @else
+                                                            <div style="height: 20px; line-height: 20px;"></div>
+                                                        @endif
                                                         <span class="{{ $numClass }}">
                                                             {{ $day['day_number'] }}
                                                         </span>
@@ -1645,17 +1743,17 @@
             </div>
         @endif
 
-        <!-- 7. MODAL TARIK LIBUR NASIONAL -->
+        <!-- 7. MODAL TARIK LIBUR NASIONAL & KALENDER BUDAYA -->
         @if ($showSyncModal)
             <div
                 class="scp-cal-modal-backdrop no-print"
                 style="position: fixed !important; top: 0 !important; left: 0 !important; right: 0 !important; bottom: 0 !important; width: 100vw !important; height: 100vh !important; margin: 0 !important; padding: 16px !important; z-index: 99999 !important; display: flex !important; align-items: center !important; justify-content: center !important; box-sizing: border-box !important;"
                 wire:click.self="closeSyncModal">
-                <div class="scp-cal-modal-card" style="max-width: 450px;">
+                <div class="scp-cal-modal-card" style="max-width: 500px;">
                     <div class="scp-cal-modal-header">
                         <h3 class="scp-cal-modal-title">
                             <x-filament::icon icon="heroicon-o-arrow-path" class="w-5 h-5 text-primary-500" />
-                            <span>Tarik Libur Nasional Otomatis</span>
+                            <span>Tarik Libur & Hari Besar (API Sync)</span>
                         </h3>
                         <button
                             type="button"
@@ -1669,10 +1767,75 @@
                         <div style="padding: 12px; border-radius: 8px; font-size: 0.8125rem; display: flex; align-items: flex-start; gap: 10px;" class="bg-blue-50 dark:bg-blue-950/40 text-blue-800 dark:text-blue-300 border border-blue-200 dark:border-blue-900/50">
                             <x-filament::icon icon="heroicon-o-information-circle" class="w-5 h-5 text-blue-600 dark:text-blue-400 shrink-0 mt-0.5" />
                             <div class="space-y-1">
-                                <p style="font-weight: 700; margin: 0;">Sinkronisasi Resmi SKB 3 Menteri</p>
+                                <p style="font-weight: 700; margin: 0;">Sinkronisasi Multikalender Otomatis</p>
                                 <p style="font-size: 0.75rem; margin: 0; line-height: 1.4;">
-                                    Sistem akan mengambil data hari libur nasional resmi dari API Pemerintah Republik Indonesia dan menyinkronkannya khusus untuk rentang semester aktif terpilih.
+                                    Sistem akan mengambil data libur resmi SKB 3 Menteri, hari besar keagamaan Islam, dan peringatan tradisi Jawa khusus untuk rentang semester aktif terpilih.
                                 </p>
+                            </div>
+                        </div>
+
+                        <div>
+                            <label class="scp-cal-form-label" style="margin-bottom: 8px;">
+                                Sumber Data yang Disinkronkan
+                            </label>
+                            <div class="space-y-2 p-3 rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-50/50 dark:bg-gray-800/40 text-sm">
+                                <label class="flex items-center gap-2 cursor-pointer text-gray-800 dark:text-gray-200">
+                                    <input type="checkbox" wire:model="syncNationalHolidaysOption" class="rounded border-gray-300 text-primary-600 focus:ring-primary-500">
+                                    <span>Libur Nasional Resmi (SKB 3 Menteri RI)</span>
+                                </label>
+                                <label class="flex items-center gap-2 cursor-pointer text-gray-800 dark:text-gray-200">
+                                    <input type="checkbox" wire:model="syncIslamicHolidaysOption" class="rounded border-gray-300 text-primary-600 focus:ring-primary-500">
+                                    <span>Hari Besar Islam / Hijriah (Idul Fitri, Awal Ramadhan, dll.)</span>
+                                </label>
+                                <label class="flex items-center gap-2 cursor-pointer text-gray-800 dark:text-gray-200">
+                                    <input type="checkbox" wire:model="syncJavaneseCulturalOption" class="rounded border-gray-300 text-primary-600 focus:ring-primary-500">
+                                    <span>Peringatan Budaya Jawa (1 Suro / Tahun Baru Jawa)</span>
+                                </label>
+                                @if ($syncJavaneseCulturalOption)
+                                    <div class="mt-2 pl-6 pt-2 border-t border-gray-200 dark:border-gray-700/60 space-y-2">
+                                        <label class="flex items-center gap-2 cursor-pointer text-xs font-medium text-slate-700 dark:text-gray-300">
+                                            <input type="checkbox" wire:model.live="includeGagrakOption" class="rounded border-gray-300 text-primary-600 focus:ring-primary-500">
+                                            <span>Sertakan Peringatan Busana Adat Tradisional (Gagrak)</span>
+                                        </label>
+
+                                        @if ($includeGagrakOption)
+                                            <div class="bg-white dark:bg-gray-900/60 p-2.5 rounded-md border border-gray-200 dark:border-gray-700/70 space-y-2 text-xs">
+                                                <div class="flex items-center gap-2 flex-wrap">
+                                                    <span class="text-gray-500 text-[11px]">Pilihan Weton:</span>
+                                                    <select wire:model.live="gagrakHariOption" class="text-xs py-1 px-2 rounded border border-gray-300 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-200">
+                                                        <option value="Kamis">Kamis</option>
+                                                        <option value="Jumat">Jumat</option>
+                                                        <option value="Sabtu">Sabtu</option>
+                                                        <option value="Senin">Senin</option>
+                                                        <option value="Selasa">Selasa</option>
+                                                        <option value="Rabu">Rabu</option>
+                                                    </select>
+                                                    <select wire:model.live="gagrakPasaranOption" class="text-xs py-1 px-2 rounded border border-gray-300 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-200 font-semibold text-primary-600 dark:text-primary-400">
+                                                        <option value="Pon">Pon (Solo / Kasunanan)</option>
+                                                        <option value="Pahing">Pahing (Yogyakarta)</option>
+                                                        <option value="Legi">Legi</option>
+                                                        <option value="Wage">Wage</option>
+                                                        <option value="Kliwon">Kliwon</option>
+                                                    </select>
+                                                </div>
+
+                                                <div class="flex items-center gap-1.5 pt-1">
+                                                    <span class="text-gray-400 text-[11px]">Preset Daerah:</span>
+                                                    <button type="button" wire:click="setGagrakPreset('kamis_pon')" class="px-2 py-0.5 rounded text-[11px] font-medium bg-amber-50 dark:bg-amber-950/40 text-amber-700 dark:text-amber-300 border border-amber-200 dark:border-amber-800/60 hover:bg-amber-100">
+                                                        Solo: Kamis Pon
+                                                    </button>
+                                                    <button type="button" wire:click="setGagrakPreset('kamis_pahing')" class="px-2 py-0.5 rounded text-[11px] font-medium bg-blue-50 dark:bg-blue-950/40 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-800/60 hover:bg-blue-100">
+                                                        Jogja: Kamis Pahing
+                                                    </button>
+                                                </div>
+
+                                                <div class="pt-1">
+                                                    <input type="text" wire:model="gagrakLabelOption" placeholder="Nama Gagrak (contoh: Gagrak Surakarta)" class="w-full text-xs py-1 px-2 rounded border border-gray-300 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-200">
+                                                </div>
+                                            </div>
+                                        @endif
+                                    </div>
+                                @endif
                             </div>
                         </div>
 
@@ -1682,8 +1845,17 @@
                             </label>
                             <input
                                 type="number"
-                                wire:model="syncYear"
+                                wire:model.live="syncYear"
                                 class="scp-cal-form-input" />
+                            <div class="mt-2">
+                                <label class="flex items-center gap-2 cursor-pointer text-xs text-slate-700 dark:text-gray-300">
+                                    <input type="checkbox" wire:model="syncFullYearOption" class="rounded border-gray-300 text-primary-600 focus:ring-primary-500">
+                                    <span class="font-medium">Sinkronkan 1 Tahun Kalender Penuh (Januari – Desember {{ $syncYear }})</span>
+                                </label>
+                                <p class="text-[11px] text-gray-500 dark:text-gray-400 pl-6 mt-0.5">
+                                    Centang opsi ini agar seluruh agenda budaya dan libur nasional di tahun {{ $syncYear }} ter-generate lengkap, tanpa terpotong batas akhir semester.
+                                </p>
+                            </div>
                         </div>
                     </div>
 

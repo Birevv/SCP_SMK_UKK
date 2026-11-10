@@ -46,6 +46,8 @@ class ListAcademicYears extends ListRecords
 
     public string $viewMode = 'month'; // 'month', 'week', 'list'
 
+    public bool $showCulturalDates = true; // Toggle tampilan penanggalan Jawa & Hijriah pada grid
+
     // Form Modal Agenda
     public bool $showEventModal = false;
 
@@ -75,12 +77,30 @@ class ListAcademicYears extends ListRecords
 
     public ?string $eventDescription = null;
 
-    // Modal Sinkronisasi Libur Nasional
+    // Modal Sinkronisasi Libur Nasional & Kalender Budaya
     public bool $showSyncModal = false;
 
     public int $syncYear = 2026;
 
     public bool $isSyncing = false;
+
+    public bool $syncNationalHolidaysOption = true;
+
+    public bool $syncIslamicHolidaysOption = true;
+
+    public bool $syncJavaneseCulturalOption = true;
+
+    public bool $includeKamisPahingOption = false;
+
+    public bool $includeGagrakOption = true;
+
+    public string $gagrakHariOption = 'Kamis';
+
+    public string $gagrakPasaranOption = 'Pon';
+
+    public string $gagrakLabelOption = 'Gagrak Surakarta';
+
+    public bool $syncFullYearOption = true;
 
     // Modal & State Import Kaldik
     public bool $showImportKaldikModal = false;
@@ -508,12 +528,36 @@ class ListAcademicYears extends ListRecords
         }
 
         $this->syncYear = $this->currentYear;
+        $this->syncNationalHolidaysOption = true;
+        $this->syncIslamicHolidaysOption = true;
+        $this->syncJavaneseCulturalOption = true;
+        $this->includeKamisPahingOption = false;
+        $this->includeGagrakOption = true;
+        $this->syncFullYearOption = true;
         $this->showSyncModal = true;
+    }
+
+    public function setGagrakPreset(string $preset): void
+    {
+        if ($preset === 'surakarta' || $preset === 'kamis_pon') {
+            $this->gagrakHariOption = 'Kamis';
+            $this->gagrakPasaranOption = 'Pon';
+            $this->gagrakLabelOption = 'Gagrak Surakarta';
+        } elseif ($preset === 'ngayogyakarta' || $preset === 'kamis_pahing') {
+            $this->gagrakHariOption = 'Kamis';
+            $this->gagrakPasaranOption = 'Pahing';
+            $this->gagrakLabelOption = 'Gagrak Ngayogyakarta';
+        }
     }
 
     public function closeSyncModal(): void
     {
         $this->showSyncModal = false;
+    }
+
+    public function toggleCulturalDates(): void
+    {
+        $this->showCulturalDates = ! $this->showCulturalDates;
     }
 
     public function syncNationalHolidays(AcademicCalendarService $service): void
@@ -532,12 +576,42 @@ class ListAcademicYears extends ListRecords
         $this->isSyncing = true;
 
         try {
-            $result = $service->syncNationalHolidays($academicYear, $this->syncYear);
+            $totalSynced = 0;
+            $summaryParts = [];
+
+            if ($this->syncNationalHolidaysOption) {
+                $natResult = $service->syncNationalHolidays($academicYear, $this->syncYear, $this->syncFullYearOption);
+                $totalSynced += $natResult['total_synced'];
+                $summaryParts[] = "{$natResult['total_synced']} Libur Nasional";
+            }
+
+            if ($this->syncIslamicHolidaysOption || $this->syncJavaneseCulturalOption) {
+                $cultResult = $service->syncCulturalEvents(
+                    $academicYear,
+                    $this->syncYear,
+                    $this->syncIslamicHolidaysOption,
+                    $this->syncJavaneseCulturalOption,
+                    includeGagrak: $this->includeGagrakOption,
+                    gagrakHari: $this->gagrakHariOption,
+                    gagrakPasaran: $this->gagrakPasaranOption,
+                    gagrakTitle: "{$this->gagrakHariOption} {$this->gagrakPasaranOption} (Busana Adat Jawa {$this->gagrakLabelOption})",
+                    forceFullYear: $this->syncFullYearOption
+                );
+                $totalSynced += $cultResult['total_synced'];
+                if ($this->syncIslamicHolidaysOption) {
+                    $summaryParts[] = "{$cultResult['islam_synced']} Hari Besar Islam";
+                }
+                if ($this->syncJavaneseCulturalOption) {
+                    $summaryParts[] = "{$cultResult['jawa_synced']} Tradisi Jawa";
+                }
+            }
+
+            $summaryText = ! empty($summaryParts) ? implode(', ', $summaryParts) : '0 agenda';
 
             Notification::make()
                 ->success()
-                ->title('Sinkronisasi Berhasil')
-                ->body("Berhasil mengimpor {$result['total_synced']} hari libur nasional resmi ke semester {$result['semester']}.")
+                ->title('Sinkronisasi Kalender Berhasil')
+                ->body("Berhasil menyinkronkan {$summaryText} ({$totalSynced} total agenda) ke semester {$academicYear->name}.")
                 ->send();
 
             $this->closeSyncModal();
@@ -847,6 +921,10 @@ class ListAcademicYears extends ListRecords
         $today = Carbon::today();
         $currentDay = $calendarStart->copy();
 
+        /** @var \App\Services\CulturalCalendarService $culturalService */
+        $culturalService = app(\App\Services\CulturalCalendarService::class);
+        $culturalMonthData = $culturalService->getMonthlyCalendarData($this->currentYear, $this->currentMonth);
+
         while ($currentDay->lte($calendarEnd)) {
             $weekDays = [];
 
@@ -862,6 +940,8 @@ class ListAcademicYears extends ListRecords
                     return $currentDay->between($ev->start_date, $ev->end_date);
                 });
 
+                $cData = $culturalMonthData[$dateStr] ?? $culturalService->getHijriAndJawaDate($currentDay);
+
                 $weekDays[] = [
                     'date' => $dateStr,
                     'day_number' => $currentDay->day,
@@ -870,6 +950,15 @@ class ListAcademicYears extends ListRecords
                     'is_weekend' => $isWeekend,
                     'is_sunday' => $isSunday,
                     'events' => $dayEvents,
+                    'pasaran' => $cData['pasaran'] ?? '',
+                    'weton' => $cData['weton'] ?? '',
+                    'hijri_day' => $cData['hijri_day'] ?? null,
+                    'hijri_short' => $cData['hijri_short'] ?? '',
+                    'hijri_formatted' => $cData['hijri_formatted'] ?? '',
+                    'jawa_month_name' => $cData['jawa_month_name'] ?? '',
+                    'is_gagrak' => $cData['is_gagrak'] ?? ($cData['is_kamis_pahing'] ?? false),
+                    'is_kamis_pahing' => $cData['is_kamis_pahing'] ?? false,
+                    'is_suro' => $cData['is_suro'] ?? false,
                 ];
 
                 $currentDay->addDay();
