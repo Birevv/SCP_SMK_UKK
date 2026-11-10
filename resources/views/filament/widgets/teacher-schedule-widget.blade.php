@@ -91,13 +91,20 @@
         @else
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
                 @foreach ($schedules as $s)
-                    <div class="border border-gray-200 dark:border-gray-800 rounded-xl p-3.5 bg-white dark:bg-gray-900/70 shadow-xs flex flex-col justify-between hover:border-primary-400 dark:hover:border-primary-600 transition-colors">
+                    <div class="border {{ $s['is_current'] ? 'border-primary-500 ring-1 ring-primary-500 bg-primary-50/20 dark:bg-primary-950/20' : 'border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900/70' }} rounded-xl p-3.5 shadow-xs flex flex-col justify-between hover:border-primary-400 dark:hover:border-primary-600 transition-colors">
                         <div>
                             {{-- Header Card --}}
                             <div class="flex items-center justify-between mb-2">
-                                <span class="font-mono text-xs font-bold text-primary-600 dark:text-primary-400 bg-primary-50 dark:bg-primary-950/50 px-2 py-0.5 rounded-md">
-                                    {{ $s['start_time'] }} - {{ $s['end_time'] }}
-                                </span>
+                                <div class="flex items-center gap-1.5 flex-wrap">
+                                    <span class="font-mono text-xs font-bold text-primary-600 dark:text-primary-400 bg-primary-50 dark:bg-primary-950/50 px-2 py-0.5 rounded-md">
+                                        {{ $s['start_time'] }} - {{ $s['end_time'] }}
+                                    </span>
+                                    @if ($s['is_current'])
+                                        <x-filament::badge color="primary" size="sm" icon="heroicon-m-clock">
+                                            Sedang Berlangsung
+                                        </x-filament::badge>
+                                    @endif
+                                </div>
                                 <x-filament::badge color="info" size="sm">
                                     {{ $s['classroom_name'] }}
                                 </x-filament::badge>

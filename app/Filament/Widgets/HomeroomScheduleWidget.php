@@ -22,7 +22,7 @@ class HomeroomScheduleWidget extends Widget
 
     protected int|string|array $columnSpan = 'full';
 
-    protected static ?int $sort = 2;
+    protected static ?int $sort = 3;
 
     public ?string $selectedGrade = 'ALL';
 
@@ -188,7 +188,7 @@ class HomeroomScheduleWidget extends Widget
 
         $daySessions = SchoolSession::getSessionsForDay($selectedDayName);
 
-        $schedules = $rawSchedules->map(function (Schedule $schedule) use ($now, $targetDate, $filledScheduleIds, $daySessions) {
+        $schedules = $rawSchedules->map(function (Schedule $schedule) use ($now, $targetDate, $filledScheduleIds, $daySessions, $user) {
             $journalId = $filledScheduleIds[$schedule->id] ?? null;
             $hasJournal = $journalId !== null;
 
@@ -198,9 +198,13 @@ class HomeroomScheduleWidget extends Widget
             $startTimeStr = $startSession ? $startSession['start'] : substr((string) $schedule->start_time, 0, 5);
             $endTimeStr = $endSession ? $endSession['end'] : substr((string) $schedule->end_time, 0, 5);
 
+            $scheduleStartDateTime = Carbon::parse($targetDate->toDateString().' '.$startTimeStr);
             $scheduleEndDateTime = Carbon::parse($targetDate->toDateString().' '.$endTimeStr);
             $isFuture = $targetDate->isFuture();
             $isToday = $targetDate->isToday();
+
+            $isCurrent = $isToday && $now->between($scheduleStartDateTime, $scheduleEndDateTime);
+            $isUserTeacher = $user && ($schedule->teacher_id === $user->id);
 
             // Jika hari sekarang < hari jadwal atau masih dalam batas tenggat 1 hari -> Belum diisi
             // Jika jadwal sudah terlewat > 1 hari dan tidak mengisi -> Tidak Mengisi Jurnal
@@ -234,6 +238,8 @@ class HomeroomScheduleWidget extends Widget
                 'has_journal' => $hasJournal,
                 'is_expired' => $isExpired,
                 'is_overdue' => $isExpired,
+                'is_current' => $isCurrent,
+                'is_user_teacher' => $isUserTeacher,
                 'status' => $hasJournal ? 'filled' : ($isExpired ? 'not_filled' : 'unfilled'),
                 'status_label' => $hasJournal ? 'Sudah diisi' : ($isExpired ? 'Tidak mengisi jurnal' : 'Belum diisi'),
             ];

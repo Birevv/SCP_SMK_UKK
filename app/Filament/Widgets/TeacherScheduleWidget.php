@@ -38,7 +38,10 @@ class TeacherScheduleWidget extends Widget
             return false;
         }
 
-        if (! ($user->hasRole('Guru') || $user->role?->name === 'Guru')) {
+        $isTeacher = $user->hasAnyRole(['Guru', 'Wali Kelas'])
+            || in_array($user->role?->name, ['Guru', 'Wali Kelas']);
+
+        if (! $isTeacher) {
             return false;
         }
 
@@ -170,9 +173,12 @@ class TeacherScheduleWidget extends Widget
             $startTimeStr = $startSession ? $startSession['start'] : substr((string) $schedule->start_time, 0, 5);
             $endTimeStr = $endSession ? $endSession['end'] : substr((string) $schedule->end_time, 0, 5);
 
+            $scheduleStartDateTime = Carbon::parse($targetDate->toDateString().' '.$startTimeStr);
             $scheduleEndDateTime = Carbon::parse($targetDate->toDateString().' '.$endTimeStr);
             $isFuture = $targetDate->isFuture();
             $isToday = $targetDate->isToday();
+
+            $isCurrent = $isToday && $now->between($scheduleStartDateTime, $scheduleEndDateTime);
 
             // Jika hari sekarang < hari jadwal -> Belum diisi, nonaktif (diisi pada hari H)
             // Jika hari ini dan belum lewat batas -> Belum diisi, aktif (bisa diisi hari ini)
@@ -221,6 +227,7 @@ class TeacherScheduleWidget extends Widget
                 'can_fill' => $canFill,
                 'target_date' => $targetDate->toDateString(),
                 'target_date_formatted' => $targetDate->translatedFormat('d M Y'),
+                'is_current' => $isCurrent,
                 'status' => $status,
                 'status_label' => $statusLabel,
             ];

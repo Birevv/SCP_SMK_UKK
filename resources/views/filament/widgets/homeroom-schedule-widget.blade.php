@@ -82,38 +82,52 @@
         @else
             {{-- A. TAMPILAN DESKTOP & TABLET: TABEL LENGKAP --}}
             <div class="scp-homeroom-desktop-table overflow-x-auto rounded-xl border border-gray-200 dark:border-gray-800">
-                <table class="w-full text-left text-xs">
+                <table class="scp-homeroom-table w-full text-left text-xs">
                     <thead class="bg-gray-50 dark:bg-gray-800/80 text-gray-600 dark:text-gray-300 border-b border-gray-200 dark:border-gray-800 font-semibold">
                         <tr>
-                            <th class="py-2.5 px-3.5">Waktu</th>
-                            <th class="py-2.5 px-3.5">Kelas</th>
-                            <th class="py-2.5 px-3.5">Mata Pelajaran</th>
-                            <th class="py-2.5 px-3.5">Guru Pengajar</th>
-                            <th class="py-2.5 px-3.5">Ruangan</th>
-                            <th class="py-2.5 px-3.5 text-center">Status Jurnal</th>
+                            <th class="py-3 px-4 first:pl-5">Waktu</th>
+                            <th class="py-3 px-4">Kelas</th>
+                            <th class="py-3 px-4">Mata Pelajaran</th>
+                            <th class="py-3 px-4">Guru Pengajar</th>
+                            <th class="py-3 px-4">Ruangan</th>
+                            <th class="py-3 px-4 last:pr-5 text-center">Status Jurnal</th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-gray-200 dark:divide-gray-800">
                         @foreach ($schedules as $s)
-                            <tr class="hover:bg-gray-50/50 dark:hover:bg-gray-800/40 transition-colors">
-                                <td class="py-2.5 px-3.5 whitespace-nowrap font-mono text-xs text-gray-700 dark:text-gray-300">
-                                    {{ $s['start_time'] }} - {{ $s['end_time'] }}
+                            <tr class="{{ $s['is_current'] ? 'bg-primary-50/70 dark:bg-primary-950/40 font-medium' : 'hover:bg-gray-50/50 dark:hover:bg-gray-800/40' }} transition-colors">
+                                <td class="py-3 px-4 first:pl-5 whitespace-nowrap font-mono text-xs text-gray-700 dark:text-gray-300">
+                                    <div class="flex items-center gap-1.5 flex-wrap">
+                                        <span>{{ $s['start_time'] }} - {{ $s['end_time'] }}</span>
+                                        @if ($s['is_current'])
+                                            <x-filament::badge color="primary" size="sm" icon="heroicon-m-clock">
+                                                Saat Ini
+                                            </x-filament::badge>
+                                        @endif
+                                    </div>
                                 </td>
-                                <td class="py-2.5 px-3.5 whitespace-nowrap">
+                                <td class="py-3 px-4 whitespace-nowrap">
                                     <x-filament::badge color="info" size="sm">
                                         {{ $s['classroom_name'] }}
                                     </x-filament::badge>
                                 </td>
-                                <td class="py-2.5 px-3.5 font-medium text-gray-900 dark:text-white">
+                                <td class="py-3 px-4 font-medium text-gray-900 dark:text-white">
                                     {{ $s['subject_name'] }}
                                 </td>
-                                <td class="py-2.5 px-3.5 text-gray-700 dark:text-gray-200">
-                                    {{ $s['teacher_name'] }}
+                                <td class="py-3 px-4 text-gray-700 dark:text-gray-200">
+                                    <div class="flex items-center gap-1.5 flex-wrap">
+                                        <span>{{ $s['teacher_name'] }}</span>
+                                        @if ($s['is_user_teacher'])
+                                            <x-filament::badge color="success" size="sm">
+                                                Anda
+                                            </x-filament::badge>
+                                        @endif
+                                    </div>
                                 </td>
-                                <td class="py-2.5 px-3.5 text-gray-500 dark:text-gray-400">
+                                <td class="py-3 px-4 text-gray-500 dark:text-gray-400">
                                     {{ $s['room_name'] }}
                                 </td>
-                                <td class="py-2.5 px-3.5 text-center whitespace-nowrap">
+                                <td class="py-3 px-4 last:pr-5 text-center whitespace-nowrap">
                                     @if ($s['has_journal'])
                                         <x-filament::badge color="success" size="sm" icon="heroicon-o-check-circle">
                                             Sudah Diisi
@@ -137,11 +151,18 @@
             {{-- B. TAMPILAN SMARTPHONE: ADAPTIVE CARD LIST --}}
             <div class="scp-homeroom-mobile-cards space-y-2.5">
                 @foreach ($schedules as $s)
-                    <div class="p-3 bg-white dark:bg-gray-900/70 border border-gray-200 dark:border-gray-800 rounded-xl shadow-xs space-y-2">
+                    <div class="p-3 bg-white dark:bg-gray-900/70 border {{ $s['is_current'] ? 'border-primary-500 ring-1 ring-primary-500/30' : 'border-gray-200 dark:border-gray-800' }} rounded-xl shadow-xs space-y-2">
                         <div class="flex items-center justify-between">
-                            <span class="font-mono text-xs font-bold text-primary-600 dark:text-primary-400 bg-primary-50 dark:bg-primary-950/60 px-2 py-0.5 rounded-md">
-                                {{ $s['start_time'] }} - {{ $s['end_time'] }}
-                            </span>
+                            <div class="flex items-center gap-1.5 flex-wrap">
+                                <span class="font-mono text-xs font-bold text-primary-600 dark:text-primary-400 bg-primary-50 dark:bg-primary-950/60 px-2 py-0.5 rounded-md">
+                                    {{ $s['start_time'] }} - {{ $s['end_time'] }}
+                                </span>
+                                @if ($s['is_current'])
+                                    <x-filament::badge color="primary" size="sm" icon="heroicon-m-clock">
+                                        Saat Ini
+                                    </x-filament::badge>
+                                @endif
+                            </div>
                             <x-filament::badge color="info" size="sm">
                                 {{ $s['classroom_name'] }}
                             </x-filament::badge>
@@ -154,6 +175,11 @@
                                 <span class="inline-flex items-center gap-1 text-gray-600 dark:text-gray-300">
                                     <x-filament::icon icon="heroicon-m-user" class="h-3.5 w-3.5 text-gray-400 shrink-0" />
                                     <span>{{ $s['teacher_name'] }}</span>
+                                    @if ($s['is_user_teacher'])
+                                        <x-filament::badge color="success" size="sm" class="ml-0.5">
+                                            Anda
+                                        </x-filament::badge>
+                                    @endif
                                 </span>
                                 <span class="inline-flex items-center gap-1 text-gray-500 dark:text-gray-400">
                                     <x-filament::icon icon="heroicon-m-map-pin" class="h-3.5 w-3.5 text-gray-400 shrink-0" />

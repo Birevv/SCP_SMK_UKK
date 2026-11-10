@@ -3,10 +3,12 @@
 namespace Tests\Feature;
 
 use App\Filament\Resources\Journals\Pages\ListJournals;
+use App\Filament\Widgets\HomeroomScheduleWidget;
 use App\Filament\Widgets\HomeroomStatsWidget;
 use App\Filament\Widgets\StatsOverviewWidget;
 use App\Filament\Widgets\StudentAttendanceWidget;
 use App\Filament\Widgets\SystemConfigWidget;
+use App\Filament\Widgets\TeacherScheduleWidget;
 use App\Filament\Widgets\TeacherStatsWidget;
 use App\Filament\Widgets\UnfilledJournalAlertWidget;
 use App\Filament\Widgets\WakaScheduleWidget;
@@ -82,11 +84,13 @@ class DashboardWidgetsTest extends TestCase
         $this->actingAs($user);
 
         $this->assertTrue(TeacherStatsWidget::canView());
+        $this->assertTrue(TeacherScheduleWidget::canView());
         $this->assertTrue(UnfilledJournalAlertWidget::canView());
 
         $this->assertFalse(StatsOverviewWidget::canView());
         $this->assertFalse(WakaStatsWidget::canView());
         $this->assertFalse(HomeroomStatsWidget::canView());
+        $this->assertFalse(HomeroomScheduleWidget::canView());
         $this->assertFalse(StudentAttendanceWidget::canView());
     }
 
@@ -97,6 +101,8 @@ class DashboardWidgetsTest extends TestCase
         $this->actingAs($user);
 
         $this->assertTrue(HomeroomStatsWidget::canView());
+        $this->assertTrue(HomeroomScheduleWidget::canView());
+        $this->assertTrue(TeacherScheduleWidget::canView());
 
         $this->assertFalse(StatsOverviewWidget::canView());
         $this->assertFalse(WakaStatsWidget::canView());
@@ -110,12 +116,14 @@ class DashboardWidgetsTest extends TestCase
         $user->assignRole('Guru BK');
         $this->actingAs($user);
 
-        // BK dan Wali Kelas sama-sama Tim Kesiswaan, menggunakan HomeroomStatsWidget
+        // BK dan Wali Kelas sama-sama Tim Kesiswaan, menggunakan HomeroomStatsWidget dan HomeroomScheduleWidget
         $this->assertTrue(HomeroomStatsWidget::canView());
+        $this->assertTrue(HomeroomScheduleWidget::canView());
 
         $this->assertFalse(StatsOverviewWidget::canView());
         $this->assertFalse(WakaStatsWidget::canView());
         $this->assertFalse(TeacherStatsWidget::canView());
+        $this->assertFalse(TeacherScheduleWidget::canView());
         $this->assertFalse(StudentAttendanceWidget::canView());
     }
 

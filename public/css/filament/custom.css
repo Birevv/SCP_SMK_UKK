@@ -65,6 +65,9 @@
 .gap-3 {
     gap: 0.75rem;
 }
+.gap-4 {
+    gap: 1rem;
+}
 .space-y-1 > :not([hidden]) ~ :not([hidden]) {
     margin-top: 0.25rem;
 }
@@ -82,6 +85,12 @@
 }
 .space-y-4 > :not([hidden]) ~ :not([hidden]) {
     margin-top: 1rem;
+}
+.space-y-5 > :not([hidden]) ~ :not([hidden]) {
+    margin-top: 1.25rem;
+}
+.space-y-6 > :not([hidden]) ~ :not([hidden]) {
+    margin-top: 1.5rem;
 }
 .mb-1 {
     margin-bottom: 0.25rem;
@@ -162,6 +171,35 @@
 .p-3\.5 {
     padding: 0.875rem;
 }
+.p-4 {
+    padding: 1rem;
+}
+.p-5 {
+    padding: 1.25rem;
+}
+.p-6 {
+    padding: 1.5rem;
+}
+.px-3\.5 {
+    padding-left: 0.875rem !important;
+    padding-right: 0.875rem !important;
+}
+.px-4 {
+    padding-left: 1rem;
+    padding-right: 1rem;
+}
+.px-5 {
+    padding-left: 1.25rem !important;
+    padding-right: 1.25rem !important;
+}
+.py-3 {
+    padding-top: 0.75rem !important;
+    padding-bottom: 0.75rem !important;
+}
+.py-3\.5 {
+    padding-top: 0.875rem !important;
+    padding-bottom: 0.875rem !important;
+}
 .hidden {
     display: none !important;
 }
@@ -173,6 +211,9 @@
 }
 .w-full {
     width: 100%;
+}
+.h-2\.5 {
+    height: 0.625rem;
 }
 .w-3\.5 {
     width: 0.875rem;
@@ -226,6 +267,15 @@
 .rounded-xl {
     border-radius: 0.75rem;
 }
+.rounded-2xl {
+    border-radius: 1rem;
+}
+.rounded-full {
+    border-radius: 9999px;
+}
+.overflow-hidden {
+    overflow: hidden;
+}
 .border {
     border-width: 1px;
     border-style: solid;
@@ -275,13 +325,37 @@
 .bg-primary-50 {
     background-color: #eff6ff;
 }
+.bg-gray-200 {
+    background-color: #e5e7eb;
+}
 .bg-primary-600 {
     background-color: #2563eb;
+}
+.bg-primary-700 {
+    background-color: #1d4ed8;
+}
+.bg-emerald-500 {
+    background-color: #10b981;
+}
+.bg-rose-500 {
+    background-color: #f43f5e;
+}
+.bg-gradient-to-r {
+    background-image: linear-gradient(to right, #2563eb, #1d4ed8) !important;
 }
 
 /* Light text colors */
 .text-white {
     color: #ffffff;
+}
+.text-primary-100 {
+    color: #dbeafe;
+}
+.text-primary-200 {
+    color: #bfdbfe;
+}
+.text-primary-700 {
+    color: #1d4ed8;
 }
 .text-gray-400 {
     color: #9ca3af;
@@ -458,8 +532,26 @@
     .md\:inline-flex {
         display: inline-flex !important;
     }
+    .md\:flex-row {
+        flex-direction: row !important;
+    }
+    .md\:items-center {
+        align-items: center !important;
+    }
     .md\:grid-cols-2 {
-        grid-template-columns: repeat(2, minmax(0, 1fr));
+        grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    }
+    .md\:grid-cols-3 {
+        grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+    }
+    .md\:col-span-1 {
+        grid-column: span 1 / span 1 !important;
+    }
+    .md\:col-span-2 {
+        grid-column: span 2 / span 2 !important;
+    }
+    .md\:col-span-3 {
+        grid-column: span 3 / span 3 !important;
     }
 }
 @media (min-width: 1024px) {
@@ -483,10 +575,80 @@
 /* Homeroom Schedule Widget Responsive Rules */
 .scp-homeroom-desktop-table {
     display: block !important;
+    margin-top: 1rem !important;
+    border: 1px solid #e2e8f0 !important;
+    border-radius: 0.75rem !important;
+    overflow-x: auto !important;
+    background-color: #ffffff !important;
 }
+
+html.dark .scp-homeroom-desktop-table,
+.dark .scp-homeroom-desktop-table {
+    border-color: #334155 !important;
+    background-color: #0f172a !important;
+}
+
+.scp-homeroom-table {
+    width: 100% !important;
+    text-align: left !important;
+    font-size: 0.75rem !important;
+    border-collapse: collapse !important;
+}
+
+.scp-homeroom-table th {
+    background-color: #f8fafc !important;
+    color: #475569 !important;
+    font-weight: 600 !important;
+    padding: 0.75rem 1rem !important;
+    border-bottom: 1px solid #e2e8f0 !important;
+    white-space: nowrap !important;
+}
+
+.scp-homeroom-table th:first-child,
+.scp-homeroom-table td:first-child {
+    padding-left: 1.25rem !important;
+}
+
+.scp-homeroom-table th:last-child,
+.scp-homeroom-table td:last-child {
+    padding-right: 1.25rem !important;
+}
+
+html.dark .scp-homeroom-table th {
+    background-color: #1e293b !important;
+    color: #cbd5e1 !important;
+    border-bottom-color: #334155 !important;
+}
+
+.scp-homeroom-table td {
+    padding: 0.75rem 1rem !important;
+    border-bottom: 1px solid #f1f5f9 !important;
+    color: #334155 !important;
+    vertical-align: middle !important;
+}
+
+html.dark .scp-homeroom-table td {
+    border-bottom-color: rgba(51, 65, 85, 0.5) !important;
+    color: #cbd5e1 !important;
+}
+
+.scp-homeroom-table tbody tr:last-child td {
+    border-bottom: none !important;
+}
+
+.scp-homeroom-table tbody tr:hover td {
+    background-color: #f8fafc !important;
+}
+
+html.dark .scp-homeroom-table tbody tr:hover td {
+    background-color: rgba(51, 65, 85, 0.3) !important;
+}
+
 .scp-homeroom-mobile-cards {
     display: none !important;
+    margin-top: 1rem !important;
 }
+
 @media (max-width: 639.98px) {
     .scp-homeroom-desktop-table {
         display: none !important;
@@ -3490,10 +3652,541 @@ html.dark .scp-cam-select-device,
     margin: 0 auto 0.25rem auto !important;
 }
 
+/* ==========================================================================
+   9. Motion Accessibility & Reduced Motion Enhancements
+   ========================================================================== */
+@media (prefers-reduced-motion: reduce) {
+    *, ::before, ::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+        scroll-behavior: auto !important;
+    }
+}
+/* ==========================================================================
+   9. Student Dashboard Attendance Widget (.scp-student-*)
+   ========================================================================== */
 
+/* 9.1 Header Card */
+.scp-student-hero {
+    background-color: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 0.75rem;
+    padding: 1.25rem 1.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+}
 
+@media (min-width: 640px) {
+    .scp-student-hero {
+        flex-direction: row;
+        align-items: center;
+        justify-content: space-between;
+    }
+}
 
+html.dark .scp-student-hero,
+.dark .scp-student-hero {
+    background-color: #0f172a;
+    border-color: #1e293b;
+    box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.3);
+}
 
+.scp-student-hero-content {
+    display: flex;
+    flex-direction: column;
+    gap: 0.375rem;
+}
 
+.scp-student-meta-row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.75rem;
+}
 
+.scp-student-meta-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.375rem;
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: #1d4ed8;
+    background-color: #eff6ff;
+    border: 1px solid #bfdbfe;
+    padding: 0.2rem 0.625rem;
+    border-radius: 0.375rem;
+}
 
+html.dark .scp-student-meta-pill,
+.dark .scp-student-meta-pill {
+    color: #93c5fd;
+    background-color: rgba(30, 58, 138, 0.4);
+    border-color: #1e40af;
+}
+
+.scp-student-cycle-text {
+    font-size: 0.75rem;
+    font-weight: 500;
+    color: #64748b;
+}
+
+html.dark .scp-student-cycle-text,
+.dark .scp-student-cycle-text {
+    color: #94a3b8;
+}
+
+.scp-student-hero-title {
+    font-size: 1.375rem;
+    font-weight: 700;
+    color: #0f172a;
+    line-height: 1.25;
+    margin: 0;
+    letter-spacing: -0.01em;
+}
+
+@media (min-width: 640px) {
+    .scp-student-hero-title {
+        font-size: 1.5rem;
+    }
+}
+
+html.dark .scp-student-hero-title,
+.dark .scp-student-hero-title {
+    color: #f8fafc;
+}
+
+.scp-student-hero-date {
+    display: flex;
+    align-items: center;
+    gap: 0.375rem;
+    font-size: 0.8125rem;
+    color: #64748b;
+    margin: 0;
+}
+
+html.dark .scp-student-hero-date,
+.dark .scp-student-hero-date {
+    color: #94a3b8;
+}
+
+.scp-student-hero-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    background-color: #2563eb;
+    color: #ffffff !important;
+    font-size: 0.875rem;
+    font-weight: 600;
+    padding: 0.625rem 1.25rem;
+    border-radius: 0.5rem;
+    text-decoration: none;
+    box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+    transition: background-color 0.15s ease-in-out;
+    white-space: nowrap;
+    border: none;
+    cursor: pointer;
+    min-height: 44px;
+    box-sizing: border-box;
+}
+
+.scp-student-hero-btn:hover {
+    background-color: #1d4ed8;
+    color: #ffffff !important;
+    text-decoration: none;
+}
+
+.scp-student-hero-btn:focus-visible {
+    outline: 2px solid #2563eb;
+    outline-offset: 2px;
+}
+
+@media (max-width: 639px) {
+    .scp-student-hero-btn {
+        width: 100%;
+    }
+}
+
+/* 9.2 Progress Bar */
+.scp-student-progress-wrapper {
+    width: 100%;
+    margin-top: 1rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.375rem;
+}
+
+.scp-student-progress-track {
+    width: 100%;
+    height: 12px;
+    background-color: #e2e8f0;
+    border-radius: 9999px;
+    overflow: hidden;
+    position: relative;
+    border: 1px solid #cbd5e1;
+    box-sizing: border-box;
+}
+
+html.dark .scp-student-progress-track,
+.dark .scp-student-progress-track {
+    background-color: #1e293b;
+    border-color: #334155;
+}
+
+.scp-student-progress-marker {
+    position: absolute;
+    left: 75%;
+    top: 0;
+    bottom: 0;
+    width: 2px;
+    background-color: #64748b;
+    z-index: 2;
+}
+
+html.dark .scp-student-progress-marker,
+.dark .scp-student-progress-marker {
+    background-color: #94a3b8;
+}
+
+.scp-student-progress-bar {
+    height: 100%;
+    border-radius: 9999px;
+    transition: width 0.5s ease-in-out;
+}
+
+.scp-student-progress-success {
+    background-color: #10b981;
+}
+
+.scp-student-progress-danger {
+    background-color: #f43f5e;
+}
+
+.scp-student-progress-labels {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 0.75rem;
+    font-weight: 500;
+    color: #64748b;
+}
+
+html.dark .scp-student-progress-labels,
+.dark .scp-student-progress-labels {
+    color: #94a3b8;
+}
+
+/* 9.3 Stat Mini Grid */
+.scp-student-stats-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.75rem;
+    margin-top: 1.25rem;
+    padding-top: 1.25rem;
+    border-top: 1px solid #f1f5f9;
+}
+
+@media (min-width: 640px) {
+    .scp-student-stats-grid {
+        grid-template-columns: repeat(4, 1fr);
+    }
+}
+
+html.dark .scp-student-stats-grid,
+.dark .scp-student-stats-grid {
+    border-top-color: #1e293b;
+}
+
+.scp-student-stat-card {
+    background-color: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 0.5rem;
+    padding: 0.875rem 1rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+    transition: border-color 0.15s ease;
+}
+
+html.dark .scp-student-stat-card,
+.dark .scp-student-stat-card {
+    background-color: #0f172a;
+    border-color: #334155;
+}
+
+.scp-student-stat-label {
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: #64748b;
+}
+
+html.dark .scp-student-stat-label,
+.dark .scp-student-stat-label {
+    color: #94a3b8;
+}
+
+.scp-student-stat-val-row {
+    display: flex;
+    align-items: baseline;
+    gap: 0.25rem;
+}
+
+.scp-student-stat-val {
+    font-size: 1.375rem;
+    font-weight: 700;
+    line-height: 1;
+}
+
+.scp-student-stat-unit {
+    font-size: 0.75rem;
+    color: #64748b;
+    font-weight: 400;
+}
+
+html.dark .scp-student-stat-unit,
+.dark .scp-student-stat-unit {
+    color: #94a3b8;
+}
+
+.scp-student-stat-hadir .scp-student-stat-val {
+    color: #059669;
+}
+html.dark .scp-student-stat-hadir .scp-student-stat-val {
+    color: #34d399;
+}
+
+.scp-student-stat-sakit .scp-student-stat-val {
+    color: #d97706;
+}
+html.dark .scp-student-stat-sakit .scp-student-stat-val {
+    color: #fbbf24;
+}
+
+.scp-student-stat-izin .scp-student-stat-val {
+    color: #2563eb;
+}
+html.dark .scp-student-stat-izin .scp-student-stat-val {
+    color: #60a5fa;
+}
+
+.scp-student-stat-alpa .scp-student-stat-val {
+    color: #e11d48;
+}
+html.dark .scp-student-stat-alpa .scp-student-stat-val {
+    color: #fb7185;
+}
+
+/* 9.4 Schedule Cards Grid */
+.scp-student-schedule-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 0.875rem;
+}
+
+@media (min-width: 768px) {
+    .scp-student-schedule-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (min-width: 1024px) {
+    .scp-student-schedule-grid {
+        grid-template-columns: repeat(3, 1fr);
+    }
+}
+
+.scp-student-schedule-card {
+    background-color: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 0.625rem;
+    padding: 1rem;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    transition: all 0.15s ease-in-out;
+}
+
+.scp-student-schedule-card:hover {
+    border-color: #cbd5e1;
+    box-shadow: 0 2px 4px 0 rgba(0, 0, 0, 0.04);
+}
+
+html.dark .scp-student-schedule-card,
+.dark .scp-student-schedule-card {
+    background-color: #0f172a;
+    border-color: #334155;
+}
+
+html.dark .scp-student-schedule-card:hover,
+.dark .scp-student-schedule-card:hover {
+    border-color: #475569;
+}
+
+.scp-student-schedule-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem;
+    margin-bottom: 0.625rem;
+}
+
+.scp-student-time-pill {
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: #1d4ed8;
+    background-color: #eff6ff;
+    border: 1px solid #bfdbfe;
+    padding: 0.2rem 0.5rem;
+    border-radius: 0.375rem;
+}
+
+html.dark .scp-student-time-pill,
+.dark .scp-student-time-pill {
+    color: #93c5fd;
+    background-color: rgba(30, 58, 138, 0.4);
+    border-color: #1e40af;
+}
+
+.scp-student-room-pill {
+    font-size: 0.75rem;
+    font-weight: 500;
+    color: #334155;
+    background-color: #f1f5f9;
+    border: 1px solid #e2e8f0;
+    padding: 0.2rem 0.5rem;
+    border-radius: 0.375rem;
+}
+
+html.dark .scp-student-room-pill,
+.dark .scp-student-room-pill {
+    color: #cbd5e1;
+    background-color: #1e293b;
+    border-color: #334155;
+}
+
+.scp-student-subject-name {
+    font-size: 0.875rem;
+    font-weight: 700;
+    color: #0f172a;
+    line-height: 1.35;
+    margin: 0 0 0.75rem 0;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+html.dark .scp-student-subject-name,
+.dark .scp-student-subject-name {
+    color: #f8fafc;
+}
+
+.scp-student-teacher-row {
+    display: flex;
+    align-items: center;
+    gap: 0.375rem;
+    font-size: 0.75rem;
+    color: #64748b;
+    padding-top: 0.5rem;
+    border-top: 1px solid #f1f5f9;
+    margin-top: auto;
+}
+
+html.dark .scp-student-teacher-row,
+.dark .scp-student-teacher-row {
+    color: #94a3b8;
+    border-top-color: #1e293b;
+}
+
+/* 9.5 Tables & Overflow Box */
+.scp-student-table-box {
+    border: 1px solid #e2e8f0;
+    border-radius: 0.5rem;
+    overflow-x: auto;
+    background-color: #ffffff;
+}
+
+html.dark .scp-student-table-box,
+.dark .scp-student-table-box {
+    border-color: #334155;
+    background-color: #0f172a;
+}
+
+.scp-student-table {
+    width: 100%;
+    text-align: left;
+    font-size: 0.75rem;
+    border-collapse: collapse;
+}
+
+.scp-student-table th {
+    background-color: #f8fafc;
+    color: #475569;
+    font-weight: 600;
+    padding: 0.625rem 0.875rem;
+    border-bottom: 1px solid #e2e8f0;
+    white-space: nowrap;
+}
+
+html.dark .scp-student-table th,
+.dark .scp-student-table th {
+    background-color: #1e293b;
+    color: #cbd5e1;
+    border-bottom-color: #334155;
+}
+
+.scp-student-table td {
+    padding: 0.625rem 0.875rem;
+    border-bottom: 1px solid #f1f5f9;
+    color: #334155;
+    vertical-align: middle;
+}
+
+html.dark .scp-student-table td,
+.dark .scp-student-table td {
+    border-bottom-color: rgba(51, 65, 85, 0.5);
+    color: #cbd5e1;
+}
+
+.scp-student-table tbody tr:last-child td {
+    border-bottom: none;
+}
+
+.scp-student-table tbody tr:hover td {
+    background-color: #f8fafc;
+}
+
+html.dark .scp-student-table tbody tr:hover td {
+    background-color: rgba(51, 65, 85, 0.3);
+}
+
+.scp-student-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: #2563eb;
+    text-decoration: none;
+    transition: color 0.15s ease;
+    min-height: 44px;
+}
+
+.scp-student-link:hover {
+    color: #1d4ed8;
+    text-decoration: underline;
+}
+
+html.dark .scp-student-link,
+.dark .scp-student-link {
+    color: #60a5fa;
+}
+
+html.dark .scp-student-link:hover,
+.dark .scp-student-link:hover {
+    color: #93c5fd;
+}
