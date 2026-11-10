@@ -23,6 +23,10 @@ class MajorResource extends Resource
 
     protected static string|UnitEnum|null $navigationGroup = 'Data Master';
 
+    protected static ?string $modelLabel = 'Jurusan';
+
+    protected static ?string $pluralModelLabel = 'Data Jurusan';
+
     protected static ?string $navigationLabel = 'Jurusan';
 
     protected static ?string $pluralLabel = 'Data Jurusan';

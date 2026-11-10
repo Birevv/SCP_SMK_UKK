@@ -110,12 +110,15 @@ class JournalForm
                     ->directory('journal_photos')
                     ->visibility('public')
                     ->maxSize(5120)
+                    ->enableWatermark(true)
+                    ->defaultFacingMode('environment')
+                    ->captureType('journal')
                     ->columnSpanFull()
-                    ->label('Bukti Foto Kegiatan (Realtime)')
-                    ->helperText('Ambil foto kegiatan belajar mengajar secara langsung (realtime) menggunakan kamera perangkat.')
+                    ->label('Bukti Foto Kegiatan Pembelajaran (Realtime)')
+                    ->helperText('Ambil foto kegiatan pembelajaran secara langsung menggunakan kamera perangkat (kamera depan/belakang). Foto wajib diambil secara realtime.')
                     ->required(fn () => ! app()->runningUnitTests())
                     ->validationMessages([
-                        'required' => 'Bukti foto kegiatan mengajar wajib diunggah.',
+                        'required' => 'Bukti foto kegiatan mengajar wajib diambil secara realtime.',
                     ]),
 
                 Section::make('Daftar Presensi Siswa')

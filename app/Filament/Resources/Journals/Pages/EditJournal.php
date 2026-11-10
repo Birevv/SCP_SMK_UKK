@@ -13,6 +13,8 @@ class EditJournal extends EditRecord
 
     protected static string $resource = JournalResource::class;
 
+    protected static ?string $title = 'Ubah Jurnal';
+
     protected function getRedirectUrl(): string
     {
         return $this->getResource()::getUrl('index');

@@ -28,9 +28,11 @@ class SystemConfigurationResource extends Resource
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::Cog6Tooth;
 
-    protected static UnitEnum|string|null $navigationGroup = 'Settings';
+    protected static UnitEnum|string|null $navigationGroup = 'Pengaturan';
 
     protected static ?string $modelLabel = 'Konfigurasi Sistem';
+
+    protected static ?string $pluralModelLabel = 'Konfigurasi Sistem';
 
     protected static ?string $navigationLabel = 'Konfigurasi Sistem';
 

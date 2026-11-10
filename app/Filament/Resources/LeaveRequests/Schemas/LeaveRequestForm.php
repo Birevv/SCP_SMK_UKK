@@ -3,6 +3,7 @@
 namespace App\Filament\Resources\LeaveRequests\Schemas;
 
 use App\Enums\ReasonTypeEnum;
+use App\Filament\Forms\Components\RealtimePhotoCapture;
 use App\Models\LeaveRequest;
 use App\Models\SchoolSession;
 use Filament\Forms\Components\DatePicker;
@@ -201,19 +202,21 @@ class LeaveRequestForm
                     ->columnSpanFull()
                     ->label('Keterangan Alasan'),
 
-                FileUpload::make('attachment_photo')
-                    ->label('Lampiran / Surat Dokter')
+                RealtimePhotoCapture::make('attachment_photo')
+                    ->label('Lampiran Foto Surat Dokter / Bukti Izin (Realtime)')
                     ->disk('public')
                     ->directory('leave_attachments')
                     ->visibility('public')
                     ->maxSize(2048)
-                    ->acceptedFileTypes(['image/jpeg', 'image/png', 'image/jpg', 'image/webp', 'application/pdf'])
-                    ->openable()
-                    ->downloadable()
+                    ->allowPdf(true)
+                    ->enableWatermark(false)
+                    ->defaultFacingMode('environment')
+                    ->captureType('leave_request')
+                    ->columnSpanFull()
+                    ->helperText('Ambil foto surat dokter/bukti izin secara langsung menggunakan kamera perangkat (kamera depan/belakang). Foto wajib diambil secara realtime.')
                     ->required()
                     ->validationMessages([
-                        'required' => 'Dokumen bukti / surat perizinan wajib diunggah.',
-                        'max' => 'Ukuran berkas dokumen bukti maksimal 2 MB (2048 KB).',
+                        'required' => 'Foto bukti / surat perizinan wajib diambil secara realtime.',
                     ]),
 
                 Select::make('status')

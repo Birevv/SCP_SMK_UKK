@@ -25,6 +25,10 @@ class ScheduleResource extends Resource
 
     protected static UnitEnum|string|null $navigationGroup = 'Manajemen Akademik';
 
+    protected static ?string $modelLabel = 'Jadwal Mengajar';
+
+    protected static ?string $pluralModelLabel = 'Jadwal Mengajar';
+
     protected static ?string $navigationLabel = 'Jadwal Mengajar';
 
     protected static ?string $pluralLabel = 'Jadwal Mengajar';

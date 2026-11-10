@@ -23,6 +23,10 @@ class ClassLevelResource extends Resource
 
     protected static string|UnitEnum|null $navigationGroup = 'Data Master';
 
+    protected static ?string $modelLabel = 'Tingkat Kelas';
+
+    protected static ?string $pluralModelLabel = 'Data Tingkat Kelas';
+
     protected static ?string $navigationLabel = 'Tingkat Kelas';
 
     protected static ?string $pluralLabel = 'Data Tingkat Kelas';

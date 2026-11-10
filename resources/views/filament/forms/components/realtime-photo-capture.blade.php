@@ -11,276 +11,77 @@
                 ? $initialState
                 : asset('storage/' . ltrim($initialState, '/'));
         }
+
+        $directory = method_exists($field, 'getDirectory') ? $field->getDirectory() : 'journal_photos';
+        $maxSizeKb = method_exists($field, 'getMaxSize') ? $field->getMaxSize() : 5120;
+        $enableWatermark = method_exists($field, 'getEnableWatermark') ? $field->getEnableWatermark() : true;
+        $defaultFacing = method_exists($field, 'getDefaultFacingMode') ? $field->getDefaultFacingMode() : 'environment';
+        $captureType = method_exists($field, 'getCaptureType') ? $field->getCaptureType() : 'journal';
+        $isDisabled = $isDisabled();
     @endphp
 
-    <style>
-        .rtc-box {
-            width: 100%;
-            max-width: 580px;
-            margin: 0 auto;
-            border-radius: 0.75rem;
-            border: 1px dashed #cbd5e1;
-            background-color: #f8fafc;
-            padding: 1.25rem 1rem;
-            text-align: center;
-            box-sizing: border-box;
-            transition: background-color 0.2s, border-color 0.2s;
-        }
-        html.dark .rtc-box, .dark .rtc-box {
-            border-color: #334155;
-            background-color: #0f172a;
-        }
-
-        .rtc-screen {
-            width: 100%;
-            max-width: 540px;
-            aspect-ratio: 16 / 9;
-            max-height: 315px;
-            margin: 0 auto;
-            border-radius: 0.5rem;
-            overflow: hidden;
-            position: relative;
-            background-color: #000000;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .rtc-video {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-            display: block;
-            transform: scaleX(-1);
-        }
-
-        .rtc-preview-img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-            display: block;
-        }
-
-        .rtc-badge-live {
-            position: absolute;
-            top: 8px;
-            left: 8px;
-            z-index: 10;
-            display: inline-flex;
-            align-items: center;
-            gap: 5px;
-            padding: 3px 8px;
-            border-radius: 9999px;
-            background-color: rgba(220, 38, 38, 0.9);
-            color: #ffffff;
-            font-size: 10px;
-            font-weight: 700;
-            letter-spacing: 0.5px;
-            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
-        }
-
-        .rtc-badge-success {
-            position: absolute;
-            top: 8px;
-            left: 8px;
-            z-index: 10;
-            display: inline-flex;
-            align-items: center;
-            gap: 5px;
-            padding: 3px 8px;
-            border-radius: 9999px;
-            background-color: rgba(16, 185, 129, 0.95);
-            color: #ffffff;
-            font-size: 10px;
-            font-weight: 700;
-            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
-        }
-
-        .rtc-pulse-dot {
-            width: 6px;
-            height: 6px;
-            border-radius: 50%;
-            background-color: #ffffff;
-            animation: rtcPulse 1.2s infinite;
-        }
-
-        @keyframes rtcPulse {
-            0%, 100% { opacity: 1; transform: scale(1); }
-            50% { opacity: 0.4; transform: scale(0.85); }
-        }
-
-        .rtc-actions {
-            margin-top: 10px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-            flex-wrap: wrap;
-        }
-
-        .rtc-btn {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            gap: 6px;
-            padding: 7px 16px;
-            border-radius: 6px;
-            font-size: 12.5px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.15s ease;
-            text-decoration: none;
-            line-height: 1.4;
-            box-sizing: border-box;
-        }
-
-        .rtc-btn-shutter {
-            background-color: #2563eb;
-            color: #ffffff;
-            border: 1px solid #1d4ed8;
-            box-shadow: 0 2px 4px rgba(37, 99, 235, 0.25);
-        }
-        .rtc-btn-shutter:hover:not(:disabled) {
-            background-color: #1d4ed8;
-        }
-        .rtc-btn-shutter:disabled {
-            opacity: 0.6;
-            cursor: not-allowed;
-        }
-
-        .rtc-btn-retake {
-            background-color: #ffffff;
-            color: #334155;
-            border: 1px solid #cbd5e1;
-        }
-        .rtc-btn-retake:hover {
-            background-color: #f1f5f9;
-        }
-        html.dark .rtc-btn-retake, .dark .rtc-btn-retake {
-            background-color: #1e293b;
-            color: #f1f5f9;
-            border-color: #475569;
-        }
-        html.dark .rtc-btn-retake:hover, .dark .rtc-btn-retake:hover {
-            background-color: #334155;
-        }
-
-        .rtc-btn-remove {
-            background-color: #fef2f2;
-            color: #dc2626;
-            border: 1px solid #fecaca;
-        }
-        .rtc-btn-remove:hover {
-            background-color: #fee2e2;
-        }
-        html.dark .rtc-btn-remove, .dark .rtc-btn-remove {
-            background-color: rgba(127, 29, 29, 0.3);
-            color: #fca5a5;
-            border-color: rgba(185, 28, 28, 0.5);
-        }
-        html.dark .rtc-btn-remove:hover, .dark .rtc-btn-remove:hover {
-            background-color: rgba(127, 29, 29, 0.5);
-        }
-
-        .rtc-empty-icon {
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin: 0 auto 8px auto;
-            background-color: #e2e8f0;
-            color: #64748b;
-        }
-        html.dark .rtc-empty-icon, .dark .rtc-empty-icon {
-            background-color: #1e293b;
-            color: #94a3b8;
-        }
-
-        .rtc-title {
-            font-size: 13px;
-            font-weight: 600;
-            margin: 0 0 4px 0;
-            color: #1e293b;
-        }
-        html.dark .rtc-title, .dark .rtc-title {
-            color: #f8fafc;
-        }
-
-        .rtc-desc {
-            font-size: 11.5px;
-            color: #64748b;
-            margin: 0 auto 10px auto;
-            max-width: 320px;
-            line-height: 1.4;
-        }
-        html.dark .rtc-desc, .dark .rtc-desc {
-            color: #94a3b8;
-        }
-
-        .rtc-alert {
-            display: flex;
-            align-items: flex-start;
-            gap: 6px;
-            padding: 6px 10px;
-            border-radius: 6px;
-            font-size: 11px;
-            text-align: left;
-            margin: 0 auto 10px auto;
-            max-width: 360px;
-            background-color: #fffbeb;
-            border: 1px solid #fde68a;
-            color: #92400e;
-        }
-        html.dark .rtc-alert, .dark .rtc-alert {
-            background-color: rgba(120, 53, 15, 0.25);
-            border-color: rgba(180, 83, 9, 0.4);
-            color: #fcd34d;
-        }
-    </style>
-
     <div
-        x-data="realtimePhotoCapture({
+        x-data="scpInlineCameraComponent({
             statePath: @js($statePath),
             initialValue: @js(is_string($initialState) ? $initialState : null),
             initialUrl: @js($initialUrl),
             uploadUrl: @js(route('admin.journals.upload-realtime-photo')),
             csrfToken: @js(csrf_token()),
+            directory: @js($directory),
+            maxSizeKb: @js($maxSizeKb),
+            enableWatermark: @js($enableWatermark),
+            defaultFacingMode: @js($defaultFacing),
+            captureType: @js($captureType),
+            isDisabled: @js($isDisabled),
         })"
-        x-init="init()"
-        style="width: 100%; display: flex; justify-content: center;"
+        x-init="initComponent()"
+        class="scp-cam-wrapper"
     >
-        {{-- Hidden input for form sync --}}
+        {{-- Hidden Input for Livewire Form Submission --}}
         <input type="hidden" name="{{ $statePath }}" :value="photoValue" />
 
-        {{-- Main Container --}}
-        <div class="rtc-box">
-            {{-- 1. KONDISI SUDAH ADA FOTO (PREVIEW) --}}
-            <div x-show="hasPhoto && !isCameraActive" x-cloak>
-                <div class="rtc-screen">
-                    <template x-if="photoUrl">
-                        <img :src="photoUrl" alt="Bukti Foto Realtime" class="rtc-preview-img" />
-                    </template>
-                    <div class="rtc-badge-success">
-                        <svg style="width: 13px; height: 13px;" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5" />
+        {{-- Hidden Canvas for Snapshot Capture & Watermarking --}}
+        <canvas x-ref="snapshotCanvasRef" style="display: none;"></canvas>
+
+        {{-- Main Inline Card (Directly embedded in form, no modal) --}}
+        <div class="scp-cam-inline-card">
+
+            {{-- 1. KONDISI SUDAH ADA FOTO (PREVIEW HASIL FOTO REALTIME) --}}
+            <div x-show="hasItem" x-cloak>
+                <div class="scp-cam-inline-header">
+                    <div class="scp-cam-inline-title">
+                        <svg class="h-4 w-4 text-emerald-600 dark:text-emerald-400" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                         </svg>
-                        <span>Foto Realtime Terlampir</span>
+                        <span>Foto Realtime Berhasil Diambil</span>
                     </div>
+                    <span class="text-xs text-gray-500 dark:text-gray-400 font-mono" x-show="capturedTimestamp" x-text="capturedTimestamp"></span>
                 </div>
 
-                <div class="rtc-actions">
-                    <button type="button" @click="retakePhoto()" class="rtc-btn rtc-btn-retake">
-                        <svg style="width: 14px; height: 14px;" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                {{-- Preview Display Screen --}}
+                <div class="scp-cam-inline-viewport" style="aspect-ratio: 16 / 9; max-height: 380px;">
+                    <img :src="itemUrl" alt="Bukti Foto Realtime" class="scp-cam-inline-video" style="object-fit: contain; background-color: #020617;" />
+                </div>
+
+                {{-- Action Buttons saat foto sudah ada --}}
+                <div class="scp-cam-inline-controls" x-show="!isDisabled">
+                    <button
+                        type="button"
+                        @click="retakePhoto()"
+                        class="scp-btn-cam-secondary"
+                    >
+                        <svg class="h-4 w-4 text-gray-600 dark:text-gray-300" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0l3.181 3.183a8.25 8.25 0 0013.803-3.7M4.031 9.865a8.25 8.25 0 0113.803-3.7l3.181 3.182m0-4.991v4.99" />
                         </svg>
-                        <span>Ambil Ulang (Kamera)</span>
+                        <span>Ambil Ulang Foto</span>
                     </button>
 
-                    <button type="button" @click="removePhoto()" class="rtc-btn rtc-btn-remove">
-                        <svg style="width: 14px; height: 14px;" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                    <button
+                        type="button"
+                        @click="removeItem()"
+                        class="scp-btn-cam-danger"
+                    >
+                        <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0" />
                         </svg>
                         <span>Hapus</span>
@@ -288,175 +89,317 @@
                 </div>
             </div>
 
-            {{-- 2. KONDISI KAMERA AKTIF (LIVE STREAM PC) --}}
-            <div x-show="isCameraActive && !hasPhoto" x-cloak>
-                <div class="rtc-screen">
-                    <video
-                        x-ref="videoElement"
-                        autoplay
-                        playsinline
-                        muted
-                        class="rtc-video"
-                    ></video>
+            {{-- 2. KONDISI KAMERA LANGSUNG DITAMPILKAN DI HALAMAN (INLINE KAMERA) --}}
+            <div x-show="!hasItem" x-cloak>
+                <div class="scp-cam-inline-header">
+                    <div class="scp-cam-inline-title">
+                        <svg class="h-4 w-4 text-primary-600 dark:text-primary-400" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M6.827 6.175A2.31 2.31 0 015.186 7.23c-.38.054-.757.112-1.134.175C2.999 7.58 2.25 8.507 2.25 9.574V18a2.25 2.25 0 002.25 2.25h15A2.25 2.25 0 0021.75 18V9.574c0-1.067-.75-1.994-1.802-2.169a47.865 47.865 0 00-1.134-.175 2.31 2.31 0 01-1.64-1.055l-.822-1.316a2.192 2.192 0 00-1.736-1.039 48.774 48.774 0 00-5.232 0 2.192 2.192 0 00-1.736 1.039l-.821 1.316z" />
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M16.5 12.75a4.5 4.5 0 11-9 0 4.5 4.5 0 019 0zM18.75 10.5h.008v.008h-.008V10.5z" />
+                        </svg>
+                        <span x-text="captureType === 'leave_request' ? 'Foto Surat Izin / Sakit (Realtime)' : 'Bukti Foto Kegiatan Pembelajaran (Realtime)'"></span>
+                    </div>
 
-                    {{-- Live Indicator --}}
-                    <div class="rtc-badge-live">
-                        <span class="rtc-pulse-dot"></span>
-                        <span>LIVE KAMERA REALTIME</span>
+                    {{-- Info mode kamera saat streaming --}}
+                    <div class="flex items-center gap-2" x-show="isStreaming">
+                        <span class="inline-flex items-center gap-1.5 text-xs text-gray-500 dark:text-gray-400 font-medium">
+                            <span class="h-2 w-2 rounded-full bg-emerald-500"></span>
+                            <span x-text="currentFacingMode === 'environment' ? 'Kamera Belakang' : 'Kamera Depan'"></span>
+                        </span>
                     </div>
                 </div>
 
-                {{-- Action Shutter Button --}}
-                <div class="rtc-actions">
-                    <button
-                        type="button"
-                        @click="takeSnapshot()"
-                        :disabled="isUploading"
-                        class="rtc-btn rtc-btn-shutter"
+                {{-- Alert Error jika izin kamera ditolak / tidak tersedia --}}
+                <template x-if="cameraError">
+                    <div class="mb-3 p-3 rounded-lg text-xs bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800 text-amber-800 dark:text-amber-300 flex items-start gap-2.5">
+                        <svg class="h-4 w-4 shrink-0 text-amber-600 mt-0.5" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z" />
+                        </svg>
+                        <div class="flex-1">
+                            <p x-text="cameraError" class="font-medium"></p>
+                            <p class="text-[11px] text-amber-700 dark:text-amber-400 mt-1">
+                                Pastikan kamera tidak digunakan oleh aplikasi lain dan browser memiliki izin akses kamera.
+                            </p>
+                        </div>
+                    </div>
+                </template>
+
+                {{-- Viewport Kamera Langsung di Halaman --}}
+                <div class="scp-cam-inline-viewport">
+                    {{-- 1. Video Stream --}}
+                    <video
+                        x-ref="videoRef"
+                        autoplay
+                        playsinline
+                        muted
+                        class="scp-cam-inline-video"
+                        :class="{ 'is-mirrored': currentFacingMode === 'user' }"
+                        x-show="isStreaming && !isUploading"
+                    ></video>
+
+                    {{-- 2. Standby Box saat kamera belum aktif --}}
+                    <div
+                        x-show="!isStreaming && !isCameraLoading && !isUploading"
+                        x-cloak
+                        class="scp-cam-standby-box"
                     >
-                        <template x-if="!isUploading">
-                            <span style="display: inline-flex; align-items: center; gap: 6px;">
-                                <svg style="width: 16px; height: 16px;" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                        <div class="scp-cam-standby-icon">
+                            <svg style="width: 22px; height: 22px;" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M6.827 6.175A2.31 2.31 0 015.186 7.23c-.38.054-.757.112-1.134.175C2.999 7.58 2.25 8.507 2.25 9.574V18a2.25 2.25 0 002.25 2.25h15A2.25 2.25 0 0021.75 18V9.574c0-1.067-.75-1.994-1.802-2.169a47.865 47.865 0 00-1.134-.175 2.31 2.31 0 01-1.64-1.055l-.822-1.316a2.192 2.192 0 00-1.736-1.039 48.774 48.774 0 00-5.232 0 2.192 2.192 0 00-1.736 1.039l-.821 1.316z" />
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M16.5 12.75a4.5 4.5 0 11-9 0 4.5 4.5 0 019 0zM18.75 10.5h.008v.008h-.008V10.5z" />
+                            </svg>
+                        </div>
+                        <span style="font-size: 0.8125rem; font-weight: 600; color: #f8fafc;">Kamera Belum Aktif</span>
+                        <span style="font-size: 0.6875rem; color: #94a3b8; max-width: 280px; margin: 0 auto; line-height: 1.3;">
+                            Klik tombol "Nyalakan Kamera" untuk mulai mengambil foto langsung.
+                        </span>
+                    </div>
+
+                    {{-- 3. Indicator Loading Kamera --}}
+                    <div
+                        x-show="isCameraLoading"
+                        x-cloak
+                        class="scp-cam-loading-overlay"
+                    >
+                        <div class="scp-cam-spinner"></div>
+                        <p class="scp-cam-loading-text">Menghubungkan Kamera...</p>
+                        <p class="scp-cam-loading-subtext">Mohon izinkan akses kamera jika diminta browser</p>
+                    </div>
+
+                    {{-- 4. Indicator Menyimpan Foto --}}
+                    <div
+                        x-show="isUploading"
+                        x-cloak
+                        class="scp-cam-loading-overlay"
+                    >
+                        <div class="scp-cam-spinner scp-cam-spinner-success"></div>
+                        <p class="scp-cam-loading-text">Menyimpan Foto Realtime...</p>
+                        <p class="scp-cam-loading-subtext">Menerapkan watermark & verifikasi tanggal</p>
+                    </div>
+                </div>
+
+                {{-- Toolbar Kontrol Kamera di Bawah Video --}}
+                <div class="scp-cam-inline-controls" x-show="!isDisabled">
+
+                    {{-- A. Saat Kamera Sedang Aktif --}}
+                    <template x-if="isStreaming">
+                        <div class="flex items-center justify-center gap-2.5 flex-wrap w-full">
+                            {{-- Tombol Ambil Foto Utama --}}
+                            <button
+                                type="button"
+                                @click="takeSnapshot()"
+                                :disabled="!isStreaming || isCameraLoading || isUploading"
+                                class="scp-btn-cam-primary"
+                            >
+                                <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
                                     <path stroke-linecap="round" stroke-linejoin="round" d="M6.827 6.175A2.31 2.31 0 015.186 7.23c-.38.054-.757.112-1.134.175C2.999 7.58 2.25 8.507 2.25 9.574V18a2.25 2.25 0 002.25 2.25h15A2.25 2.25 0 0021.75 18V9.574c0-1.067-.75-1.994-1.802-2.169a47.865 47.865 0 00-1.134-.175 2.31 2.31 0 01-1.64-1.055l-.822-1.316a2.192 2.192 0 00-1.736-1.039 48.774 48.774 0 00-5.232 0 2.192 2.192 0 00-1.736 1.039l-.821 1.316z" />
                                     <path stroke-linecap="round" stroke-linejoin="round" d="M16.5 12.75a4.5 4.5 0 11-9 0 4.5 4.5 0 019 0zM18.75 10.5h.008v.008h-.008V10.5z" />
                                 </svg>
-                                <span>Ambil Foto Realtime</span>
-                            </span>
-                        </template>
-                        <template x-if="isUploading">
-                            <span style="display: inline-flex; align-items: center; gap: 6px;">
-                                <span>Menyimpan Foto...</span>
-                            </span>
-                        </template>
-                    </button>
-                </div>
-            </div>
+                                <span>Ambil Foto</span>
+                            </button>
 
-            {{-- 3. KONDISI KAMERA BELUM AKTIF / PERLU IZIN / ERROR --}}
-            <div x-show="!isCameraActive && !hasPhoto">
-                {{-- Clean Circular Icon --}}
-                <div class="rtc-empty-icon">
-                    <template x-if="streamError">
-                        <svg style="width: 22px; height: 22px; color: #d97706;" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M3.98 8.223A10.477 10.477 0 001.934 12C3.226 16.338 7.244 19.5 12 19.5c.993 0 1.953-.138 2.863-.395M6.228 6.228A10.45 10.45 0 0112 4.5c4.756 0 8.773 3.162 10.065 7.498a10.523 10.523 0 01-4.293 5.774M6.228 6.228L3 3m3.228 3.228l3.65 3.65m7.894 7.894L21 21m-3.228-3.228l-3.65-3.65m0 0a3 3 0 10-4.243-4.243m4.242 4.242L9.88 9.88" />
-                        </svg>
-                    </template>
-                    <template x-if="!streamError">
-                        <svg style="width: 22px; height: 22px;" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M6.827 6.175A2.31 2.31 0 015.186 7.23c-.38.054-.757.112-1.134.175C2.999 7.58 2.25 8.507 2.25 9.574V18a2.25 2.25 0 002.25 2.25h15A2.25 2.25 0 0021.75 18V9.574c0-1.067-.75-1.994-1.802-2.169a47.865 47.865 0 00-1.134-.175 2.31 2.31 0 01-1.64-1.055l-.822-1.316a2.192 2.192 0 00-1.736-1.039 48.774 48.774 0 00-5.232 0 2.192 2.192 0 00-1.736 1.039l-.821 1.316z" />
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M16.5 12.75a4.5 4.5 0 11-9 0 4.5 4.5 0 019 0zM18.75 10.5h.008v.008h-.008V10.5z" />
-                        </svg>
-                    </template>
-                </div>
+                            {{-- Tombol Putar Kamera Depan / Belakang --}}
+                            <button
+                                type="button"
+                                @click="toggleFacingMode()"
+                                :disabled="isCameraLoading || isUploading"
+                                class="scp-btn-cam-secondary"
+                                title="Beralih antara Kamera Depan dan Belakang"
+                            >
+                                <svg class="h-4 w-4 text-gray-600 dark:text-gray-300" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0l3.181 3.183a8.25 8.25 0 0013.803-3.7M4.031 9.865a8.25 8.25 0 0113.803-3.7l3.181 3.182m0-4.991v4.99" />
+                                </svg>
+                                <span x-text="currentFacingMode === 'environment' ? 'Putar ke Kamera Depan' : 'Putar ke Kamera Belakang'"></span>
+                            </button>
 
-                {{-- Heading Text --}}
-                <p class="rtc-title" x-text="streamError ? 'Kamera Belum Dapat Diakses' : 'Kamera Realtime (Web Browser)'"></p>
+                            {{-- Dropdown Pilihan Perangkat jika > 1 kamera terdeteksi --}}
+                            <div x-show="availableDevices.length > 1">
+                                <select
+                                    x-model="selectedDeviceId"
+                                    @change="onDeviceSelected()"
+                                    class="scp-cam-select-device"
+                                >
+                                    <template x-for="(dev, idx) in availableDevices" :key="dev.deviceId">
+                                        <option :value="dev.deviceId" x-text="dev.label || ('Kamera ' + (idx + 1))"></option>
+                                    </template>
+                                </select>
+                            </div>
 
-                {{-- Informative Help / Error Banner --}}
-                <div>
-                    <template x-if="streamError">
-                        <div class="rtc-alert">
-                            <svg style="width: 15px; height: 15px; flex-shrink: 0; margin-top: 1px;" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z" />
-                            </svg>
-                            <span x-text="streamError"></span>
+                            {{-- Tombol Matikan Kamera Sementara --}}
+                            <button
+                                type="button"
+                                @click="stopCameraStream()"
+                                class="text-xs font-semibold text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 px-3 py-2"
+                            >
+                                Matikan Kamera
+                            </button>
                         </div>
                     </template>
-                    <template x-if="!streamError">
-                        <p class="rtc-desc">
-                            Nyalakan kamera web browser PC/laptop Anda untuk mengambil foto bukti kelas secara realtime.
-                        </p>
+
+                    {{-- B. Saat Kamera Belum Aktif --}}
+                    <template x-if="!isStreaming">
+                        <div class="flex items-center justify-center gap-2.5 flex-wrap w-full">
+                            <button
+                                type="button"
+                                @click="startStream()"
+                                :disabled="isCameraLoading"
+                                class="scp-btn-cam-primary"
+                            >
+                                <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M6.827 6.175A2.31 2.31 0 015.186 7.23c-.38.054-.757.112-1.134.175C2.999 7.58 2.25 8.507 2.25 9.574V18a2.25 2.25 0 002.25 2.25h15A2.25 2.25 0 0021.75 18V9.574c0-1.067-.75-1.994-1.802-2.169a47.865 47.865 0 00-1.134-.175 2.31 2.31 0 01-1.64-1.055l-.822-1.316a2.192 2.192 0 00-1.736-1.039 48.774 48.774 0 00-5.232 0 2.192 2.192 0 00-1.736 1.039l-.821 1.316z" />
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M16.5 12.75a4.5 4.5 0 11-9 0 4.5 4.5 0 019 0zM18.75 10.5h.008v.008h-.008V10.5z" />
+                                </svg>
+                                <span>Nyalakan Kamera</span>
+                            </button>
+
+                            <button
+                                type="button"
+                                @click="toggleFacingMode()"
+                                class="scp-btn-cam-secondary"
+                            >
+                                <svg class="h-4 w-4 text-gray-600 dark:text-gray-300" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0l3.181 3.183a8.25 8.25 0 0013.803-3.7M4.031 9.865a8.25 8.25 0 0113.803-3.7l3.181 3.182m0-4.991v4.99" />
+                                </svg>
+                                <span x-text="currentFacingMode === 'environment' ? 'Mode: Kamera Belakang' : 'Mode: Kamera Depan'"></span>
+                            </button>
+                        </div>
                     </template>
                 </div>
-
-                {{-- Action Area --}}
-                <div class="rtc-actions">
-                    <button type="button" @click="startCamera()" class="rtc-btn rtc-btn-shutter">
-                        <svg style="width: 15px; height: 15px;" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M6.827 6.175A2.31 2.31 0 015.186 7.23c-.38.054-.757.112-1.134.175C2.999 7.58 2.25 8.507 2.25 9.574V18a2.25 2.25 0 002.25 2.25h15A2.25 2.25 0 0021.75 18V9.574c0-1.067-.75-1.994-1.802-2.169a47.865 47.865 0 00-1.134-.175 2.31 2.31 0 01-1.64-1.055l-.822-1.316a2.192 2.192 0 00-1.736-1.039 48.774 48.774 0 00-5.232 0 2.192 2.192 0 00-1.736 1.039l-.821 1.316z" />
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M16.5 12.75a4.5 4.5 0 11-9 0 4.5 4.5 0 019 0zM18.75 10.5h.008v.008h-.008V10.5z" />
-                        </svg>
-                        <span x-text="streamError ? 'Coba Hubungkan Ulang Kamera' : 'Buka Kamera Realtime'"></span>
-                    </button>
-                </div>
             </div>
-
-            {{-- Hidden Canvas for snapshot --}}
-            <canvas x-ref="photoCanvas" style="display: none;"></canvas>
         </div>
     </div>
 
     <script>
-        function realtimePhotoCapture(config) {
+        function scpInlineCameraComponent(cfg) {
             return {
-                statePath: config.statePath,
-                photoValue: config.initialValue,
-                photoUrl: config.initialUrl,
-                uploadUrl: config.uploadUrl,
-                csrfToken: config.csrfToken,
+                statePath: cfg.statePath,
+                photoValue: cfg.initialValue,
+                itemUrl: cfg.initialUrl,
+                uploadUrl: cfg.uploadUrl,
+                csrfToken: cfg.csrfToken,
+                directory: cfg.directory,
+                maxSizeKb: cfg.maxSizeKb,
+                enableWatermark: Boolean(cfg.enableWatermark),
+                defaultFacingMode: cfg.defaultFacingMode || 'environment',
+                captureType: cfg.captureType,
+                isDisabled: Boolean(cfg.isDisabled),
 
-                hasPhoto: Boolean(config.initialValue),
-                isCameraActive: false,
+                hasItem: Boolean(cfg.initialValue),
+                isStreaming: false,
+                isCameraLoading: false,
                 isUploading: false,
-                mediaStream: null,
-                streamError: null,
+                cameraError: null,
+                capturedTimestamp: null,
 
-                init() {
-                    if (!this.hasPhoto) {
-                        this.startCamera();
+                mediaStream: null,
+                currentFacingMode: cfg.defaultFacingMode || 'environment',
+                availableDevices: [],
+                selectedDeviceId: null,
+
+                initComponent() {
+                    window.addEventListener('beforeunload', () => this.stopCameraStream());
+                    window.addEventListener('pagehide', () => this.stopCameraStream());
+
+                    // Auto-start camera jika belum ada foto dan form dapat diedit
+                    if (!this.hasItem && !this.isDisabled) {
+                        this.$nextTick(() => {
+                            this.loadAvailableDevices().then(() => {
+                                this.startStream();
+                            });
+                        });
                     }
                 },
 
-                async startCamera() {
-                    this.streamError = null;
+                // Contract alias for testing compatibility
+                closeCameraModal() {
+                    this.stopCameraStream();
+                },
+
+                async loadAvailableDevices() {
+                    try {
+                        if (!navigator.mediaDevices || !navigator.mediaDevices.enumerateDevices) {
+                            return;
+                        }
+                        const devices = await navigator.mediaDevices.enumerateDevices();
+                        this.availableDevices = devices.filter(d => d.kind === 'videoinput');
+                        if (this.availableDevices.length > 0 && !this.selectedDeviceId) {
+                            this.selectedDeviceId = this.availableDevices[0].deviceId;
+                        }
+                    } catch (e) {
+                        console.warn('Gagal mendeteksi daftar kamera:', e);
+                    }
+                },
+
+                async startStream() {
+                    if (this.isDisabled) return;
+                    this.isCameraLoading = true;
+                    this.cameraError = null;
+                    this.stopCameraStream();
 
                     if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-                        this.streamError = 'Browser ini tidak mendukung akses kamera langsung.';
-                        this.isCameraActive = false;
+                        this.cameraError = 'Browser ini tidak mendukung akses kamera perangkat secara langsung.';
+                        this.isCameraLoading = false;
                         return;
                     }
 
                     try {
-                        this.stopCameraStream();
+                        let constraints;
+                        if (this.selectedDeviceId) {
+                            constraints = {
+                                video: {
+                                    deviceId: { exact: this.selectedDeviceId },
+                                    width: { ideal: 1280 },
+                                    height: { ideal: 720 },
+                                },
+                                audio: false,
+                            };
+                        } else {
+                            constraints = {
+                                video: {
+                                    facingMode: this.currentFacingMode === 'user' ? 'user' : { ideal: 'environment' },
+                                    width: { ideal: 1280 },
+                                    height: { ideal: 720 },
+                                },
+                                audio: false,
+                            };
+                        }
 
-                        // Mulai dengan constraint yang paling universal dan ramah perangkat PC
                         let stream;
                         try {
+                            stream = await navigator.mediaDevices.getUserMedia(constraints);
+                        } catch (firstErr) {
                             stream = await navigator.mediaDevices.getUserMedia({
                                 video: true,
-                                audio: false,
-                            });
-                        } catch (firstErr) {
-                            // Fallback jika video default gagal
-                            stream = await navigator.mediaDevices.getUserMedia({
-                                video: { width: { ideal: 1280 }, height: { ideal: 720 } },
                                 audio: false,
                             });
                         }
 
                         this.mediaStream = stream;
-                        this.isCameraActive = true;
-                        this.streamError = null;
+                        this.isStreaming = true;
+                        this.isCameraLoading = false;
 
                         this.$nextTick(() => {
-                            if (this.$refs.videoElement) {
-                                this.$refs.videoElement.srcObject = stream;
-                                this.$refs.videoElement.play().catch(e => console.warn('Video play error:', e));
+                            if (this.$refs.videoRef) {
+                                this.$refs.videoRef.srcObject = stream;
+                                this.$refs.videoRef.play().catch(e => console.warn('Video play error:', e));
                             }
                         });
+
+                        this.loadAvailableDevices();
                     } catch (err) {
-                        console.warn('Gagal akses kamera:', err);
-                        this.isCameraActive = false;
+                        console.warn('Kamera gagal dimulai:', err);
+                        this.isCameraLoading = false;
+                        this.isStreaming = false;
                         this.stopCameraStream();
 
                         if (err.name === 'NotAllowedError' || err.name === 'PermissionDeniedError') {
-                            this.streamError = 'Izin kamera ditolak. Klik ikon gembok/kamera di sebelah URL browser, pilih "Izinkan", lalu coba lagi.';
+                            this.cameraError = 'Izin kamera ditolak. Silakan izinkan akses kamera di ikon gembok pada address bar browser Anda.';
                         } else if (err.name === 'NotReadableError' || (err.message && err.message.toLowerCase().includes('could not start video source'))) {
-                            this.streamError = 'Kamera tidak dapat dimulai karena sedang digunakan aplikasi lain (Zoom/Teams/Camera) atau driver sibuk. Tutup aplikasi tersebut lalu coba lagi.';
+                            this.cameraError = 'Kamera sedang digunakan oleh aplikasi lain atau driver sibuk. Tutup aplikasi tersebut lalu coba lagi.';
                         } else if (err.name === 'NotFoundError' || err.name === 'DevicesNotFoundError') {
-                            this.streamError = 'Perangkat kamera tidak terdeteksi pada PC / laptop ini. Pastikan kamera terhubung.';
+                            this.cameraError = 'Tidak ada perangkat kamera yang terdeteksi pada perangkat ini.';
                         } else {
-                            this.streamError = 'Kendala akses kamera (' + (err.message || err.name) + '). Silakan periksa koneksi kamera lalu coba kembali.';
+                            this.cameraError = 'Kendala akses kamera: ' + (err.message || err.name);
                         }
                     }
                 },
@@ -468,18 +411,37 @@
                         });
                         this.mediaStream = null;
                     }
-                    if (this.$refs.videoElement) {
-                        this.$refs.videoElement.srcObject = null;
+                    if (this.$refs.videoRef) {
+                        this.$refs.videoRef.srcObject = null;
                     }
+                    this.isStreaming = false;
                 },
 
-                takeSnapshot() {
-                    if (!this.mediaStream || !this.$refs.videoElement) return;
+                async switchFacingMode(mode) {
+                    if (this.currentFacingMode === mode) return;
+                    this.currentFacingMode = mode;
+                    this.selectedDeviceId = null;
+                    await this.startStream();
+                },
 
-                    const video = this.$refs.videoElement;
-                    const canvas = this.$refs.photoCanvas;
+                async toggleFacingMode() {
+                    const nextMode = this.currentFacingMode === 'user' ? 'environment' : 'user';
+                    this.currentFacingMode = nextMode;
+                    this.selectedDeviceId = null;
+                    await this.startStream();
+                },
+
+                async onDeviceSelected() {
+                    await this.startStream();
+                },
+
+                async takeSnapshot() {
+                    if (!this.mediaStream || !this.$refs.videoRef) return;
+                    const video = this.$refs.videoRef;
+                    const canvas = this.$refs.snapshotCanvasRef;
+
                     if (!video.videoWidth || !video.videoHeight) {
-                        alert('Kamera sedang memuat, silakan tunggu sebentar.');
+                        alert('Kamera sedang memuat, silakan tunggu sejenak lalu tekan kembali.');
                         return;
                     }
 
@@ -487,38 +449,37 @@
                     canvas.height = video.videoHeight;
                     const ctx = canvas.getContext('2d');
 
-                    // Flip horizontal mirror
                     ctx.save();
-                    ctx.translate(canvas.width, 0);
-                    ctx.scale(-1, 1);
+                    if (this.currentFacingMode === 'user') {
+                        ctx.translate(canvas.width, 0);
+                        ctx.scale(-1, 1);
+                    }
                     ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
                     ctx.restore();
 
-                    // Watermark realtime
-                    this.applyWatermark(ctx, canvas.width, canvas.height);
+                    if (this.enableWatermark) {
+                        this.applyWatermark(ctx, canvas.width, canvas.height);
+                    }
 
-                    const dataUrl = canvas.toDataURL('image/jpeg', 0.9);
-                    this.photoUrl = dataUrl;
-                    this.hasPhoto = true;
-                    this.isCameraActive = false;
+                    const dataUrl = canvas.toDataURL('image/jpeg', 0.88);
+
+                    // Hentikan video stream setelah foto diambil
                     this.stopCameraStream();
 
-                    this.uploadBase64(dataUrl);
+                    // Simpan ke backend via upload endpoint
+                    await this.uploadCapturedPhoto(dataUrl);
                 },
 
                 applyWatermark(ctx, width, height) {
                     const barHeight = Math.max(34, Math.round(height * 0.08));
                     const y = height - barHeight;
 
-                    // Bar transparan gelap
                     ctx.fillStyle = 'rgba(15, 23, 42, 0.75)';
                     ctx.fillRect(0, y, width, barHeight);
 
-                    // Garis penanda
                     ctx.fillStyle = '#10b981';
                     ctx.fillRect(0, y, width, 3);
 
-                    // Teks Watermark
                     const now = new Date();
                     const dateStr = now.toLocaleDateString('id-ID', {
                         day: '2-digit', month: 'short', year: 'numeric'
@@ -534,7 +495,7 @@
                     ctx.fillText('📅 ' + dateStr, 14, y + (barHeight * 0.82));
                 },
 
-                async uploadBase64(base64Image) {
+                async uploadCapturedPhoto(dataUrl) {
                     this.isUploading = true;
                     try {
                         const response = await fetch(this.uploadUrl, {
@@ -545,41 +506,55 @@
                                 'X-CSRF-TOKEN': this.csrfToken,
                             },
                             body: JSON.stringify({
-                                photo_base64: base64Image
+                                photo_base64: dataUrl,
+                                folder: this.directory,
                             })
                         });
 
                         const result = await response.json();
                         if (result.success) {
                             this.photoValue = result.path;
-                            this.photoUrl = result.url;
+                            this.itemUrl = result.url;
+                            this.hasItem = true;
+
+                            const now = new Date();
+                            this.capturedTimestamp = now.toLocaleDateString('id-ID', {
+                                day: '2-digit', month: 'short', year: 'numeric'
+                            }) + ' ' + now.toLocaleTimeString('id-ID');
+
                             this.syncLivewire(result.path);
                         } else {
-                            alert('Gagal menyimpan foto: ' + (result.message || 'Terjadi kesalahan.'));
+                            alert('Gagal menyimpan foto: ' + (result.message || 'Terjadi kesalahan'));
+                            // Jika gagal, nyalakan kembali stream kamera
+                            this.startStream();
                         }
                     } catch (e) {
-                        console.error('Upload foto gagal:', e);
+                        console.error('Upload camera snapshot gagal:', e);
                         alert('Gagal mengunggah foto: ' + e.message);
+                        this.startStream();
                     } finally {
                         this.isUploading = false;
                     }
                 },
 
-                retakePhoto() {
+                async retakePhoto() {
                     this.photoValue = null;
-                    this.photoUrl = null;
-                    this.hasPhoto = false;
+                    this.itemUrl = null;
+                    this.hasItem = false;
+                    this.capturedTimestamp = null;
                     this.syncLivewire(null);
-                    this.startCamera();
+                    await this.startStream();
                 },
 
-                removePhoto() {
-                    this.photoValue = null;
-                    this.photoUrl = null;
-                    this.hasPhoto = false;
-                    this.isCameraActive = false;
-                    this.stopCameraStream();
-                    this.syncLivewire(null);
+                removeItem() {
+                    if (confirm('Apakah Anda yakin ingin menghapus foto bukti ini dan mengambil foto baru?')) {
+                        this.photoValue = null;
+                        this.itemUrl = null;
+                        this.hasItem = false;
+                        this.capturedTimestamp = null;
+                        this.syncLivewire(null);
+                        this.startStream();
+                    }
                 },
 
                 syncLivewire(value) {

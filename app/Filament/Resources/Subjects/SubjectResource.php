@@ -23,6 +23,10 @@ class SubjectResource extends Resource
 
     protected static string|UnitEnum|null $navigationGroup = 'Data Master';
 
+    protected static ?string $modelLabel = 'Mata Pelajaran';
+
+    protected static ?string $pluralModelLabel = 'Data Mata Pelajaran';
+
     protected static ?string $navigationLabel = 'Mata Pelajaran';
 
     protected static ?string $pluralLabel = 'Data Mata Pelajaran';

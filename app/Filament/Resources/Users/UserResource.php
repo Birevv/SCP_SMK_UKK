@@ -30,6 +30,10 @@ class UserResource extends Resource
 
     protected static string|UnitEnum|null $navigationGroup = 'Data Master';
 
+    protected static ?string $modelLabel = 'Pengguna';
+
+    protected static ?string $pluralModelLabel = 'Data Pengguna';
+
     protected static ?string $navigationLabel = 'Pengguna';
 
     protected static ?string $pluralLabel = 'Data Pengguna';

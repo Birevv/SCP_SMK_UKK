@@ -19,6 +19,10 @@ class ClassroomResource extends Resource
 {
     protected static ?string $model = Classroom::class;
 
+    protected static ?string $modelLabel = 'Kelas';
+
+    protected static ?string $pluralModelLabel = 'Data Kelas';
+
     protected static ?string $navigationLabel = 'Kelas';
 
     protected static ?string $pluralLabel = 'Data Kelas';

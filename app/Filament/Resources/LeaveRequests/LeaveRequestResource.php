@@ -38,6 +38,10 @@ class LeaveRequestResource extends Resource
 
     protected static string|UnitEnum|null $navigationGroup = 'Presensi & Perizinan';
 
+    protected static ?string $modelLabel = 'Pengajuan Izin';
+
+    protected static ?string $pluralModelLabel = 'Pengajuan Izin';
+
     protected static ?string $navigationLabel = 'Surat Izin / Sakit';
 
     protected static ?string $pluralLabel = 'Pengajuan Izin';

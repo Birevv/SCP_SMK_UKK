@@ -10,6 +10,8 @@ class ViewJournal extends ViewRecord
 {
     protected static string $resource = JournalResource::class;
 
+    protected static ?string $title = 'Lihat Jurnal';
+
     protected function getHeaderActions(): array
     {
         return [

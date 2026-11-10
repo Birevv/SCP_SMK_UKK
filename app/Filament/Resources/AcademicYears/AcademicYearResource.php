@@ -25,6 +25,10 @@ class AcademicYearResource extends Resource
 
     protected static string|UnitEnum|null $navigationGroup = 'Manajemen Akademik';
 
+    protected static ?string $modelLabel = 'Tahun Ajaran';
+
+    protected static ?string $pluralModelLabel = 'Kalender Akademik';
+
     protected static ?string $navigationLabel = 'Kalender Akademik';
 
     protected static ?string $pluralLabel = 'Kalender Akademik';

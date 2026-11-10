@@ -23,6 +23,10 @@ class RoomResource extends Resource
 
     protected static string|UnitEnum|null $navigationGroup = 'Data Master';
 
+    protected static ?string $modelLabel = 'Ruangan';
+
+    protected static ?string $pluralModelLabel = 'Data Ruangan';
+
     protected static ?string $navigationLabel = 'Ruangan';
 
     protected static ?string $pluralLabel = 'Data Ruangan';

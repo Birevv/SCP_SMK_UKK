@@ -24,7 +24,7 @@
                 <button
                     type="button"
                     wire:click="setGrade('ALL')"
-                    class="px-2.5 py-1 text-xs font-medium rounded-lg transition-colors {{ $selectedGrade === 'ALL' ? 'bg-primary-600 text-white shadow-sm' : 'bg-gray-100 text-gray-700 hover:bg-gray-200 dark:bg-gray-800 dark:text-gray-200 dark:hover:bg-gray-700' }}"
+                    class="px-2.5 py-1 text-xs font-medium rounded-lg transition-colors {{ $selectedGrade === 'ALL' ? 'bg-primary-600 text-white shadow-xs' : 'bg-gray-100 text-gray-700 hover:bg-gray-200 dark:bg-gray-800 dark:text-gray-200 dark:hover:bg-gray-700' }}"
                 >
                     Semua
                 </button>
@@ -32,7 +32,7 @@
                     <button
                         type="button"
                         wire:click="setGrade('{{ $g->name }}')"
-                        class="px-2.5 py-1 text-xs font-medium rounded-lg transition-colors {{ $selectedGrade === $g->name ? 'bg-primary-600 text-white shadow-sm' : 'bg-gray-100 text-gray-700 hover:bg-gray-200 dark:bg-gray-800 dark:text-gray-200 dark:hover:bg-gray-700' }}"
+                        class="px-2.5 py-1 text-xs font-medium rounded-lg transition-colors {{ $selectedGrade === $g->name ? 'bg-primary-600 text-white shadow-xs' : 'bg-gray-100 text-gray-700 hover:bg-gray-200 dark:bg-gray-800 dark:text-gray-200 dark:hover:bg-gray-700' }}"
                     >
                         Kelas {{ $g->name }}
                     </button>
@@ -70,7 +70,7 @@
             </div>
         </div>
 
-        {{-- Table List Schedules --}}
+        {{-- Table / Cards of Schedules --}}
         @if ($schedules->isEmpty())
             <div class="text-center py-6 border border-dashed border-gray-300 dark:border-gray-700 rounded-xl">
                 <x-filament::icon icon="heroicon-o-academic-cap" class="mx-auto h-8 w-8 text-gray-400 mb-1.5" />
@@ -80,7 +80,8 @@
                 </p>
             </div>
         @else
-            <div class="overflow-x-auto rounded-xl border border-gray-200 dark:border-gray-800">
+            {{-- A. TAMPILAN DESKTOP & TABLET: TABEL LENGKAP --}}
+            <div class="hidden sm:block overflow-x-auto rounded-xl border border-gray-200 dark:border-gray-800">
                 <table class="w-full text-left text-xs">
                     <thead class="bg-gray-50 dark:bg-gray-800/80 text-gray-600 dark:text-gray-300 border-b border-gray-200 dark:border-gray-800 font-semibold">
                         <tr>
@@ -131,6 +132,47 @@
                         @endforeach
                     </tbody>
                 </table>
+            </div>
+
+            {{-- B. TAMPILAN SMARTPHONE: ADAPTIVE CARD LIST --}}
+            <div class="block sm:hidden space-y-2.5">
+                @foreach ($schedules as $s)
+                    <div class="p-3 bg-white dark:bg-gray-900/70 border border-gray-200 dark:border-gray-800 rounded-xl shadow-2xs space-y-2">
+                        <div class="flex items-center justify-between">
+                            <span class="font-mono text-xs font-bold text-primary-600 dark:text-primary-400 bg-primary-50 dark:bg-primary-950/60 px-2 py-0.5 rounded-md">
+                                {{ $s['start_time'] }} - {{ $s['end_time'] }}
+                            </span>
+                            <x-filament::badge color="info" size="sm">
+                                {{ $s['classroom_name'] }}
+                            </x-filament::badge>
+                        </div>
+                        <div>
+                            <div class="font-semibold text-xs text-gray-900 dark:text-gray-100">
+                                {{ $s['subject_name'] }}
+                            </div>
+                            <div class="text-[11px] text-gray-500 dark:text-gray-400 flex items-center justify-between mt-1">
+                                <span>👨‍🏫 {{ $s['teacher_name'] }}</span>
+                                <span>📍 {{ $s['room_name'] }}</span>
+                            </div>
+                        </div>
+                        <div class="pt-1.5 border-t border-gray-100 dark:border-gray-800/80 flex items-center justify-between">
+                            <span class="text-[10px] text-gray-400">Status Jurnal:</span>
+                            @if ($s['has_journal'])
+                                <x-filament::badge color="success" size="sm" icon="heroicon-o-check-circle">
+                                    Sudah Diisi
+                                </x-filament::badge>
+                            @elseif ($s['is_expired'] ?? $s['is_overdue'])
+                                <x-filament::badge color="danger" size="sm" icon="heroicon-o-x-circle">
+                                    Tidak Mengisi Jurnal
+                                </x-filament::badge>
+                            @else
+                                <x-filament::badge color="warning" size="sm">
+                                    Belum Diisi
+                                </x-filament::badge>
+                            @endif
+                        </div>
+                    </div>
+                @endforeach
             </div>
         @endif
     </x-filament::section>

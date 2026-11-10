@@ -19,6 +19,8 @@ class CreateJournal extends CreateRecord
 
     protected static string $resource = JournalResource::class;
 
+    protected static ?string $title = 'Buat Jurnal';
+
     /**
      * @var array<int, array{student_id: int, status: string, notes: ?string}>
      */

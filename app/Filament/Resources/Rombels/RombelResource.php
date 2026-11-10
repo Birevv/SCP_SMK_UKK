@@ -23,6 +23,10 @@ class RombelResource extends Resource
 
     protected static string|UnitEnum|null $navigationGroup = 'Data Master';
 
+    protected static ?string $modelLabel = 'Rombel';
+
+    protected static ?string $pluralModelLabel = 'Data Rombel';
+
     protected static ?string $navigationLabel = 'Rombel';
 
     protected static ?string $pluralLabel = 'Data Rombel';

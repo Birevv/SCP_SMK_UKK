@@ -24,6 +24,8 @@ class SchoolSessionResource extends Resource
 
     protected static ?string $modelLabel = 'Sesi Jam Pelajaran';
 
+    protected static ?string $pluralModelLabel = 'Konfigurasi Jam Sesi';
+
     protected static ?string $navigationLabel = 'Konfigurasi Jam Sesi';
 
     protected static ?string $pluralLabel = 'Konfigurasi Jam Sesi';

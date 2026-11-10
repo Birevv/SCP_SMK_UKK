@@ -13,6 +13,8 @@ class CreateLeaveRequest extends CreateRecord
 
     protected static string $resource = LeaveRequestResource::class;
 
+    protected static ?string $title = 'Buat Pengajuan Izin';
+
     protected function mutateFormDataBeforeCreate(array $data): array
     {
         $user = Auth::user();

@@ -50,6 +50,10 @@ class JournalResource extends Resource
 
     protected static UnitEnum|string|null $navigationGroup = 'Manajemen Akademik';
 
+    protected static ?string $modelLabel = 'Jurnal';
+
+    protected static ?string $pluralModelLabel = 'Jurnal Mengajar';
+
     protected static ?string $navigationLabel = 'Jurnal Mengajar';
 
     protected static ?string $pluralLabel = 'Jurnal Mengajar';

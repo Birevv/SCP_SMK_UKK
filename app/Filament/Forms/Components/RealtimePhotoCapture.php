@@ -13,7 +13,17 @@ class RealtimePhotoCapture extends Field
 
     protected string $directory = 'journal_photos';
 
-    protected int $maxSize = 5120; // 5MB
+    protected int $maxSize = 5120; // KB (5MB default for journals)
+
+    protected bool $allowPdf = false;
+
+    protected bool $enableWatermark = true;
+
+    protected string $defaultFacingMode = 'environment';
+
+    protected string $captureType = 'journal'; // 'journal' | 'leave_request'
+
+    protected array $acceptedFileTypes = ['image/jpeg', 'image/png', 'image/jpg', 'image/webp'];
 
     protected function setUp(): void
     {
@@ -71,6 +81,69 @@ class RealtimePhotoCapture extends Field
     public function getMaxSize(): int
     {
         return $this->maxSize;
+    }
+
+    public function allowPdf(bool $allow = true): static
+    {
+        $this->allowPdf = $allow;
+        if ($allow && ! in_array('application/pdf', $this->acceptedFileTypes, true)) {
+            $this->acceptedFileTypes[] = 'application/pdf';
+        }
+
+        return $this;
+    }
+
+    public function getAllowPdf(): bool
+    {
+        return $this->allowPdf;
+    }
+
+    public function enableWatermark(bool $enable = true): static
+    {
+        $this->enableWatermark = $enable;
+
+        return $this;
+    }
+
+    public function getEnableWatermark(): bool
+    {
+        return $this->enableWatermark;
+    }
+
+    public function defaultFacingMode(string $mode): static
+    {
+        $this->defaultFacingMode = $mode;
+
+        return $this;
+    }
+
+    public function getDefaultFacingMode(): string
+    {
+        return $this->defaultFacingMode;
+    }
+
+    public function captureType(string $type): static
+    {
+        $this->captureType = $type;
+
+        return $this;
+    }
+
+    public function getCaptureType(): string
+    {
+        return $this->captureType;
+    }
+
+    public function acceptedFileTypes(array $types): static
+    {
+        $this->acceptedFileTypes = $types;
+
+        return $this;
+    }
+
+    public function getAcceptedFileTypes(): array
+    {
+        return $this->acceptedFileTypes;
     }
 
     public function image(): static
