@@ -200,8 +200,8 @@ class CulturalCalendarTest extends TestCase
         ]);
 
         $service = app(CulturalCalendarService::class);
-        // Konfigurasi ke Kamis Pon (Gagrak Surakarta)
-        $service->setGagrak('Kamis', 'Pon', 'Gagrak Surakarta');
+        // Konfigurasi ke Kamis Pon (Busana Adat Jawa)
+        $service->setGagrak('Kamis', 'Pon', 'Busana Adat Jawa');
 
         $result = $service->syncJavaneseCulturalEvents(
             $academicYear,
@@ -209,7 +209,7 @@ class CulturalCalendarTest extends TestCase
             includeGagrak: true,
             gagrakHari: 'Kamis',
             gagrakPasaran: 'Pon',
-            gagrakTitle: 'Kamis Pon (Busana Adat Jawa Gagrak Surakarta)'
+            gagrakTitle: 'Kamis Pon (Busana Adat Jawa)'
         );
 
         $this->assertGreaterThan(0, $result['total_synced']);

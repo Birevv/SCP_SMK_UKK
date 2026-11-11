@@ -265,6 +265,10 @@ class User extends Authenticatable implements FilamentUser, HasAvatar, HasName
 
         // Guru BK
         if ($this->hasRole('Guru BK') || $roleName === 'Guru BK') {
+            $classes = $this->classrooms->pluck('name');
+            if ($classes->isNotEmpty()) {
+                return 'Guru BK (' . $classes->join(', ') . ')';
+            }
             return 'Guru BK';
         }
 

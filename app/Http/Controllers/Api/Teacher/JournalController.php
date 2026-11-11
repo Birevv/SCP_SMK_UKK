@@ -22,8 +22,8 @@ class JournalController extends Controller
     {
         $teacher = $request->user();
 
-        if ($teacher && ($teacher->hasAnyRole(['Wali Kelas', 'Guru BK']) || in_array($teacher->role?->name, ['Wali Kelas', 'Guru BK'], true)) && ! $teacher->hasRole('Super Admin')) {
-            return $this->errorResponse('Wali Kelas dan Guru BK tidak diizinkan melihat jurnal mengajar', 403);
+        if ($teacher && ($teacher->hasRole('Guru BK') || $teacher->role?->name === 'Guru BK') && ! $teacher->hasRole('Super Admin')) {
+            return $this->errorResponse('Guru BK tidak diizinkan melihat jurnal mengajar', 403);
         }
 
         $query = Journal::with(['schedule.subject', 'schedule.classroom', 'attendances'])
@@ -58,8 +58,8 @@ class JournalController extends Controller
     {
         $teacher = $request->user();
 
-        if ($teacher && ($teacher->hasAnyRole(['Wali Kelas', 'Guru BK']) || in_array($teacher->role?->name, ['Wali Kelas', 'Guru BK'], true)) && ! $teacher->hasRole('Super Admin')) {
-            return $this->errorResponse('Wali Kelas dan Guru BK tidak diizinkan menginput jurnal mengajar', 403);
+        if ($teacher && ($teacher->hasRole('Guru BK') || $teacher->role?->name === 'Guru BK') && ! $teacher->hasRole('Super Admin')) {
+            return $this->errorResponse('Guru BK tidak diizinkan menginput jurnal mengajar', 403);
         }
 
         try {

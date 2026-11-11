@@ -473,14 +473,24 @@
         }
         .scp-cal-td {
             border: 1px solid #e5e7eb;
-            height: 105px;
-            min-height: 105px;
+            height: 120px;
+            min-height: 120px;
             vertical-align: top;
-            padding: 6px 0;
+            padding: 0;
             position: relative;
+            box-sizing: border-box;
         }
         .dark .scp-cal-td {
             border-color: #1f2937;
+        }
+        .scp-cal-cell-inner {
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            height: 100%;
+            min-height: 120px;
+            padding: 6px 0;
+            box-sizing: border-box;
         }
         .scp-day-current {
             background-color: #ffffff;
@@ -534,20 +544,147 @@
             align-items: center !important;
             justify-content: space-between !important;
             height: 20px !important;
-            min-height: 20px !important;
-            max-height: 20px !important;
             line-height: 20px !important;
-            margin-bottom: 4px !important;
-            padding: 0 6px !important;
+            margin-bottom: 2px !important;
+            padding: 0 8px !important;
             pointer-events: none !important;
             box-sizing: border-box !important;
             overflow: hidden !important;
+        }
+        .scp-cal-hijri-date {
+            font-size: 0.75rem !important; /* Ukuran font 12px seragam */
+            line-height: 20px !important;
+            font-weight: 500;
+            white-space: nowrap !important;
+            overflow: hidden !important;
+            text-overflow: ellipsis !important;
+            letter-spacing: -0.01em;
+        }
+        .scp-cal-cell-bars {
+            display: flex !important;
+            flex-direction: column !important;
+            gap: 2px !important;
+            width: 100% !important;
+            margin-bottom: 2px !important;
+            z-index: 5;
+        }
+        .scp-cal-cell-center {
+            display: flex !important;
+            flex-direction: column !important;
+            justify-content: center !important;
+            align-items: center !important;
+            text-align: center !important;
+            width: 100% !important;
+            flex: 1 1 auto !important;
+            min-height: 48px !important;
+            margin: auto 0 !important;
+            padding: 2px 0 !important;
+            box-sizing: border-box !important;
+            position: relative !important;
+        }
+        .scp-slider-container {
+            position: relative !important;
+            width: 100% !important;
+        }
+        .scp-slide-track {
+            position: relative;
+            width: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .scp-slide-btn {
+            position: absolute !important;
+            top: 50% !important;
+            transform: translateY(-50%) !important;
+            z-index: 25 !important;
+            width: 20px !important;
+            height: 20px !important;
+            border-radius: 9999px !important;
+            display: flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            background-color: transparent !important; /* Background bulat transparan */
+            color: #111827 !important; /* Tanda panah hitam */
+            border: none !important;
+            cursor: pointer !important;
+            box-shadow: none !important;
+            transition: all 0.15s ease-in-out !important;
+            padding: 0 !important;
+            line-height: 1 !important;
+        }
+        .dark .scp-slide-btn {
+            color: #f3f4f6 !important;
+        }
+        .scp-slide-btn:hover {
+            background-color: rgba(0, 0, 0, 0.07) !important;
+            color: #000000 !important;
+            transform: translateY(-50%) scale(1.2) !important;
+            box-shadow: none !important;
+        }
+        .dark .scp-slide-btn:hover {
+            background-color: rgba(255, 255, 255, 0.12) !important;
+            color: #ffffff !important;
+        }
+        .scp-slide-prev {
+            left: 2px !important;
+        }
+        .scp-slide-next {
+            right: 2px !important;
+        }
+        .scp-slide-dots {
+            display: flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            gap: 4px !important;
+            margin-top: 3px !important;
+            z-index: 10 !important;
+        }
+        .scp-slide-dot {
+            width: 5px !important;
+            height: 5px !important;
+            border-radius: 9999px !important;
+            background-color: #cbd5e1 !important;
+            border: none !important;
+            padding: 0 !important;
+            cursor: pointer !important;
+            transition: all 0.2s ease !important;
+        }
+        .dark .scp-slide-dot {
+            background-color: #475569 !important;
+        }
+        .scp-slide-dot:hover {
+            background-color: #94a3b8 !important;
+        }
+        .scp-slide-dot-active {
+            width: 12px !important;
+            background-color: #10b981 !important;
+        }
+        .scp-cal-cell-footer {
+            display: flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            text-align: center !important;
+            width: 100% !important;
+            height: 18px !important;
+            line-height: 18px !important;
+            margin-top: auto !important;
+            padding: 0 8px !important;
+            box-sizing: border-box !important;
+        }
+        .scp-cal-jawa-pasaran {
+            font-size: 0.75rem !important; /* Ukuran font 12px seragam */
+            line-height: 18px !important;
+            font-weight: 500;
+            text-align: center !important;
+            white-space: nowrap !important;
+            letter-spacing: -0.01em;
         }
         .scp-cal-cultural-info {
             display: flex !important;
             align-items: center !important;
             gap: 3px !important;
-            font-size: 0.625rem !important;
+            font-size: 0.75rem !important;
             line-height: 20px !important;
             height: 20px !important;
             white-space: nowrap !important;
@@ -558,7 +695,7 @@
         }
         .scp-day-num {
             font-size: 0.8125rem;
-            font-weight: 600;
+            font-weight: 700;
             color: #1f2937;
             line-height: 20px !important;
             height: 20px !important;
@@ -676,6 +813,41 @@
         }
         .dark .scp-day-event-btn:hover {
             background-color: rgba(255, 255, 255, 0.05);
+        }
+        .scp-day-event-note {
+            width: calc(100% - 16px) !important;
+            margin: 0 8px !important;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            font-size: 0.75rem; /* Ukuran font 12px seragam */
+            line-height: 1.25;
+            padding: 3px 18px;
+            border-radius: 6px;
+            border: none;
+            background: transparent;
+            cursor: pointer;
+            transition: background-color 0.15s ease-in-out;
+            box-sizing: border-box;
+            outline: none;
+        }
+        .scp-day-event-note:hover {
+            background-color: rgba(0, 0, 0, 0.04);
+        }
+        .dark .scp-day-event-note:hover {
+            background-color: rgba(255, 255, 255, 0.06);
+        }
+        .scp-event-note-title {
+            font-size: 0.75rem !important; /* Ukuran font 12px seragam */
+            line-height: 1.25 !important;
+            letter-spacing: -0.01em;
+        }
+        .scp-event-note-subtitle {
+            font-size: 0.75rem !important; /* Ukuran font 12px seragam */
+            line-height: 1.2 !important;
+            letter-spacing: -0.01em;
         }
         .scp-cal-popover {
             position: absolute;
@@ -1445,43 +1617,32 @@
                                                     :class="isInRange('{{ $day['date'] }}') ? 'scp-calendar-cell-selected' : ''"
                                                     class="scp-cal-td {{ $cellBgClass }} align-top transition duration-150 hover:bg-blue-50/40 dark:hover:bg-gray-800/50 {{ $this->canManage() ? 'cursor-pointer' : 'cursor-default' }}">
                                                     
-                                                    <!-- Top Row: Tanggalan Jawa & Hijriah di Kiri, Angka Masehi di Kanan (Tinggi Presisi Terkunci) -->
-                                                    <div class="scp-cal-cell-header">
-                                                        @if ($showCulturalDates && ! empty($day['pasaran']))
-                                                            <div class="scp-cal-cultural-info {{ $isNationalHoliday ? 'text-red-700 dark:text-red-300' : 'text-slate-500 dark:text-gray-400' }}">
-                                                                <span style="font-weight: 600; flex-shrink: 0;" class="{{ ($day['is_gagrak'] ?? false) ? 'text-amber-600 dark:text-amber-400 font-bold' : '' }}">
-                                                                    {{ $day['pasaran'] }}
-                                                                </span>
-                                                                <span style="opacity: 0.35; flex-shrink: 0;">•</span>
-                                                                <span style="font-size: 0.625rem; opacity: 0.85; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="{{ $day['hijri_formatted'] }}">
+                                                    <div class="scp-cal-cell-inner">
+                                                        <!-- Top Row: Tanggalan Hijriah di Kiri Atas, Angka Masehi di Kanan Atas -->
+                                                        <div class="scp-cal-cell-header">
+                                                            @if ($showCulturalDates && ! empty($day['hijri_short']))
+                                                                <span class="scp-cal-hijri-date {{ $isNationalHoliday ? 'text-red-600 dark:text-red-400 font-semibold' : ($day['is_current_month'] ? 'text-slate-600 dark:text-gray-300 font-medium' : 'text-slate-400 dark:text-gray-500 font-normal') }}"
+                                                                      title="{{ $day['hijri_formatted'] }}">
                                                                     {{ $day['hijri_short'] }}
                                                                 </span>
-                                                            </div>
-                                                        @else
-                                                            <div style="height: 20px; line-height: 20px;"></div>
-                                                        @endif
-                                                        <span class="{{ $numClass }}">
-                                                            {{ $day['day_number'] }}
-                                                        </span>
-                                                    </div>
+                                                            @else
+                                                                <span class="scp-cal-hijri-date opacity-0">&nbsp;</span>
+                                                            @endif
+                                                            <span class="{{ $numClass }}">
+                                                                {{ $day['day_number'] }}
+                                                            </span>
+                                                        </div>
 
-                                                    <!-- Container Daftar Agenda Sel -->
-                                                    <div style="display: flex; flex-direction: column; gap: 3px; min-height: 68px; width: 100%;">
-                                                        @foreach ($day['events'] as $event)
-                                                            @php
-                                                                $isMultiDay = $event->start_date->ne($event->end_date);
-                                                            @endphp
-                                                            <div
-                                                                x-data="{ showPopover: false }"
-                                                                @mouseenter="showPopover = true"
-                                                                @mouseleave="showPopover = false"
-                                                                @mousedown.stop
-                                                                @touchstart.stop
-                                                                @mouseup.stop
-                                                                style="position: relative; width: 100%;"
-                                                                class="pointer-events-auto">
-                                                                
-                                                                @if ($isMultiDay)
+                                                        <!-- 2. Multi-day Continuous Bars (Top Section of Cell) -->
+                                                        @php
+                                                            $multiDayEvents = $day['events']->filter(fn ($ev) => $ev->start_date->ne($ev->end_date));
+                                                            $slideEvents = $day['events']->sortBy(fn ($ev) => $ev->start_date->ne($ev->end_date) ? 1 : 0)->values();
+                                                            $totalSlides = $slideEvents->count();
+                                                        @endphp
+
+                                                        @if ($multiDayEvents->isNotEmpty())
+                                                            <div class="scp-cal-cell-bars">
+                                                                @foreach ($multiDayEvents as $event)
                                                                     @php
                                                                         $dayDate = \Carbon\Carbon::parse($day['date']);
                                                                         $isStart = $event->start_date->toDateString() === $day['date'] || $dayDate->isMonday();
@@ -1501,115 +1662,440 @@
                                                                             $showTitle = false;
                                                                         }
                                                                     @endphp
-                                                                    <!-- Multi-day Event: Satu Garis Menyambung (Continuous Bar) -->
-                                                                    @if ($this->canManage())
-                                                                        <button
-                                                                            type="button"
-                                                                            wire:click.stop="openEditEventModal({{ $event->id }})"
-                                                                            class="scp-event-bar {{ $barClass }} scp-solid-{{ $event->category instanceof \App\Enums\AcademicEventCategory ? $event->category->value : $event->category }}">
-                                                                            @if ($showTitle)
-                                                                                @if ($event->target_grades)
-                                                                                    <span style="font-weight: 700; font-size: 0.625rem; opacity: 0.9;">[{{ implode(',', $event->target_grades) }}]</span>
+                                                                    <div
+                                                                        x-data="{ showPopover: false }"
+                                                                        @mouseenter="showPopover = true"
+                                                                        @mouseleave="showPopover = false"
+                                                                        @mousedown.stop
+                                                                        @touchstart.stop
+                                                                        @mouseup.stop
+                                                                        style="position: relative; width: 100%;"
+                                                                        class="pointer-events-auto">
+                                                                        
+                                                                        @if ($this->canManage())
+                                                                            <button
+                                                                                type="button"
+                                                                                wire:click.stop="openEditEventModal({{ $event->id }})"
+                                                                                class="scp-event-bar {{ $barClass }} scp-solid-{{ $event->category instanceof \App\Enums\AcademicEventCategory ? $event->category->value : $event->category }}">
+                                                                                @if ($showTitle)
+                                                                                    @if ($event->target_grades)
+                                                                                        <span style="font-weight: 700; font-size: 0.625rem; opacity: 0.9;">[{{ implode(',', $event->target_grades) }}]</span>
+                                                                                    @endif
+                                                                                    <span>{{ $event->title }}</span>
+                                                                                @else
+                                                                                    <span style="visibility: hidden;">&nbsp;</span>
                                                                                 @endif
-                                                                                <span>{{ $event->title }}</span>
-                                                                            @else
-                                                                                <span style="visibility: hidden;">&nbsp;</span>
-                                                                            @endif
-                                                                        </button>
-                                                                    @else
-                                                                        <div
-                                                                            class="scp-event-bar {{ $barClass }} scp-solid-{{ $event->category instanceof \App\Enums\AcademicEventCategory ? $event->category->value : $event->category }}"
-                                                                            style="cursor: default;">
-                                                                            @if ($showTitle)
-                                                                                @if ($event->target_grades)
-                                                                                    <span style="font-weight: 700; font-size: 0.625rem; opacity: 0.9;">[{{ implode(',', $event->target_grades) }}]</span>
+                                                                            </button>
+                                                                        @else
+                                                                            <div
+                                                                                class="scp-event-bar {{ $barClass }} scp-solid-{{ $event->category instanceof \App\Enums\AcademicEventCategory ? $event->category->value : $event->category }}"
+                                                                                style="cursor: default;">
+                                                                                @if ($showTitle)
+                                                                                    @if ($event->target_grades)
+                                                                                        <span style="font-weight: 700; font-size: 0.625rem; opacity: 0.9;">[{{ implode(',', $event->target_grades) }}]</span>
+                                                                                    @endif
+                                                                                    <span>{{ $event->title }}</span>
+                                                                                @else
+                                                                                    <span style="visibility: hidden;">&nbsp;</span>
                                                                                 @endif
-                                                                                <span>{{ $event->title }}</span>
-                                                                            @else
-                                                                                <span style="visibility: hidden;">&nbsp;</span>
-                                                                            @endif
-                                                                        </div>
-                                                                    @endif
-                                                                @else
-                                                                    <!-- 1-day Event: Titik Warna Kategori (Dot) Diikuti Teks Singkat Satu Baris -->
-                                                                    @if ($this->canManage())
-                                                                        <button
-                                                                            type="button"
-                                                                            wire:click.stop="openEditEventModal({{ $event->id }})"
-                                                                            class="scp-day-event-btn">
-                                                                            <span class="w-2 h-2 rounded-full shrink-0 scp-dot-{{ $event->category instanceof \App\Enums\AcademicEventCategory ? $event->category->value : $event->category }}"></span>
-                                                                            @if ($event->target_grades)
-                                                                                <span style="font-size: 0.625rem; font-weight: 700; color: #6b7280; flex-shrink: 0;" class="dark:text-gray-400">[{{ implode(',', $event->target_grades) }}]</span>
-                                                                            @endif
-                                                                            <span class="truncate">{{ $event->title }}</span>
-                                                                        </button>
-                                                                    @else
-                                                                        <div
-                                                                            class="scp-day-event-btn"
-                                                                            style="cursor: default;">
-                                                                            <span class="w-2 h-2 rounded-full shrink-0 scp-dot-{{ $event->category instanceof \App\Enums\AcademicEventCategory ? $event->category->value : $event->category }}"></span>
-                                                                            @if ($event->target_grades)
-                                                                                <span style="font-size: 0.625rem; font-weight: 700; color: #6b7280; flex-shrink: 0;" class="dark:text-gray-400">[{{ implode(',', $event->target_grades) }}]</span>
-                                                                            @endif
-                                                                            <span class="truncate">{{ $event->title }}</span>
-                                                                        </div>
-                                                                    @endif
-                                                                @endif
+                                                                            </div>
+                                                                        @endif
 
-                                                                <!-- Popover Tooltip Saat Hover -->
+                                                                        <!-- Popover Tooltip for Multi-day Bar -->
+                                                                        <div
+                                                                            x-show="showPopover"
+                                                                            x-transition:enter="transition ease-out duration-150"
+                                                                            x-transition:enter-start="opacity-0 scale-95"
+                                                                            x-transition:enter-end="opacity-100 scale-100"
+                                                                            x-transition:leave="transition ease-in duration-100"
+                                                                            x-transition:leave-start="opacity-100 scale-100"
+                                                                            x-transition:leave-end="opacity-0 scale-95"
+                                                                            x-cloak
+                                                                            class="scp-cal-popover no-print">
+                                                                            <div class="scp-cal-popover-title" style="font-weight: 700; font-size: 0.875rem; color: #111827; margin-bottom: 4px; line-height: 1.25;">
+                                                                                {{ $event->title }}
+                                                                            </div>
+                                                                            <div class="scp-cal-popover-sub" style="display: flex; align-items: center; gap: 6px; font-size: 0.6875rem; color: #6b7280; margin-bottom: 8px;">
+                                                                                <x-filament::icon icon="heroicon-o-calendar" class="w-3.5 h-3.5 text-primary-500" />
+                                                                                <span>
+                                                                                    {{ $event->start_date->format('d M Y') }} s/d {{ $event->end_date->format('d M Y') }}
+                                                                                </span>
+                                                                            </div>
+                                                                            <div style="display: flex; flex-direction: column; gap: 4px; font-size: 0.6875rem;">
+                                                                                <div>
+                                                                                    <span style="color: #6b7280;" class="dark:text-gray-400">Kategori:</span>
+                                                                                    <span style="font-weight: 600;" class="text-gray-800 dark:text-gray-200">{{ $event->category instanceof \App\Enums\AcademicEventCategory ? $event->category->getLabel() : $event->category }}</span>
+                                                                                </div>
+                                                                                @if ($event->target_grades)
+                                                                                    <div>
+                                                                                        <span style="color: #6b7280;" class="dark:text-gray-400">Target Siswa:</span>
+                                                                                        <span style="font-weight: 600;" class="text-gray-800 dark:text-gray-200">Kelas {{ implode(', ', $event->target_grades) }}</span>
+                                                                                    </div>
+                                                                                @endif
+                                                                                <div style="display: flex; flex-wrap: wrap; gap: 4px; margin-top: 6px; padding-top: 4px; border-top: 1px solid #f3f4f6;" class="dark:border-t-gray-700">
+                                                                                    @if ($event->is_holiday)
+                                                                                        <span style="padding: 2px 6px; border-radius: 4px; font-size: 0.625rem; font-weight: 700;" class="bg-red-100 text-red-700 dark:bg-red-950/60 dark:text-red-300">Libur</span>
+                                                                                    @endif
+                                                                                    @if ($event->disable_kbm)
+                                                                                        <span style="padding: 2px 6px; border-radius: 4px; font-size: 0.625rem; font-weight: 700;" class="bg-amber-100 text-amber-700 dark:bg-amber-950/60 dark:text-amber-300">KBM Nonaktif</span>
+                                                                                    @endif
+                                                                                    @if ($event->requires_attendance)
+                                                                                        <span style="padding: 2px 6px; border-radius: 4px; font-size: 0.625rem; font-weight: 700;" class="bg-blue-100 text-blue-700 dark:bg-blue-950/60 dark:text-blue-300">Wajib Presensi</span>
+                                                                                    @endif
+                                                                                </div>
+                                                                                @if ($event->description)
+                                                                                    <div class="scp-cal-popover-desc" style="margin-top: 6px; color: #4b5563; font-style: italic; font-size: 0.6875rem;">
+                                                                                        "{{ Str::limit($event->description, 90) }}"
+                                                                                    </div>
+                                                                                @endif
+                                                                            </div>
+                                                                        </div>
+                                                                    </div>
+                                                                @endforeach
+                                                            </div>
+                                                        @endif
+
+                                                        <!-- 3. Middle: Notes Agenda di Tengah Blok Kalender (Dengan Slider saat >= 2 event) -->
+                                                        @if ($totalSlides >= 2)
+                                                            <div
+                                                                x-data="{
+                                                                    activeSlide: 0,
+                                                                    totalSlides: {{ $totalSlides }},
+                                                                    nextSlide() {
+                                                                        this.activeSlide = (this.activeSlide + 1) % this.totalSlides;
+                                                                    },
+                                                                    prevSlide() {
+                                                                        this.activeSlide = (this.activeSlide - 1 + this.totalSlides) % this.totalSlides;
+                                                                    }
+                                                                }"
+                                                                class="scp-cal-cell-center scp-slider-container">
+                                                                
+                                                                <!-- Tombol Prev (<) - Tanda Panah Hitam, Background Transparan -->
+                                                                <button
+                                                                    type="button"
+                                                                    @click.stop="prevSlide()"
+                                                                    @mousedown.stop
+                                                                    @touchstart.stop
+                                                                    @mouseup.stop
+                                                                    title="Event sebelumnya"
+                                                                    class="scp-slide-btn scp-slide-prev"
+                                                                    aria-label="Event sebelumnya">
+                                                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 19l-7-7 7-7"/>
+                                                                    </svg>
+                                                                </button>
+
+                                                                <!-- Slide Items -->
+                                                                <div class="scp-slide-track">
+                                                                    @foreach ($slideEvents as $idx => $event)
+                                                                        @php
+                                                                            $isMultiDay = $event->start_date->ne($event->end_date);
+                                                                            $eventTitle = $event->title;
+                                                                            $hasParens = str_contains($eventTitle, '(') && str_ends_with(trim($eventTitle), ')');
+                                                                            if ($hasParens) {
+                                                                                $parts = explode('(', $eventTitle, 2);
+                                                                                $primaryTitle = trim($parts[0]);
+                                                                                $secondaryTitle = '(' . trim($parts[1]);
+                                                                            } else {
+                                                                                $primaryTitle = $eventTitle;
+                                                                                $secondaryTitle = null;
+                                                                            }
+                                                                            $catVal = $event->category instanceof \App\Enums\AcademicEventCategory ? $event->category->value : (string) $event->category;
+                                                                        @endphp
+                                                                        <div
+                                                                            x-show="activeSlide === {{ $idx }}"
+                                                                            x-transition:enter="transition ease-out duration-150"
+                                                                            x-transition:enter-start="opacity-0 scale-95"
+                                                                            x-transition:enter-end="opacity-100 scale-100"
+                                                                            x-data="{ showPopover: false }"
+                                                                            @mouseenter="showPopover = true"
+                                                                            @mouseleave="showPopover = false"
+                                                                            @mousedown.stop
+                                                                            @touchstart.stop
+                                                                            @mouseup.stop
+                                                                            style="position: relative; width: 100%;"
+                                                                            class="pointer-events-auto">
+                                                                            
+                                                                            @if ($this->canManage())
+                                                                                <button
+                                                                                    type="button"
+                                                                                    wire:click.stop="openEditEventModal({{ $event->id }})"
+                                                                                    class="scp-day-event-note">
+                                                                                    <div class="inline-flex items-center justify-center gap-1.5 flex-wrap">
+                                                                                        @if ($catVal !== 'budaya_jawa')
+                                                                                            <span class="w-1.5 h-1.5 rounded-full shrink-0 scp-dot-{{ $catVal }}"></span>
+                                                                                        @endif
+                                                                                        @if ($event->target_grades)
+                                                                                            <span style="font-size: 0.625rem; font-weight: 700; color: #6b7280;" class="dark:text-gray-400">[{{ implode(',', $event->target_grades) }}]</span>
+                                                                                        @endif
+                                                                                        <span class="scp-event-note-title font-semibold text-slate-800 dark:text-slate-100">
+                                                                                            {{ $primaryTitle }}
+                                                                                        </span>
+                                                                                    </div>
+                                                                                    @if ($isMultiDay)
+                                                                                        <div class="scp-event-note-subtitle text-xs text-slate-500 dark:text-slate-400 mt-0.5" style="font-size: 0.6875rem;">
+                                                                                            {{ $event->start_date->format('d M') }} - {{ $event->end_date->format('d M') }}
+                                                                                        </div>
+                                                                                    @elseif ($secondaryTitle)
+                                                                                        <div class="scp-event-note-subtitle font-normal text-slate-600 dark:text-slate-300 mt-0.5">
+                                                                                            {{ $secondaryTitle }}
+                                                                                        </div>
+                                                                                    @endif
+                                                                                </button>
+                                                                            @else
+                                                                                <div
+                                                                                    class="scp-day-event-note"
+                                                                                    style="cursor: default;">
+                                                                                    <div class="inline-flex items-center justify-center gap-1.5 flex-wrap">
+                                                                                        @if ($catVal !== 'budaya_jawa')
+                                                                                            <span class="w-1.5 h-1.5 rounded-full shrink-0 scp-dot-{{ $catVal }}"></span>
+                                                                                        @endif
+                                                                                        @if ($event->target_grades)
+                                                                                            <span style="font-size: 0.625rem; font-weight: 700; color: #6b7280;" class="dark:text-gray-400">[{{ implode(',', $event->target_grades) }}]</span>
+                                                                                        @endif
+                                                                                        <span class="scp-event-note-title font-semibold text-slate-800 dark:text-slate-100">
+                                                                                            {{ $primaryTitle }}
+                                                                                        </span>
+                                                                                    </div>
+                                                                                    @if ($isMultiDay)
+                                                                                        <div class="scp-event-note-subtitle text-xs text-slate-500 dark:text-slate-400 mt-0.5" style="font-size: 0.6875rem;">
+                                                                                            {{ $event->start_date->format('d M') }} - {{ $event->end_date->format('d M') }}
+                                                                                        </div>
+                                                                                    @elseif ($secondaryTitle)
+                                                                                        <div class="scp-event-note-subtitle font-normal text-slate-600 dark:text-slate-300 mt-0.5">
+                                                                                            {{ $secondaryTitle }}
+                                                                                        </div>
+                                                                                    @endif
+                                                                                </div>
+                                                                            @endif
+
+                                                                            <!-- Popover Tooltip Saat Hover pada Slide Ini -->
+                                                                            <div
+                                                                                x-show="showPopover"
+                                                                                x-transition:enter="transition ease-out duration-150"
+                                                                                x-transition:enter-start="opacity-0 scale-95"
+                                                                                x-transition:enter-end="opacity-100 scale-100"
+                                                                                x-transition:leave="transition ease-in duration-100"
+                                                                                x-transition:leave-start="opacity-100 scale-100"
+                                                                                x-transition:leave-end="opacity-0 scale-95"
+                                                                                x-cloak
+                                                                                class="scp-cal-popover no-print">
+                                                                                <div class="scp-cal-popover-title" style="font-weight: 700; font-size: 0.875rem; color: #111827; margin-bottom: 4px; line-height: 1.25;">
+                                                                                    {{ $event->title }}
+                                                                                </div>
+                                                                                <div class="scp-cal-popover-sub" style="display: flex; align-items: center; gap: 6px; font-size: 0.6875rem; color: #6b7280; margin-bottom: 8px;">
+                                                                                    <x-filament::icon icon="heroicon-o-calendar" class="w-3.5 h-3.5 text-primary-500" />
+                                                                                    <span>
+                                                                                        {{ $event->start_date->format('d M Y') }}
+                                                                                        @if ($isMultiDay)
+                                                                                            s/d {{ $event->end_date->format('d M Y') }}
+                                                                                        @endif
+                                                                                    </span>
+                                                                                </div>
+                                                                                <div style="display: flex; flex-direction: column; gap: 4px; font-size: 0.6875rem;">
+                                                                                    <div>
+                                                                                        <span style="color: #6b7280;" class="dark:text-gray-400">Kategori:</span>
+                                                                                        <span style="font-weight: 600;" class="text-gray-800 dark:text-gray-200">{{ $event->category instanceof \App\Enums\AcademicEventCategory ? $event->category->getLabel() : $event->category }}</span>
+                                                                                    </div>
+                                                                                    @if ($event->target_grades)
+                                                                                        <div>
+                                                                                            <span style="color: #6b7280;" class="dark:text-gray-400">Target Siswa:</span>
+                                                                                            <span style="font-weight: 600;" class="text-gray-800 dark:text-gray-200">Kelas {{ implode(', ', $event->target_grades) }}</span>
+                                                                                        </div>
+                                                                                    @endif
+                                                                                    <div style="display: flex; flex-wrap: wrap; gap: 4px; margin-top: 6px; padding-top: 4px; border-top: 1px solid #f3f4f6;" class="dark:border-t-gray-700">
+                                                                                        @if ($event->is_holiday)
+                                                                                            <span style="padding: 2px 6px; border-radius: 4px; font-size: 0.625rem; font-weight: 700;" class="bg-red-100 text-red-700 dark:bg-red-950/60 dark:text-red-300">Libur</span>
+                                                                                        @endif
+                                                                                        @if ($event->disable_kbm)
+                                                                                            <span style="padding: 2px 6px; border-radius: 4px; font-size: 0.625rem; font-weight: 700;" class="bg-amber-100 text-amber-700 dark:bg-amber-950/60 dark:text-amber-300">KBM Nonaktif</span>
+                                                                                        @endif
+                                                                                        @if ($event->requires_attendance)
+                                                                                            <span style="padding: 2px 6px; border-radius: 4px; font-size: 0.625rem; font-weight: 700;" class="bg-blue-100 text-blue-700 dark:bg-blue-950/60 dark:text-blue-300">Wajib Presensi</span>
+                                                                                        @endif
+                                                                                    </div>
+                                                                                    @if ($event->description)
+                                                                                        <div class="scp-cal-popover-desc" style="margin-top: 6px; color: #4b5563; font-style: italic; font-size: 0.6875rem;">
+                                                                                            "{{ Str::limit($event->description, 90) }}"
+                                                                                        </div>
+                                                                                    @endif
+                                                                                </div>
+                                                                            </div>
+                                                                        </div>
+                                                                    @endforeach
+                                                                </div>
+
+                                                                <!-- Tombol Next (>) - Tanda Panah Hitam, Background Transparan -->
+                                                                <button
+                                                                    type="button"
+                                                                    @click.stop="nextSlide()"
+                                                                    @mousedown.stop
+                                                                    @touchstart.stop
+                                                                    @mouseup.stop
+                                                                    title="Event berikutnya"
+                                                                    class="scp-slide-btn scp-slide-next"
+                                                                    aria-label="Event berikutnya">
+                                                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7"/>
+                                                                    </svg>
+                                                                </button>
+
+                                                                <!-- Dot Indicators (Bisa di-hover atau diklik untuk ganti slide) -->
+                                                                <div class="scp-slide-dots">
+                                                                    @foreach ($slideEvents as $idx => $event)
+                                                                        <button
+                                                                            type="button"
+                                                                            @click.stop="activeSlide = {{ $idx }}"
+                                                                            @mouseenter.stop="activeSlide = {{ $idx }}"
+                                                                            @mousedown.stop
+                                                                            @touchstart.stop
+                                                                            @mouseup.stop
+                                                                            title="{{ $event->title }}"
+                                                                            class="scp-slide-dot"
+                                                                            :class="activeSlide === {{ $idx }} ? 'scp-slide-dot-active' : ''"
+                                                                            aria-label="Slide {{ $idx + 1 }}">
+                                                                        </button>
+                                                                    @endforeach
+                                                                </div>
+                                                            </div>
+                                                        @elseif ($totalSlides === 1 && ! $slideEvents[0]->start_date->ne($slideEvents[0]->end_date))
+                                                            <!-- Single Event (Hanya 1 event dan merupakan single-day event, tanpa tombol slide) -->
+                                                            @php
+                                                                $event = $slideEvents[0];
+                                                                $isMultiDay = false;
+                                                                $eventTitle = $event->title;
+                                                                $hasParens = str_contains($eventTitle, '(') && str_ends_with(trim($eventTitle), ')');
+                                                                if ($hasParens) {
+                                                                    $parts = explode('(', $eventTitle, 2);
+                                                                    $primaryTitle = trim($parts[0]);
+                                                                    $secondaryTitle = '(' . trim($parts[1]);
+                                                                } else {
+                                                                    $primaryTitle = $eventTitle;
+                                                                    $secondaryTitle = null;
+                                                                }
+                                                                $catVal = $event->category instanceof \App\Enums\AcademicEventCategory ? $event->category->value : (string) $event->category;
+                                                            @endphp
+                                                            <div class="scp-cal-cell-center">
                                                                 <div
-                                                                    x-show="showPopover"
-                                                                    x-transition:enter="transition ease-out duration-150"
-                                                                    x-transition:enter-start="opacity-0 scale-95"
-                                                                    x-transition:enter-end="opacity-100 scale-100"
-                                                                    x-transition:leave="transition ease-in duration-100"
-                                                                    x-transition:leave-start="opacity-100 scale-100"
-                                                                    x-transition:leave-end="opacity-0 scale-95"
-                                                                    x-cloak
-                                                                    class="scp-cal-popover no-print">
-                                                                    <div class="scp-cal-popover-title" style="font-weight: 700; font-size: 0.875rem; color: #111827; margin-bottom: 4px; line-height: 1.25;">
-                                                                        {{ $event->title }}
-                                                                    </div>
-                                                                    <div class="scp-cal-popover-sub" style="display: flex; align-items: center; gap: 6px; font-size: 0.6875rem; color: #6b7280; margin-bottom: 8px;">
-                                                                        <x-filament::icon icon="heroicon-o-calendar" class="w-3.5 h-3.5 text-primary-500" />
-                                                                        <span>
-                                                                            {{ $event->start_date->format('d M Y') }}
-                                                                            @if ($isMultiDay)
-                                                                                s/d {{ $event->end_date->format('d M Y') }}
+                                                                    x-data="{ showPopover: false }"
+                                                                    @mouseenter="showPopover = true"
+                                                                    @mouseleave="showPopover = false"
+                                                                    @mousedown.stop
+                                                                    @touchstart.stop
+                                                                    @mouseup.stop
+                                                                    style="position: relative; width: 100%;"
+                                                                    class="pointer-events-auto">
+                                                                    
+                                                                    @if ($this->canManage())
+                                                                        <button
+                                                                            type="button"
+                                                                            wire:click.stop="openEditEventModal({{ $event->id }})"
+                                                                            class="scp-day-event-note">
+                                                                            <div class="inline-flex items-center justify-center gap-1.5 flex-wrap">
+                                                                                @if ($catVal !== 'budaya_jawa')
+                                                                                    <span class="w-1.5 h-1.5 rounded-full shrink-0 scp-dot-{{ $catVal }}"></span>
+                                                                                @endif
+                                                                                @if ($event->target_grades)
+                                                                                    <span style="font-size: 0.625rem; font-weight: 700; color: #6b7280;" class="dark:text-gray-400">[{{ implode(',', $event->target_grades) }}]</span>
+                                                                                @endif
+                                                                                <span class="scp-event-note-title font-semibold text-slate-800 dark:text-slate-100">
+                                                                                    {{ $primaryTitle }}
+                                                                                </span>
+                                                                            </div>
+                                                                            @if ($secondaryTitle)
+                                                                                <div class="scp-event-note-subtitle font-normal text-slate-600 dark:text-slate-300 mt-0.5">
+                                                                                    {{ $secondaryTitle }}
+                                                                                </div>
                                                                             @endif
-                                                                        </span>
-                                                                    </div>
-                                                                    <div style="display: flex; flex-direction: column; gap: 4px; font-size: 0.6875rem;">
-                                                                        <div>
-                                                                            <span style="color: #6b7280;" class="dark:text-gray-400">Kategori:</span>
-                                                                            <span style="font-weight: 600;" class="text-gray-800 dark:text-gray-200">{{ $event->category instanceof \App\Enums\AcademicEventCategory ? $event->category->getLabel() : $event->category }}</span>
+                                                                        </button>
+                                                                    @else
+                                                                        <div
+                                                                            class="scp-day-event-note"
+                                                                            style="cursor: default;">
+                                                                            <div class="inline-flex items-center justify-center gap-1.5 flex-wrap">
+                                                                                @if ($catVal !== 'budaya_jawa')
+                                                                                    <span class="w-1.5 h-1.5 rounded-full shrink-0 scp-dot-{{ $catVal }}"></span>
+                                                                                @endif
+                                                                                @if ($event->target_grades)
+                                                                                    <span style="font-size: 0.625rem; font-weight: 700; color: #6b7280;" class="dark:text-gray-400">[{{ implode(',', $event->target_grades) }}]</span>
+                                                                                @endif
+                                                                                <span class="scp-event-note-title font-semibold text-slate-800 dark:text-slate-100">
+                                                                                    {{ $primaryTitle }}
+                                                                                </span>
+                                                                            </div>
+                                                                            @if ($secondaryTitle)
+                                                                                <div class="scp-event-note-subtitle font-normal text-slate-600 dark:text-slate-300 mt-0.5">
+                                                                                    {{ $secondaryTitle }}
+                                                                                </div>
+                                                                            @endif
                                                                         </div>
-                                                                        @if ($event->target_grades)
+                                                                    @endif
+
+                                                                    <!-- Popover Tooltip Saat Hover -->
+                                                                    <div
+                                                                        x-show="showPopover"
+                                                                        x-transition:enter="transition ease-out duration-150"
+                                                                        x-transition:enter-start="opacity-0 scale-95"
+                                                                        x-transition:enter-end="opacity-100 scale-100"
+                                                                        x-transition:leave="transition ease-in duration-100"
+                                                                        x-transition:leave-start="opacity-100 scale-100"
+                                                                        x-transition:leave-end="opacity-0 scale-95"
+                                                                        x-cloak
+                                                                        class="scp-cal-popover no-print">
+                                                                        <div class="scp-cal-popover-title" style="font-weight: 700; font-size: 0.875rem; color: #111827; margin-bottom: 4px; line-height: 1.25;">
+                                                                            {{ $event->title }}
+                                                                        </div>
+                                                                        <div class="scp-cal-popover-sub" style="display: flex; align-items: center; gap: 6px; font-size: 0.6875rem; color: #6b7280; margin-bottom: 8px;">
+                                                                            <x-filament::icon icon="heroicon-o-calendar" class="w-3.5 h-3.5 text-primary-500" />
+                                                                            <span>{{ $event->start_date->format('d M Y') }}</span>
+                                                                        </div>
+                                                                        <div style="display: flex; flex-direction: column; gap: 4px; font-size: 0.6875rem;">
                                                                             <div>
-                                                                                <span style="color: #6b7280;" class="dark:text-gray-400">Target Siswa:</span>
-                                                                                <span style="font-weight: 600;" class="text-gray-800 dark:text-gray-200">Kelas {{ implode(', ', $event->target_grades) }}</span>
+                                                                                <span style="color: #6b7280;" class="dark:text-gray-400">Kategori:</span>
+                                                                                <span style="font-weight: 600;" class="text-gray-800 dark:text-gray-200">{{ $event->category instanceof \App\Enums\AcademicEventCategory ? $event->category->getLabel() : $event->category }}</span>
                                                                             </div>
-                                                                        @endif
-                                                                        <div style="display: flex; flex-wrap: wrap; gap: 4px; margin-top: 6px; padding-top: 4px; border-top: 1px solid #f3f4f6;" class="dark:border-t-gray-700">
-                                                                            @if ($event->is_holiday)
-                                                                                <span style="padding: 2px 6px; border-radius: 4px; font-size: 0.625rem; font-weight: 700;" class="bg-red-100 text-red-700 dark:bg-red-950/60 dark:text-red-300">Libur</span>
+                                                                            @if ($event->target_grades)
+                                                                                <div>
+                                                                                    <span style="color: #6b7280;" class="dark:text-gray-400">Target Siswa:</span>
+                                                                                    <span style="font-weight: 600;" class="text-gray-800 dark:text-gray-200">Kelas {{ implode(', ', $event->target_grades) }}</span>
+                                                                                </div>
                                                                             @endif
-                                                                            @if ($event->disable_kbm)
-                                                                                <span style="padding: 2px 6px; border-radius: 4px; font-size: 0.625rem; font-weight: 700;" class="bg-amber-100 text-amber-700 dark:bg-amber-950/60 dark:text-amber-300">KBM Nonaktif</span>
-                                                                            @endif
-                                                                            @if ($event->requires_attendance)
-                                                                                <span style="padding: 2px 6px; border-radius: 4px; font-size: 0.625rem; font-weight: 700;" class="bg-blue-100 text-blue-700 dark:bg-blue-950/60 dark:text-blue-300">Wajib Presensi</span>
+                                                                            <div style="display: flex; flex-wrap: wrap; gap: 4px; margin-top: 6px; padding-top: 4px; border-top: 1px solid #f3f4f6;" class="dark:border-t-gray-700">
+                                                                                @if ($event->is_holiday)
+                                                                                    <span style="padding: 2px 6px; border-radius: 4px; font-size: 0.625rem; font-weight: 700;" class="bg-red-100 text-red-700 dark:bg-red-950/60 dark:text-red-300">Libur</span>
+                                                                                @endif
+                                                                                @if ($event->disable_kbm)
+                                                                                    <span style="padding: 2px 6px; border-radius: 4px; font-size: 0.625rem; font-weight: 700;" class="bg-amber-100 text-amber-700 dark:bg-amber-950/60 dark:text-amber-300">KBM Nonaktif</span>
+                                                                                @endif
+                                                                                @if ($event->requires_attendance)
+                                                                                    <span style="padding: 2px 6px; border-radius: 4px; font-size: 0.625rem; font-weight: 700;" class="bg-blue-100 text-blue-700 dark:bg-blue-950/60 dark:text-blue-300">Wajib Presensi</span>
+                                                                                @endif
+                                                                            </div>
+                                                                            @if ($event->description)
+                                                                                <div class="scp-cal-popover-desc" style="margin-top: 6px; color: #4b5563; font-style: italic; font-size: 0.6875rem;">
+                                                                                    "{{ Str::limit($event->description, 90) }}"
+                                                                                </div>
                                                                             @endif
                                                                         </div>
-                                                                        @if ($event->description)
-                                                                            <div class="scp-cal-popover-desc" style="margin-top: 6px; color: #4b5563; font-style: italic; font-size: 0.6875rem;">
-                                                                                "{{ Str::limit($event->description, 90) }}"
-                                                                            </div>
-                                                                        @endif
                                                                     </div>
                                                                 </div>
                                                             </div>
-                                                        @endforeach
+                                                        @else
+                                                            <!-- Placeholder Kosong (Jika tidak ada event atau hanya ada event multi-day) -->
+                                                            <div class="scp-cal-cell-center"></div>
+                                                        @endif
+
+                                                        <!-- 3. Footer: Tanggalan Jawa di Paling Bawah dan Tengah -->
+                                                        <div class="scp-cal-cell-footer">
+                                                            @if ($showCulturalDates && ! empty($day['pasaran']))
+                                                                <span class="scp-cal-jawa-pasaran {{ ($day['is_gagrak'] ?? false) ? 'text-amber-600 dark:text-amber-400 font-bold' : ($isNationalHoliday ? 'text-red-600 dark:text-red-400 font-semibold' : ($day['is_current_month'] ? 'text-slate-600 dark:text-gray-300 font-medium' : 'text-slate-400 dark:text-gray-500 font-normal')) }}"
+                                                                      title="{{ $day['weton'] }}">
+                                                                    {{ $day['pasaran'] }}
+                                                                </span>
+                                                            @else
+                                                                <span class="scp-cal-jawa-pasaran opacity-0">&nbsp;</span>
+                                                            @endif
+                                                        </div>
                                                     </div>
                                                 </td>
                                             @endforeach
@@ -1856,7 +2342,7 @@
                                     <div class="mt-2 pl-6 pt-2 border-t border-gray-200 dark:border-gray-700/60 space-y-2">
                                         <label class="flex items-center gap-2 cursor-pointer text-xs font-medium text-slate-700 dark:text-gray-300">
                                             <input type="checkbox" wire:model.live="includeGagrakOption" class="rounded border-gray-300 text-primary-600 focus:ring-primary-500">
-                                            <span>Sertakan Peringatan Busana Adat Tradisional (Gagrak)</span>
+                                            <span>Sertakan Peringatan Busana Adat Jawa</span>
                                         </label>
 
                                         @if ($includeGagrakOption)
@@ -1872,26 +2358,16 @@
                                                         <option value="Rabu">Rabu</option>
                                                     </select>
                                                     <select wire:model.live="gagrakPasaranOption" class="text-xs py-1 px-2 rounded border border-gray-300 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-200 font-semibold text-primary-600 dark:text-primary-400">
-                                                        <option value="Pon">Pon (Solo / Kasunanan)</option>
-                                                        <option value="Pahing">Pahing (Yogyakarta)</option>
+                                                        <option value="Pon">Pon</option>
+                                                        <option value="Pahing">Pahing</option>
                                                         <option value="Legi">Legi</option>
                                                         <option value="Wage">Wage</option>
                                                         <option value="Kliwon">Kliwon</option>
                                                     </select>
                                                 </div>
 
-                                                <div class="flex items-center gap-1.5 pt-1">
-                                                    <span class="text-gray-400 text-[11px]">Preset Daerah:</span>
-                                                    <button type="button" wire:click="setGagrakPreset('kamis_pon')" class="px-2 py-0.5 rounded text-[11px] font-medium bg-amber-50 dark:bg-amber-950/40 text-amber-700 dark:text-amber-300 border border-amber-200 dark:border-amber-800/60 hover:bg-amber-100">
-                                                        Solo: Kamis Pon
-                                                    </button>
-                                                    <button type="button" wire:click="setGagrakPreset('kamis_pahing')" class="px-2 py-0.5 rounded text-[11px] font-medium bg-blue-50 dark:bg-blue-950/40 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-800/60 hover:bg-blue-100">
-                                                        Jogja: Kamis Pahing
-                                                    </button>
-                                                </div>
-
-                                                <div class="pt-1">
-                                                    <input type="text" wire:model="gagrakLabelOption" placeholder="Nama Gagrak (contoh: Gagrak Surakarta)" class="w-full text-xs py-1 px-2 rounded border border-gray-300 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-200">
+                                                <div class="text-[11px] text-gray-500 dark:text-gray-400">
+                                                    Agenda: <span class="font-semibold text-gray-800 dark:text-gray-200">{{ $gagrakHariOption }} {{ $gagrakPasaranOption }} (Busana Adat Jawa)</span>
                                                 </div>
                                             </div>
                                         @endif

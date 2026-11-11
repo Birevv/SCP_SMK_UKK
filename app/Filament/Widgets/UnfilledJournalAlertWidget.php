@@ -35,7 +35,7 @@ class UnfilledJournalAlertWidget extends Widget
             return $user->can('View:UnfilledJournalAlertWidget');
         }
 
-        return $user->hasRole('Guru') || $user->role?->name === 'Guru';
+        return $user->hasAnyRole(['Guru', 'Wali Kelas']) || in_array($user->role?->name, ['Guru', 'Wali Kelas'], true);
     }
 
     public function getViewData(): array

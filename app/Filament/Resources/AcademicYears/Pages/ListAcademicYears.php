@@ -98,7 +98,7 @@ class ListAcademicYears extends ListRecords
 
     public string $gagrakPasaranOption = 'Pon';
 
-    public string $gagrakLabelOption = 'Gagrak Surakarta';
+    public string $gagrakLabelOption = 'Busana Adat Jawa';
 
     public bool $syncFullYearOption = true;
 
@@ -542,11 +542,11 @@ class ListAcademicYears extends ListRecords
         if ($preset === 'surakarta' || $preset === 'kamis_pon') {
             $this->gagrakHariOption = 'Kamis';
             $this->gagrakPasaranOption = 'Pon';
-            $this->gagrakLabelOption = 'Gagrak Surakarta';
+            $this->gagrakLabelOption = 'Busana Adat Jawa';
         } elseif ($preset === 'ngayogyakarta' || $preset === 'kamis_pahing') {
             $this->gagrakHariOption = 'Kamis';
             $this->gagrakPasaranOption = 'Pahing';
-            $this->gagrakLabelOption = 'Gagrak Ngayogyakarta';
+            $this->gagrakLabelOption = 'Busana Adat Jawa';
         }
     }
 
@@ -594,7 +594,7 @@ class ListAcademicYears extends ListRecords
                     includeGagrak: $this->includeGagrakOption,
                     gagrakHari: $this->gagrakHariOption,
                     gagrakPasaran: $this->gagrakPasaranOption,
-                    gagrakTitle: "{$this->gagrakHariOption} {$this->gagrakPasaranOption} (Busana Adat Jawa {$this->gagrakLabelOption})",
+                    gagrakTitle: "{$this->gagrakHariOption} {$this->gagrakPasaranOption} (Busana Adat Jawa)",
                     forceFullYear: $this->syncFullYearOption
                 );
                 $totalSynced += $cultResult['total_synced'];

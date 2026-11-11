@@ -81,7 +81,7 @@ class CulturalCalendarService
 
     protected string $gagrakPasaran = 'Pon';
 
-    protected string $gagrakLabel = 'Gagrak Surakarta';
+    protected string $gagrakLabel = 'Busana Adat Jawa';
 
     /**
      * Nama bulan kalender Hijriah (Indonesia).
@@ -498,20 +498,19 @@ class CulturalCalendarService
             }
 
             if (! $gagrakTitle) {
-                if ($targetHari === 'Kamis' && $targetPasaran === 'Pon') {
-                    $gagrakTitle = 'Kamis Pon (Busana Adat Jawa Gagrak Surakarta)';
-                } elseif ($targetHari === 'Kamis' && $targetPasaran === 'Pahing') {
-                    $gagrakTitle = 'Kamis Pahing (Busana Adat Jawa Gagrak Ngayogyakarta)';
-                } else {
-                    $gagrakTitle = "{$targetHari} {$targetPasaran} (Busana Adat Tradisional Jawa)";
-                }
+                $gagrakTitle = "{$targetHari} {$targetPasaran} (Busana Adat Jawa)";
             }
 
-            // Bersihkan agenda Gagrak lain di rentang tanggal ini agar tidak tercampur
+            // Bersihkan agenda Gagrak / busana adat lain di rentang tanggal ini agar tidak tercampur
             AcademicEvent::where('academic_year_id', $academicYear->id)
                 ->where('category', AcademicEventCategory::BUDAYA_JAWA)
-                ->where(function ($q) use ($gagrakTitle) {
+                ->where(function ($q) {
                     $q->where('title', 'like', '%Gagrak%')
+                        ->orWhere('title', 'like', '%Surakarta%')
+                        ->orWhere('title', 'like', '%Kasunanan%')
+                        ->orWhere('title', 'like', '%Ngayogyakarta%')
+                        ->orWhere('title', 'like', '%Yogyakarta%')
+                        ->orWhere('title', 'like', '%Busana Adat%')
                         ->orWhere('title', 'like', '%Kamis Pahing%')
                         ->orWhere('title', 'like', '%Kamis Pon%');
                 })
@@ -519,7 +518,7 @@ class CulturalCalendarService
                 ->whereBetween('start_date', [$startDate->toDateString(), $endDate->toDateString()])
                 ->delete();
 
-            $description = "Peringatan tradisi hari {$targetHari} {$targetPasaran}. Seluruh guru, staf, dan siswa mengenakan pakaian tradisional Jawa ({$gagrakTitle}).";
+            $description = "Peringatan hari {$targetHari} {$targetPasaran}. Seluruh guru, staf, dan siswa mengenakan busana adat Jawa.";
 
             $period = CarbonPeriod::create($startDate, $endDate);
             foreach ($period as $date) {

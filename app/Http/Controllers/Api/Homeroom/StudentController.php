@@ -28,13 +28,24 @@ class StudentController extends Controller
         $isBK = $teacher->hasRole('Guru BK') || $teacher->role?->name === 'Guru BK';
         $isSuperAdmin = $teacher->hasRole('Super Admin') || $teacher->role?->name === 'Super Admin';
 
-        $teacherClassrooms = $teacher->classrooms;
-        if ($teacherClassrooms->isEmpty() && $teacher->classroom_id && $teacher->classroom) {
-            $teacherClassrooms = collect([$teacher->classroom]);
+        if ($isSuperAdmin) {
+            $teacherClassrooms = Classroom::all();
+        } elseif ($isBK) {
+            $teacherClassrooms = $teacher->classrooms;
+            if ($teacherClassrooms->isEmpty() && $teacher->classroom_id && $teacher->classroom) {
+                $teacherClassrooms = collect([$teacher->classroom]);
+            }
+        } else {
+            // Wali Kelas hanya mengampu 1 kelas
+            $singleClassroom = $teacher->classroom ?? $teacher->classrooms->first();
+            $teacherClassrooms = $singleClassroom ? collect([$singleClassroom]) : collect();
         }
         $teacherClassroomIds = $teacherClassrooms->pluck('id');
 
-        if ($request->filled('classroom_id')) {
+        $classroom = null;
+        $classroomName = 'Semua Siswa Binaan';
+
+        if ($request->filled('classroom_id') && $request->classroom_id !== 'all' && $request->classroom_id !== '0') {
             $classroom = Classroom::find($request->classroom_id);
             if (! $classroom) {
                 return $this->errorResponse('Kelas tidak ditemukan', 404);
@@ -42,26 +53,33 @@ class StudentController extends Controller
             if (! $isSuperAdmin && $teacherClassroomIds->isNotEmpty() && ! $teacherClassroomIds->contains($classroom->id)) {
                 return $this->errorResponse('Anda tidak memiliki akses ke kelas ini', 403);
             }
-        } elseif ($teacherClassroomIds->isNotEmpty()) {
-            $classroom = Classroom::find($teacherClassroomIds->first());
+            $targetClassroomIds = collect([$classroom->id]);
+            $classroomName = $classroom->name;
         } elseif ($isBK) {
-            $classroom = Classroom::orderBy('name')->first();
+            // Guru BK bisa mengampu dan memfilter banyak kelas
+            $targetClassroomIds = $teacherClassroomIds;
+            $classroomName = 'Semua Siswa Binaan';
+        } elseif ($teacherClassrooms->isNotEmpty()) {
+            // Wali Kelas hanya mengampu 1 kelas
+            $classroom = $teacherClassrooms->first();
+            $targetClassroomIds = collect([$classroom->id]);
+            $classroomName = $classroom->name;
         } else {
-            $classroom = $this->getHomeroomClassroom($teacher);
-        }
-
-        if (! $classroom) {
-            return $this->errorResponse('Anda Belum Ditugaskan Sebagai Wali Kelas', 403);
+            return $this->errorResponse('Anda Belum Ditugaskan Sebagai Wali Kelas / Guru BK', 403);
         }
 
         $activeYear = AcademicYear::getActive();
         $today = Carbon::today('Asia/Jakarta');
 
-        $students = User::whereHas('role', fn ($q) => $q->whereIn('name', ['Siswa', 'siswa']))
-            ->whereHas('classrooms', fn ($q) => $q->where('classrooms.id', $classroom->id))
-            ->orderBy('full_name')
-            ->get();
+        $studentsQuery = User::whereHas('role', fn ($q) => $q->whereIn('name', ['Siswa', 'siswa']))
+            ->with(['classrooms' => fn ($q) => $q->select('classrooms.id', 'classrooms.name')])
+            ->orderBy('full_name');
 
+        if ($targetClassroomIds->isNotEmpty()) {
+            $studentsQuery->whereHas('classrooms', fn ($q) => $q->whereIn('classrooms.id', $targetClassroomIds));
+        }
+
+        $students = $studentsQuery->get();
         $studentIds = $students->pluck('id');
 
         // Query attendances for the active year
@@ -106,14 +124,16 @@ class StudentController extends Controller
 
             $todayStatus = $todayAtt?->status ?? ($approvedLeave ? ($approvedLeave->reason_type === 'Sakit' ? 'Sakit' : 'Izin') : 'Hadir');
 
+            $studentClassroom = $student->classrooms->first() ?? $classroom;
+
             return [
                 'id' => $student->id,
                 'student_name' => $student->full_name,
                 'full_name' => $student->full_name,
                 'identity_number' => $student->identity_number,
                 'nisn' => $student->identity_number,
-                'classroom_id' => $classroom->id,
-                'classroom_name' => $classroom->name,
+                'classroom_id' => $studentClassroom?->id ?? $classroom?->id,
+                'classroom_name' => $studentClassroom?->name ?? $classroom?->name ?? '-',
                 'hadir' => $hadir,
                 'sakit' => $sakit,
                 'izin' => $izin,
@@ -128,9 +148,13 @@ class StudentController extends Controller
 
         return $this->successResponse([
             'classroom' => [
-                'id' => $classroom->id,
-                'name' => $classroom->name,
+                'id' => $classroom?->id,
+                'name' => $classroomName,
             ],
+            'classrooms' => $teacherClassrooms->map(fn ($c) => [
+                'id' => $c->id,
+                'name' => $c->name,
+            ])->values(),
             'total_students' => $students->count(),
             'students' => $data,
         ], 'Daftar siswa binaan berhasil dimuat');

@@ -37,7 +37,7 @@ class JournalResource extends Resource
             || $user?->hasRole('Waka Kurikulum')
             || $user?->role?->name === 'Waka Kurikulum';
 
-        if (! $isSchoolAdmin && $user && ($user->hasRole('Guru') || $user->role?->name === 'Guru')) {
+        if (! $isSchoolAdmin && $user && ($user->hasAnyRole(['Guru', 'Wali Kelas']) || in_array($user->role?->name, ['Guru', 'Wali Kelas'], true))) {
             $query->where('teacher_id', $user->id);
         }
 

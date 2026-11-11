@@ -28,26 +28,89 @@ class DashboardController extends Controller
             ->pluck('id');
     }
 
+    public function classrooms(Request $request): JsonResponse
+    {
+        $teacher = $request->user();
+        $isSuperAdmin = $teacher->hasRole('Super Admin') || $teacher->role?->name === 'Super Admin';
+        $isBK = $teacher->hasRole('Guru BK') || $teacher->role?->name === 'Guru BK';
+
+        if ($isSuperAdmin) {
+            $classrooms = Classroom::select('id', 'name')->orderBy('name')->get();
+        } elseif ($isBK) {
+            $classrooms = $teacher->classrooms()->select('classrooms.id', 'classrooms.name')->orderBy('name')->get();
+            if ($classrooms->isEmpty() && $teacher->classroom_id && $teacher->classroom) {
+                $classrooms = collect([$teacher->classroom]);
+            }
+        } else {
+            // Wali Kelas hanya mengampu 1 kelas
+            $singleClassroom = $teacher->classroom ?? $teacher->classrooms()->select('classrooms.id', 'classrooms.name')->first();
+            $classrooms = $singleClassroom ? collect([$singleClassroom]) : collect();
+        }
+
+        return $this->successResponse($classrooms, 'Daftar Kelas Binaan Berhasil Dimuat');
+    }
+
     public function index(Request $request): JsonResponse
     {
         $teacher = $request->user();
+        $isBK = $teacher->hasRole('Guru BK') || $teacher->role?->name === 'Guru BK';
+        $isSuperAdmin = $teacher->hasRole('Super Admin') || $teacher->role?->name === 'Super Admin';
 
-        if ($request->filled('classroom_id')) {
+        if ($isSuperAdmin) {
+            $teacherClassrooms = Classroom::all();
+        } elseif ($isBK) {
+            $teacherClassrooms = $teacher->classrooms;
+            if ($teacherClassrooms->isEmpty() && $teacher->classroom_id && $teacher->classroom) {
+                $teacherClassrooms = collect([$teacher->classroom]);
+            }
+        } else {
+            // Wali Kelas hanya mengampu 1 kelas
+            $singleClassroom = $teacher->classroom ?? $teacher->classrooms->first();
+            $teacherClassrooms = $singleClassroom ? collect([$singleClassroom]) : collect();
+        }
+        $teacherClassroomIds = $teacherClassrooms->pluck('id');
+
+        $classroom = null;
+        $selectedClassroomId = null;
+
+        if ($request->filled('classroom_id') && $request->classroom_id !== 'all' && $request->classroom_id !== '0') {
             $classroom = Classroom::find($request->classroom_id);
+            if (! $classroom) {
+                return $this->errorResponse('Kelas tidak ditemukan', 404);
+            }
+            if (! $isSuperAdmin && $teacherClassroomIds->isNotEmpty() && ! $teacherClassroomIds->contains($classroom->id)) {
+                return $this->errorResponse('Anda tidak memiliki akses ke kelas ini', 403);
+            }
+            $studentsIds = $this->getStudentIds($classroom->id);
+            $classroomName = $classroom->name;
+            $selectedClassroomId = $classroom->id;
         } elseif ($request->filled('grade') || $request->filled('class_level')) {
-            $classroom = $teacher->classrooms()->forGrade($request->input('grade', $request->input('class_level')))->first();
+            $classroom = $teacherClassrooms->first();
             if (! $classroom) {
                 $classroom = Classroom::forGrade($request->input('grade', $request->input('class_level')))->first();
             }
+            $studentsIds = $classroom ? $this->getStudentIds($classroom->id) : collect();
+            $classroomName = $classroom?->name ?? 'Kelas Tidak Ditemukan';
+            $selectedClassroomId = $classroom?->id;
+        } elseif ($isBK) {
+            if ($teacherClassroomIds->isNotEmpty()) {
+                $studentsIds = User::whereHas('role', fn ($q) => $q->whereIn('name', ['Siswa', 'siswa']))
+                    ->whereHas('classrooms', fn ($q) => $q->whereIn('classrooms.id', $teacherClassroomIds))
+                    ->pluck('id');
+                $classroomName = 'Semua Kelas Binaan';
+            } else {
+                $studentsIds = collect();
+                $classroomName = 'Semua Kelas';
+            }
+        } elseif ($teacherClassrooms->isNotEmpty()) {
+            $classroom = $teacherClassrooms->first();
+            $studentsIds = $this->getStudentIds($classroom->id);
+            $classroomName = $classroom->name;
+            $selectedClassroomId = $classroom->id;
         } else {
-            $classroom = $this->getHomeroomClassroom($teacher);
+            return $this->errorResponse('Anda Belum Ditugaskan Sebagai Wali Kelas / Guru BK', 403);
         }
 
-        if (! $classroom) {
-            return $this->errorResponse('Anda Belum Ditugaskan Sebagai Wali Kelas', 403);
-        }
-
-        $studentsIds = $this->getStudentIds($classroom->id);
         $today = Carbon::today();
 
         $todayAttendances = Attendance::whereIn('student_id', $studentsIds)
@@ -83,7 +146,12 @@ class DashboardController extends Controller
 
         return $this->successResponse([
             'teacher_name' => $teacher->full_name,
-            'classroom_name' => $classroom->name,
+            'classroom_name' => $classroomName,
+            'classrooms' => $teacherClassrooms->map(fn ($c) => [
+                'id' => $c->id,
+                'name' => $c->name,
+            ])->values(),
+            'selected_classroom_id' => $selectedClassroomId,
             'attendance_today' => [
                 'hadir' => $hadir,
                 'izin' => $izin,

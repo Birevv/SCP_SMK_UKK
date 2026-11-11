@@ -14,6 +14,22 @@ class UserResource extends JsonResource
      */
     public function toArray(Request $request): array
     {
+        $roleName = $this->role?->name;
+        $isBK = $this->hasRole('Guru BK') || $roleName === 'Guru BK';
+        $isWali = $this->hasRole('Wali Kelas') || $roleName === 'Wali Kelas';
+
+        if ($isBK) {
+            $assignedClassrooms = $this->classrooms;
+            $classroomLabel = $this->classrooms->pluck('name')->join(', ');
+        } elseif ($isWali) {
+            $singleClass = $this->classroom ?? $this->classrooms->first();
+            $assignedClassrooms = $singleClass ? collect([$singleClass]) : collect();
+            $classroomLabel = $singleClass?->name ?? '';
+        } else {
+            $assignedClassrooms = $this->classrooms;
+            $classroomLabel = $this->classrooms->pluck('name')->join(', ');
+        }
+
         return [
             'id' => $this->id,
             'full_name' => $this->full_name,
@@ -27,7 +43,11 @@ class UserResource extends JsonResource
             'profile_photo_url' => $this->profile_photo_url,
             'role' => $this->role?->name,
             'role_badge' => $this->role?->name,
-            'classroom' => $this->classrooms->pluck('name')->join(', '),
+            'classroom' => $classroomLabel,
+            'classrooms' => $assignedClassrooms->map(fn ($c) => [
+                'id' => $c->id,
+                'name' => $c->name,
+            ])->values(),
             'assignment' => $this->assignment,
             'penugasan' => $this->assignment,
         ];
