@@ -170,8 +170,24 @@
     <div id="release-notes" class="scroll-mt-28 space-y-4 pt-8 border-t border-slate-200 dark:border-zinc-800">
         <h2 class="text-xl sm:text-2xl font-bold tracking-tight text-slate-900 dark:text-white flex items-center gap-2.5">
             <span class="text-[#1D4ED8] dark:text-blue-400">#</span>
-            <span>Release Notes v1.0.0 (UKK 2026 Edition)</span>
+            <span>Release Notes &amp; Changelog</span>
         </h2>
+
+        {{-- Versi 1.0.1 (Mobile Update) --}}
+        <div class="rounded-xl border border-blue-200 dark:border-blue-900/60 bg-blue-50/30 dark:bg-blue-950/20 p-4 sm:p-5 text-sm sm:text-base space-y-2.5">
+            <div class="flex items-center justify-between text-slate-900 dark:text-white font-semibold">
+                <span class="text-base sm:text-lg">Versi 1.0.1 (Mobile App Update)</span>
+                <span class="text-blue-700 dark:text-blue-400 font-mono text-xs sm:text-sm bg-blue-100 dark:bg-blue-900/60 px-2.5 py-1 rounded-md border border-blue-200 dark:border-blue-800">Mobile Patch</span>
+            </div>
+            <ul class="text-slate-600 dark:text-slate-300 list-disc list-inside space-y-1.5 leading-relaxed">
+                <li>Validasi status pengisian jurnal mengajar tatap muka dan pencegahan entri ganda per jadwal harian.</li>
+                <li>Pemilihan cerdas otomatis jadwal mengajar yang belum diisi saat membuka formulir jurnal.</li>
+                <li>Validasi wajib dokumentasi foto kegiatan belajar mengajar (KBM) realtime via kamera perangkat.</li>
+                <li>Integrasi modul upload multipart HTTP parser untuk keandalan transmisi bukti foto kelas ke server.</li>
+            </ul>
+        </div>
+
+        {{-- Versi 1.0.0 (Core UKK Edition) --}}
         <div class="rounded-xl border border-slate-200 dark:border-zinc-800 bg-white dark:bg-[#12141c] p-4 sm:p-5 text-sm sm:text-base space-y-2.5">
             <div class="flex items-center justify-between text-slate-900 dark:text-white font-semibold">
                 <span class="text-base sm:text-lg">Versi 1.0.0 (Siap Uji Kompetensi Keahlian)</span>

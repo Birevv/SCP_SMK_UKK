@@ -21,7 +21,7 @@ class DownloadPageTest extends TestCase
         $response->assertSee('SMK Negeri 1 Bantul');
         $response->assertSee('Unduh Langsung');
         $response->assertSee('Aplikasi SCP');
-        $response->assertSee('Download SCP v1.0.0 (.apk)');
+        $response->assertSee('Download SCP v1.0.1 (.apk)');
         $response->assertSee('Lihat Changelog');
         $response->assertSee('Versi Aplikasi');
         $response->assertSee('Tanggal Rilis');
@@ -31,6 +31,7 @@ class DownloadPageTest extends TestCase
         $response->assertSee('Izinkan Instalasi');
         $response->assertSee('Pasang & Masuk');
         $response->assertSee('Riwayat Pembaruan');
+        $response->assertSee('Changelog SCP — Versi 1.0.1');
         $response->assertSee('Changelog SCP — Versi 1.0.0');
         $response->assertSee('Versi Terbaru');
         $response->assertSee('href="'.$loginUrl.'"', false);

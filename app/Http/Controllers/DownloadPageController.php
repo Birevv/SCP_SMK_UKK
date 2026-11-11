@@ -19,7 +19,7 @@ class DownloadPageController extends Controller
         $apkUrl = $this->resolveValidatedApkUrl(config('scp.mobile_apk_url'));
         $apkVersion = is_string(config('scp.mobile_apk_version')) && trim(config('scp.mobile_apk_version')) !== ''
             ? trim(config('scp.mobile_apk_version'))
-            : '1.0.0';
+            : '1.0.1';
         $apkSha256 = is_string(config('scp.mobile_apk_sha256')) && trim(config('scp.mobile_apk_sha256')) !== ''
             ? trim(config('scp.mobile_apk_sha256'))
             : null;

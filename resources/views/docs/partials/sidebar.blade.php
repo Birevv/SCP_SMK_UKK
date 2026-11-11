@@ -33,7 +33,7 @@
                 </li>
                 <li>
                     <a href="#release-notes" class="block px-3 py-1.5 rounded-lg text-slate-600 dark:text-zinc-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-zinc-800 transition-colors">
-                        Release Notes v1.0.0
+                        Release Notes &amp; Changelog
                     </a>
                 </li>
             </ul>

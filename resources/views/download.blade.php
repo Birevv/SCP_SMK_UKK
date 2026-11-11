@@ -8,7 +8,7 @@
     $canonicalUrl = rtrim((string) config('app.url', url('/')), '/').'/download';
     $metaDescription = 'Unduh langsung aplikasi School Class Progress (SCP) untuk Android — SMK Negeri 1 Bantul. Pengelolaan jurnal mengajar, presensi siswa, dan perizinan sekolah dalam satu genggaman.';
     $apkUrl = $apkUrl ?? null;
-    $apkVersion = $apkVersion ?? '1.0.0';
+    $apkVersion = $apkVersion ?? '1.0.1';
     $apkSha256 = $apkSha256 ?? null;
 @endphp
 <!DOCTYPE html>
@@ -415,89 +415,116 @@
                     </p>
                 </div>
 
-                {{-- Changelog Card --}}
-                <div class="max-w-4xl mx-auto mt-10 rounded-2xl bg-card border border-hairline-strong p-6 sm:p-9 shadow-sheet">
-                    
-                    {{-- Header Rilis --}}
-                    <div class="pb-5 border-b border-hairline flex flex-wrap items-center justify-between gap-3">
-                        <div class="flex items-center gap-3">
-                            <h3 class="text-lg sm:text-xl font-bold text-ink">Changelog SCP — Versi {{ $apkVersion }}</h3>
-                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-amber-500/15 text-amber-700 dark:text-amber-400 border border-amber-500/30">
-                                Versi Terbaru
-                            </span>
+                {{-- Changelog Cards Container --}}
+                <div class="max-w-4xl mx-auto mt-10 space-y-6">
+
+                    {{-- Versi 1.0.1 (Versi Terbaru) --}}
+                    <div class="rounded-2xl bg-card border border-hairline-strong p-6 sm:p-9 shadow-sheet">
+                        
+                        {{-- Header Rilis --}}
+                        <div class="pb-5 border-b border-hairline flex flex-wrap items-center justify-between gap-3">
+                            <div class="flex items-center gap-3">
+                                <h3 class="text-lg sm:text-xl font-bold text-ink">Changelog SCP — Versi {{ $apkVersion }}</h3>
+                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-amber-500/15 text-amber-700 dark:text-amber-400 border border-amber-500/30">
+                                    Versi Terbaru
+                                </span>
+                            </div>
+                            <span class="text-xs text-ink-muted tabular-nums">Tanggal Rilis: 11 November 2026</span>
                         </div>
-                        <span class="text-xs text-ink-muted tabular-nums">Tanggal Rilis: 11 November 2026</span>
+
+                        {{-- Tujuan Pembaruan --}}
+                        <div class="pt-6">
+                            <h4 class="text-xs font-bold text-ink uppercase tracking-wider">Tujuan Pembaruan:</h4>
+                            <p class="text-sm text-ink-secondary leading-relaxed mt-2">
+                                Meningkatkan akurasi dan integritas data pada pengisian jurnal tatap muka oleh guru, mewajibkan dokumentasi foto kegiatan belajar mengajar secara langsung melalui kamera, serta mencegah pencatatan ganda pada jadwal mengajar yang sama.
+                            </p>
+                        </div>
+
+                        {{-- Daftar Pembaruan --}}
+                        <div class="pt-6">
+                            <h4 class="text-xs font-bold text-ink uppercase tracking-wider mb-3">Pembaruan &amp; Perbaikan:</h4>
+                            <ul class="space-y-3 text-sm text-ink-secondary">
+                                <li class="flex items-start gap-3">
+                                    <span class="w-5 h-5 rounded-full bg-amber-500/15 text-amber-600 dark:text-amber-400 flex items-center justify-center shrink-0 mt-0.5">
+                                        <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                            <path d="m4.5 12.75 6 6 9-13.5" />
+                                        </svg>
+                                    </span>
+                                    <span><strong>Validasi Status &amp; Anti-Duplikasi Jurnal:</strong> Jadwal mengajar yang telah diisi kini ditandai dengan badge status "Sudah Diisi", dan tombol simpan dinonaktifkan otomatis agar tidak terjadi entri ganda pada jadwal yang sama.</span>
+                                </li>
+                                <li class="flex items-start gap-3">
+                                    <span class="w-5 h-5 rounded-full bg-amber-500/15 text-amber-600 dark:text-amber-400 flex items-center justify-center shrink-0 mt-0.5">
+                                        <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                            <path d="m4.5 12.75 6 6 9-13.5" />
+                                        </svg>
+                                    </span>
+                                    <span><strong>Prioritas Pemilihan Jadwal Hari Ini:</strong> Saat membuka formulir jurnal, aplikasi secara cerdas memprioritaskan jadwal yang belum diisi agar guru dapat langsung bekerja tanpa harus mencari jadwal secara manual.</span>
+                                </li>
+                                <li class="flex items-start gap-3">
+                                    <span class="w-5 h-5 rounded-full bg-amber-500/15 text-amber-600 dark:text-amber-400 flex items-center justify-center shrink-0 mt-0.5">
+                                        <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                            <path d="m4.5 12.75 6 6 9-13.5" />
+                                        </svg>
+                                    </span>
+                                    <span><strong>Validasi Wajib Kamera Realtime:</strong> Dokumentasi foto kegiatan belajar mengajar (KBM) wajib diambil secara langsung dari kamera perangkat guru sebelum formulir jurnal dapat dikirimkan.</span>
+                                </li>
+                                <li class="flex items-start gap-3">
+                                    <span class="w-5 h-5 rounded-full bg-amber-500/15 text-amber-600 dark:text-amber-400 flex items-center justify-center shrink-0 mt-0.5">
+                                        <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                            <path d="m4.5 12.75 6 6 9-13.5" />
+                                        </svg>
+                                    </span>
+                                    <span><strong>Integrasi Multipart API &amp; HTTP Parser:</strong> Penambahan dependensi pustaka parser multipart untuk meningkatkan keandalan pengunggahan berkas foto dokumentasi ke server sekolah.</span>
+                                </li>
+                                <li class="flex items-start gap-3">
+                                    <span class="w-5 h-5 rounded-full bg-amber-500/15 text-amber-600 dark:text-amber-400 flex items-center justify-center shrink-0 mt-0.5">
+                                        <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                                            <path d="m4.5 12.75 6 6 9-13.5" />
+                                        </svg>
+                                    </span>
+                                    <span><strong>Penyempurnaan Navigasi Guru &amp; Wali Murid:</strong> Perbaikan pada dialog pemilih jadwal tatap muka serta optimalisasi pemantauan rekapitulasi kehadiran siswa pada dashboard wali.</span>
+                                </li>
+                            </ul>
+                        </div>
+
                     </div>
 
-                    {{-- Tujuan Pembaruan --}}
-                    <div class="pt-6">
-                        <h4 class="text-xs font-bold text-ink uppercase tracking-wider">Tujuan Pembaruan:</h4>
-                        <p class="text-sm text-ink-secondary leading-relaxed mt-2">
-                            Memberikan pengalaman penggunaan aplikasi yang lebih efisien bagi guru dalam mengisi jurnal mengajar, mempermudah akses presensi siswa secara real-time, serta mempercepat alur verifikasi perizinan siswa di SMK Negeri 1 Bantul.
-                        </p>
-                    </div>
+                    {{-- Versi 1.0.0 (Rilis Sebelumnya) --}}
+                    <div class="rounded-2xl bg-card border border-hairline p-6 sm:p-8 opacity-90 transition-opacity hover:opacity-100">
+                        <div class="pb-4 border-b border-hairline flex flex-wrap items-center justify-between gap-3">
+                            <div class="flex items-center gap-3">
+                                <h3 class="text-base sm:text-lg font-bold text-ink">Changelog SCP — Versi 1.0.0</h3>
+                                <span class="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-medium bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700">
+                                    Rilis Perdana
+                                </span>
+                            </div>
+                            <span class="text-xs text-ink-muted tabular-nums">11 November 2026</span>
+                        </div>
 
-                    {{-- Daftar Pembaruan --}}
-                    <div class="pt-6">
-                        <h4 class="text-xs font-bold text-ink uppercase tracking-wider mb-3">Pembaruan:</h4>
-                        <ul class="space-y-3 text-sm text-ink-secondary">
-                            <li class="flex items-start gap-3">
-                                <span class="w-5 h-5 rounded-full bg-amber-500/15 text-amber-600 dark:text-amber-400 flex items-center justify-center shrink-0 mt-0.5">
-                                    <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                                        <path d="m4.5 12.75 6 6 9-13.5" />
-                                    </svg>
-                                </span>
-                                <span>Perubahan tampilan halaman Beranda yang lebih bersih, terstruktur, dan responsif.</span>
-                            </li>
-                            <li class="flex items-start gap-3">
-                                <span class="w-5 h-5 rounded-full bg-amber-500/15 text-amber-600 dark:text-amber-400 flex items-center justify-center shrink-0 mt-0.5">
-                                    <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                                        <path d="m4.5 12.75 6 6 9-13.5" />
-                                    </svg>
-                                </span>
-                                <span>Penambahan modul pengisian jurnal tatap muka otomatis sesuai siklus jadwal blok aktif (Putaran 1 & Putaran 2).</span>
-                            </li>
-                            <li class="flex items-start gap-3">
-                                <span class="w-5 h-5 rounded-full bg-amber-500/15 text-amber-600 dark:text-amber-400 flex items-center justify-center shrink-0 mt-0.5">
-                                    <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                                        <path d="m4.5 12.75 6 6 9-13.5" />
-                                    </svg>
-                                </span>
-                                <span>Fitur presensi kehadiran siswa per jam tatap muka dengan status Hadir, Sakit, Izin, dan Alpa.</span>
-                            </li>
-                            <li class="flex items-start gap-3">
-                                <span class="w-5 h-5 rounded-full bg-amber-500/15 text-amber-600 dark:text-amber-400 flex items-center justify-center shrink-0 mt-0.5">
-                                    <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                                        <path d="m4.5 12.75 6 6 9-13.5" />
-                                    </svg>
-                                </span>
-                                <span>Sinkronisasi otomatis dengan perizinan siswa yang telah disetujui oleh Waka Kurikulum.</span>
-                            </li>
-                            <li class="flex items-start gap-3">
-                                <span class="w-5 h-5 rounded-full bg-amber-500/15 text-amber-600 dark:text-amber-400 flex items-center justify-center shrink-0 mt-0.5">
-                                    <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                                        <path d="m4.5 12.75 6 6 9-13.5" />
-                                    </svg>
-                                </span>
-                                <span>Pengunggahan dokumentasi foto kegiatan belajar mengajar langsung dari kamera perangkat guru.</span>
-                            </li>
-                            <li class="flex items-start gap-3">
-                                <span class="w-5 h-5 rounded-full bg-amber-500/15 text-amber-600 dark:text-amber-400 flex items-center justify-center shrink-0 mt-0.5">
-                                    <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                                        <path d="m4.5 12.75 6 6 9-13.5" />
-                                    </svg>
-                                </span>
-                                <span>Peringatan visual keterlambatan pengisian jurnal tatap muka (> 30 menit).</span>
-                            </li>
-                            <li class="flex items-start gap-3">
-                                <span class="w-5 h-5 rounded-full bg-amber-500/15 text-amber-600 dark:text-amber-400 flex items-center justify-center shrink-0 mt-0.5">
-                                    <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                                        <path d="m4.5 12.75 6 6 9-13.5" />
-                                    </svg>
-                                </span>
-                                <span>Penyempurnaan performa sinkronisasi data offline dan kestabilan aplikasi Android.</span>
-                            </li>
-                        </ul>
+                        <div class="pt-4">
+                            <ul class="space-y-2 text-xs sm:text-sm text-ink-secondary">
+                                <li class="flex items-start gap-2.5">
+                                    <span class="text-ink-muted mt-0.5">•</span>
+                                    <span>Rilis perdana aplikasi mobile School Class Progress (SCP) untuk platform Android.</span>
+                                </li>
+                                <li class="flex items-start gap-2.5">
+                                    <span class="text-ink-muted mt-0.5">•</span>
+                                    <span>Modul pengisian jurnal tatap muka otomatis berdasarkan jadwal blok aktif (Putaran 1 &amp; Putaran 2).</span>
+                                </li>
+                                <li class="flex items-start gap-2.5">
+                                    <span class="text-ink-muted mt-0.5">•</span>
+                                    <span>Pencatatan presensi siswa per jam mengajar dengan status Hadir, Sakit, Izin, dan Alpa.</span>
+                                </li>
+                                <li class="flex items-start gap-2.5">
+                                    <span class="text-ink-muted mt-0.5">•</span>
+                                    <span>Sinkronisasi otomatis surat izin/sakit siswa yang disetujui pihak sekolah.</span>
+                                </li>
+                                <li class="flex items-start gap-2.5">
+                                    <span class="text-ink-muted mt-0.5">•</span>
+                                    <span>Dashboard pemantauan jadwal dan rekap kehadiran bagi siswa dan wali murid.</span>
+                                </li>
+                            </ul>
+                        </div>
                     </div>
 
                 </div>
