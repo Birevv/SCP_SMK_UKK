@@ -77,7 +77,14 @@ class LeaveRequestsTable
                         'kegiatan_luar' => 'Kegiatan Luar',
                         default => $state,
                     })
-                    ->label('Jenis'),
+                    ->label('Alasan'),
+
+                TextColumn::make('description')
+                    ->label('Keterangan Alasan')
+                    ->limit(50)
+                    ->tooltip(fn (LeaveRequest $record): ?string => $record->description)
+                    ->wrap()
+                    ->searchable(),
 
                 ImageColumn::make('attachment_photo')
                     ->label('Bukti Foto')

@@ -73,6 +73,14 @@ class JournalController extends Controller
             return $this->errorResponse('Anda tidak memiliki akses ke jadwal ini', 403);
         }
 
+        $alreadyFilled = Journal::where('schedule_id', $data['schedule_id'])
+            ->whereDate('date', $data['date'])
+            ->exists();
+
+        if ($alreadyFilled) {
+            return $this->errorResponse('Jurnal untuk jadwal mengajar ini pada tanggal yang dipilih sudah pernah diisi.', 422);
+        }
+
         $uploadedPhotoPath = null;
         if ($request->hasFile('activity_photo')) {
             $uploadedPhotoPath = $request->file('activity_photo')->store('journal_photos', 'public');

@@ -158,7 +158,7 @@ class RolePermissionTest extends TestCase
         $this->assertFalse(UserResource::canDelete($superAdmin));
     }
 
-    public function test_walikelas_and_bk_cannot_view_or_input_journal(): void
+    public function test_walikelas_and_bk_journal_permissions(): void
     {
         $superAdminRole = Role::firstOrCreate(['name' => 'Super Admin', 'guard_name' => 'web']);
         $guruRole = Role::firstOrCreate(['name' => 'Guru', 'guard_name' => 'web']);
@@ -177,12 +177,12 @@ class RolePermissionTest extends TestCase
         $superAdmin = User::factory()->create(['role_id' => $superAdminRole->id]);
         $superAdmin->assignRole('Super Admin');
 
-        // Wali Kelas TIDAK BISA melihat maupun menginput jurnal di Filament & Gate
+        // Wali Kelas (guru dengan tugas tambahan) memiliki hak akses jurnal
         $this->actingAs($wali);
-        $this->assertFalse(JournalResource::canViewAny());
-        $this->assertFalse(JournalResource::canCreate());
-        $this->assertFalse(Gate::forUser($wali)->allows('viewAny', Journal::class));
-        $this->assertFalse(Gate::forUser($wali)->allows('create', Journal::class));
+        $this->assertTrue(JournalResource::canViewAny());
+        $this->assertTrue(JournalResource::canCreate());
+        $this->assertTrue(Gate::forUser($wali)->allows('viewAny', Journal::class));
+        $this->assertTrue(Gate::forUser($wali)->allows('create', Journal::class));
 
         // Guru BK TIDAK BISA melihat maupun menginput jurnal di Filament & Gate
         $this->actingAs($bk);
@@ -191,11 +191,7 @@ class RolePermissionTest extends TestCase
         $this->assertFalse(Gate::forUser($bk)->allows('viewAny', Journal::class));
         $this->assertFalse(Gate::forUser($bk)->allows('create', Journal::class));
 
-        // Wali Kelas & Guru BK juga tidak bisa akses API teacher journals
-        $this->actingAs($wali, 'sanctum');
-        $responseWali = $this->getJson('/api/teacher/journals');
-        $responseWali->assertForbidden();
-
+        // Guru BK juga tidak bisa akses API teacher journals
         $this->actingAs($bk, 'sanctum');
         $responseBk = $this->getJson('/api/teacher/journals');
         $responseBk->assertForbidden();

@@ -52,13 +52,23 @@ class RealtimePhotoCaptureTest extends TestCase
         $academicYear = AcademicYear::create(['name' => '2025/2026', 'is_active' => true]);
         $subject = Subject::create(['name' => 'Pemrograman Web']);
 
+        $todayDay = match (now()->dayOfWeekIso) {
+            1 => 'Senin',
+            2 => 'Selasa',
+            3 => 'Rabu',
+            4 => 'Kamis',
+            5 => 'Jumat',
+            6 => 'Sabtu',
+            7 => 'Minggu',
+        };
+
         $schedule = Schedule::create([
             'academic_year_id' => $academicYear->id,
             'teacher_id' => $teacher->id,
             'classroom_id' => $classroom->id,
             'room_id' => $room->id,
             'subject_id' => $subject->id,
-            'day_of_week' => 'Senin',
+            'day_of_week' => $todayDay,
             'start_time' => '07:00:00',
             'end_time' => '09:00:00',
             'cycle_type' => 'Putaran 1',
@@ -95,13 +105,23 @@ class RealtimePhotoCaptureTest extends TestCase
         $academicYear = AcademicYear::create(['name' => '2025/2026', 'is_active' => true]);
         $subject = Subject::create(['name' => 'Pemrograman Web']);
 
+        $todayDay = match (now()->dayOfWeekIso) {
+            1 => 'Senin',
+            2 => 'Selasa',
+            3 => 'Rabu',
+            4 => 'Kamis',
+            5 => 'Jumat',
+            6 => 'Sabtu',
+            7 => 'Minggu',
+        };
+
         $schedule = Schedule::create([
             'academic_year_id' => $academicYear->id,
             'teacher_id' => $teacher->id,
             'classroom_id' => $classroom->id,
             'room_id' => $room->id,
             'subject_id' => $subject->id,
-            'day_of_week' => 'Senin',
+            'day_of_week' => $todayDay,
             'start_time' => '07:00:00',
             'end_time' => '09:00:00',
             'cycle_type' => 'Putaran 1',

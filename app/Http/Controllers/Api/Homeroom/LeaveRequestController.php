@@ -85,7 +85,7 @@ class LeaveRequestController extends Controller
                 'classroom' => $studentClassroomName,
             ],
             'leave_info' => [
-                'reason_type' => $leaveRequest->reason_type,
+                'reason_type' => $leaveRequest->reason_type instanceof \App\Enums\ReasonTypeEnum ? $leaveRequest->reason_type->value : (string) $leaveRequest->reason_type,
                 'start_date' => $leaveRequest->start_date?->format('Y-m-d'),
                 'end_date' => $leaveRequest->end_date?->format('Y-m-d'),
                 'duration_days' => $leaveRequest->start_date && $leaveRequest->end_date ? $leaveRequest->start_date->diffInDays($leaveRequest->end_date) + 1 : null,

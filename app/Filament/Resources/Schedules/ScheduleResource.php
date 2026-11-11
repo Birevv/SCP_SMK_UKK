@@ -89,8 +89,14 @@ class ScheduleResource extends Resource
                 $query->where('teacher_id', $user->id);
             } else {
                 $classIds = $user->classrooms()->pluck('classrooms.id')->toArray();
+                if (empty($classIds) && $user->classroom_id) {
+                    $classIds = [$user->classroom_id];
+                }
+
                 if (! empty($classIds)) {
                     $query->whereIn('classroom_id', $classIds);
+                } else {
+                    $query->whereRaw('1 = 0');
                 }
             }
 

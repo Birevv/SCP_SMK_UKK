@@ -59,7 +59,11 @@ class LeaveRequestObserver
             ->whereBetween('date', [$leaveRequest->start_date, $leaveRequest->end_date])
             ->get();
 
-        $normalizedStatus = match (strtolower(str_replace(' ', '_', (string) $leaveRequest->reason_type))) {
+        $reasonStr = $leaveRequest->reason_type instanceof \App\Enums\ReasonTypeEnum
+            ? $leaveRequest->reason_type->value
+            : (string) $leaveRequest->reason_type;
+
+        $normalizedStatus = match (strtolower(str_replace(' ', '_', $reasonStr))) {
             'sakit' => 'Sakit',
             default => 'Izin',
         };

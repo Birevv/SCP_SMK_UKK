@@ -27,6 +27,7 @@
 
     <div
         x-data="scpInlineCameraComponent({
+            wire: $wire,
             statePath: @js($statePath),
             initialValue: @js(is_string($initialState) ? $initialState : null),
             initialUrl: @js($initialUrl),
@@ -43,7 +44,7 @@
         class="scp-cam-wrapper"
     >
         {{-- Hidden Input for Livewire Form Submission --}}
-        <input type="hidden" name="{{ $statePath }}" :value="photoValue" />
+        <input type="hidden" name="{{ $statePath }}" wire:model.defer="{{ $statePath }}" :value="photoValue" />
 
         {{-- Hidden Canvas for Snapshot Capture & Watermarking --}}
         <canvas x-ref="snapshotCanvasRef" style="display: none;"></canvas>
@@ -326,6 +327,7 @@
             window.scpInlineCameraComponent = function(cfg) {
             return {
                 statePath: cfg.statePath,
+                wireInstance: cfg.wire,
                 photoValue: cfg.initialValue,
                 itemUrl: cfg.initialUrl,
                 uploadUrl: cfg.uploadUrl,
@@ -611,8 +613,14 @@
                 },
 
                 syncLivewire(value) {
-                    if (this.$wire) {
-                        this.$wire.set(this.statePath, value);
+                    this.photoValue = value;
+                    const wire = this.wireInstance || (typeof this.$wire !== 'undefined' ? this.$wire : null) || (window.Livewire && this.$el ? window.Livewire.find(this.$el.closest('[wire\\:id]')?.getAttribute('wire:id')) : null);
+                    if (wire) {
+                        if (typeof wire.set === 'function') {
+                            wire.set(this.statePath, value);
+                        } else if (typeof wire.$set === 'function') {
+                            wire.$set(this.statePath, value);
+                        }
                     }
                 }
             };

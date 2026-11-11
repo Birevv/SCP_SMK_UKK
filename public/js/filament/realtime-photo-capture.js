@@ -5,6 +5,7 @@
 function scpInlineCameraComponent(cfg) {
     return {
         statePath: cfg.statePath,
+        wireInstance: cfg.wire,
         photoValue: cfg.initialValue,
         itemUrl: cfg.initialUrl,
         uploadUrl: cfg.uploadUrl,
@@ -289,8 +290,14 @@ function scpInlineCameraComponent(cfg) {
         },
 
         syncLivewire(value) {
-            if (this.$wire) {
-                this.$wire.set(this.statePath, value);
+            this.photoValue = value;
+            const wire = this.wireInstance || (typeof this.$wire !== 'undefined' ? this.$wire : null) || (window.Livewire && this.$el ? window.Livewire.find(this.$el.closest('[wire\\:id]')?.getAttribute('wire:id')) : null);
+            if (wire) {
+                if (typeof wire.set === 'function') {
+                    wire.set(this.statePath, value);
+                } else if (typeof wire.$set === 'function') {
+                    wire.$set(this.statePath, value);
+                }
             }
         }
     };

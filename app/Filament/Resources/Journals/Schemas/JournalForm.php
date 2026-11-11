@@ -5,6 +5,7 @@ namespace App\Filament\Resources\Journals\Schemas;
 use App\Filament\Forms\Components\RealtimePhotoCapture;
 use App\Filament\Resources\Journals\Pages\CreateJournal;
 use App\Models\LeaveRequest;
+use App\Models\Journal;
 use App\Models\Schedule;
 use App\Models\User;
 use Carbon\Carbon;
@@ -22,6 +23,7 @@ use Filament\Schemas\Components\Utilities\Get;
 use Filament\Schemas\Components\Utilities\Set;
 use Filament\Schemas\Schema;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Auth;
 
 class JournalForm
@@ -30,32 +32,6 @@ class JournalForm
     {
         return $schema
             ->components([
-                Select::make('schedule_id')
-                    ->relationship(
-                        name: 'schedule',
-                        titleAttribute: 'id',
-                        modifyQueryUsing: function (Builder $query) {
-                            $user = Auth::user();
-                            if ($user && $user->role?->name === 'Guru') {
-                                $query->where('teacher_id', $user->id);
-                            }
-
-                            return $query->forActiveCycle()->with(['subject', 'classroom', 'room']);
-                        }
-                    )
-                    ->getOptionLabelFromRecordUsing(fn (Schedule $record) => "{$record->subject?->name} - {$record->classroom?->name} ({$record->day_of_week}, ".substr($record->start_time, 0, 5).' - '.substr($record->end_time, 0, 5).')')
-                    ->required()
-                    ->label('Jadwal Mengajar')
-                    ->preload()
-                    ->searchable()
-                    ->live()
-                    ->afterStateUpdated(function ($state, Set $set, Get $get) {
-                        $set('attendances', self::getStudentsAttendanceData($state ? (int) $state : null, $get('date')));
-                    }),
-
-                Hidden::make('teacher_id')
-                    ->default(Auth::id()),
-
                 DatePicker::make('date')
                     ->default(now())
                     ->required()
@@ -90,10 +66,136 @@ class JournalForm
                     })
                     ->live()
                     ->afterStateUpdated(function ($state, Set $set, Get $get) {
-                        if ($scheduleId = $get('schedule_id')) {
-                            $set('attendances', self::getStudentsAttendanceData((int) $scheduleId, $state));
+                        $scheduleId = $get('schedule_id');
+                        if ($scheduleId) {
+                            $schedule = Schedule::find($scheduleId);
+                            $newDay = $state ? match (Carbon::parse($state)->dayOfWeekIso) {
+                                1 => 'Senin',
+                                2 => 'Selasa',
+                                3 => 'Rabu',
+                                4 => 'Kamis',
+                                5 => 'Jumat',
+                                6 => 'Sabtu',
+                                7 => 'Minggu',
+                                default => null,
+                            } : null;
+
+                            $isAlreadyFilled = $state ? Journal::where('schedule_id', $scheduleId)
+                                ->whereDate('date', $state)
+                                ->exists() : false;
+
+                            if (! $schedule || $schedule->day_of_week !== $newDay || $isAlreadyFilled) {
+                                $set('schedule_id', null);
+                                $set('attendances', []);
+                            } else {
+                                $set('attendances', self::getStudentsAttendanceData((int) $scheduleId, $state));
+                            }
                         }
                     }),
+
+                Select::make('schedule_id')
+                    ->relationship(
+                        name: 'schedule',
+                        titleAttribute: 'id',
+                        modifyQueryUsing: function (Builder $query, Get $get, ?Model $record) {
+                            $user = Auth::user();
+                            $isSchoolAdmin = $user && ($user->hasRole('Super Admin')
+                                || $user->role?->name === 'Super Admin'
+                                || $user->hasRole('Waka Kurikulum')
+                                || $user->role?->name === 'Waka Kurikulum');
+
+                            if (! $isSchoolAdmin && $user) {
+                                $query->where('teacher_id', $user->id);
+                            }
+
+                            $dateStr = $get('date') ?? ($record?->date ? $record->date->toDateString() : now()->toDateString());
+                            $targetDate = filled($dateStr) ? Carbon::parse($dateStr) : Carbon::today();
+                            $dayOfWeek = match ($targetDate->dayOfWeekIso) {
+                                1 => 'Senin',
+                                2 => 'Selasa',
+                                3 => 'Rabu',
+                                4 => 'Kamis',
+                                5 => 'Jumat',
+                                6 => 'Sabtu',
+                                7 => 'Minggu',
+                                default => null,
+                            };
+
+                            $requestedScheduleId = request()->query('schedule_id');
+
+                            if ($dayOfWeek) {
+                                $query->where(function (Builder $q) use ($dayOfWeek, $record, $requestedScheduleId) {
+                                    $q->where('day_of_week', $dayOfWeek);
+                                    if ($record?->schedule_id) {
+                                        $q->orWhere('id', $record->schedule_id);
+                                    }
+                                    if ($requestedScheduleId) {
+                                        $q->orWhere('id', (int) $requestedScheduleId);
+                                    }
+                                });
+                            }
+
+                            // Saring jadwal yang sudah diisi jurnal pada tanggal pembelajaran ini
+                            // Jika sedang mengedit ($record), jadwal milik jurnal yang sedang diedit tetap diizinkan
+                            $query->whereDoesntHave('journals', function (Builder $jQ) use ($targetDate, $record) {
+                                $jQ->whereDate('date', $targetDate);
+                                if ($record) {
+                                    $jQ->where('id', '!=', $record->id);
+                                }
+                            });
+
+                            return $query->forActiveCycle()->with(['subject', 'classroom', 'room']);
+                        }
+                    )
+                    ->getOptionLabelFromRecordUsing(fn (Schedule $record) => "{$record->subject?->name} - {$record->classroom?->name} ({$record->day_of_week}, ".substr($record->start_time, 0, 5).' - '.substr($record->end_time, 0, 5).')')
+                    ->required()
+                    ->label('Jadwal Mengajar')
+                    ->preload()
+                    ->searchable()
+                    ->live()
+                    ->rules([
+                        fn (Get $get, ?Model $record) => function (string $attribute, $value, \Closure $fail) use ($get, $record) {
+                            if (! $value) {
+                                return;
+                            }
+                            if ($record?->schedule_id == $value) {
+                                return;
+                            }
+                            $dateStr = $get('date') ?? ($record?->date ? $record->date->toDateString() : now()->toDateString());
+                            $targetDate = filled($dateStr) ? Carbon::parse($dateStr) : Carbon::today();
+                            $expectedDay = match ($targetDate->dayOfWeekIso) {
+                                1 => 'Senin',
+                                2 => 'Selasa',
+                                3 => 'Rabu',
+                                4 => 'Kamis',
+                                5 => 'Jumat',
+                                6 => 'Sabtu',
+                                7 => 'Minggu',
+                                default => null,
+                            };
+                            $schedule = Schedule::find($value);
+                            if ($schedule && $expectedDay && $schedule->day_of_week !== $expectedDay) {
+                                $fail("Jadwal yang dipilih ({$schedule->day_of_week}) tidak sesuai dengan hari pembelajaran ({$expectedDay}).");
+                                return;
+                            }
+
+                            // Validasi: 1 jadwal hanya bisa diisi 1 kali per tanggal
+                            $isAlreadyFilled = Journal::where('schedule_id', $value)
+                                ->whereDate('date', $targetDate)
+                                ->when($record, fn ($q) => $q->where('id', '!=', $record->id))
+                                ->exists();
+
+                            if ($isAlreadyFilled) {
+                                $fail('Jurnal untuk jadwal mengajar ini pada tanggal yang dipilih sudah pernah diisi. Setiap jadwal hanya dapat diisi 1 kali per tanggal pembelajaran.');
+                            }
+                        },
+                    ])
+                    ->afterStateUpdated(function ($state, Set $set, Get $get) {
+                        $set('attendances', self::getStudentsAttendanceData($state ? (int) $state : null, $get('date')));
+                    }),
+
+                Hidden::make('teacher_id')
+                    ->default(Auth::id()),
 
                 Textarea::make('teaching_material')
                     ->required()

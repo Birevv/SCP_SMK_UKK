@@ -15,6 +15,7 @@ use Filament\Schemas\Components\Utilities\Get;
 use Filament\Schemas\Components\Utilities\Set;
 use Filament\Schemas\Schema;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Auth;
 
@@ -42,24 +43,32 @@ class LeaveRequestForm
                     ->default(fn () => Auth::id()),
 
                 Select::make('reason_type')
-                    ->options(ReasonTypeEnum::class)
-                    ->formatStateUsing(function ($state) {
-                        if (! $state) {
+                    ->options([
+                        'sakit' => 'Sakit',
+                        'izin' => 'Izin',
+                        'pulang_cepat' => 'Izin Pulang Cepat',
+                        'kegiatan_luar' => 'Izin Kegiatan Luar',
+                        'Sakit' => 'Sakit',
+                        'Izin' => 'Izin',
+                        'Pulang Cepat' => 'Izin Pulang Cepat',
+                        'Kegiatan Luar' => 'Izin Kegiatan Luar',
+                    ])
+                    ->formatStateUsing(function ($state, ?Model $record = null) {
+                        $raw = $state ?? $record?->reason_type;
+                        if (! $raw) {
                             return null;
                         }
 
-                        if ($state instanceof ReasonTypeEnum) {
-                            return $state->value;
+                        if ($raw instanceof ReasonTypeEnum) {
+                            return $raw->value;
                         }
 
-                        return strtolower(str_replace(' ', '_', (string) $state));
+                        $str = strtolower(str_replace(' ', '_', (string) $raw));
+
+                        return in_array($str, ['sakit', 'izin', 'pulang_cepat', 'kegiatan_luar'], true) ? $str : (string) $raw;
                     })
                     ->dehydrateStateUsing(function ($state) {
-                        if (! $state) {
-                            return null;
-                        }
-
-                        return $state instanceof ReasonTypeEnum ? $state->value : (string) $state;
+                        return $state;
                     })
                     ->required()
                     ->native(false)
@@ -67,16 +76,10 @@ class LeaveRequestForm
                     ->live()
                     ->afterStateUpdated(function (Set $set, Get $get) {
                         $type = $get('reason_type');
+                        $typeKey = $type instanceof ReasonTypeEnum ? $type->value : (is_string($type) ? strtolower(str_replace(' ', '_', $type)) : null);
 
-                        $isPulangCepatOrKegiatanLuar = $type === ReasonTypeEnum::PULANG_CEPAT
-                            || $type === ReasonTypeEnum::PULANG_CEPAT->value
-                            || $type === ReasonTypeEnum::KEGIATAN_LUAR
-                            || $type === ReasonTypeEnum::KEGIATAN_LUAR->value;
-
-                        $isSakitOrIzin = $type === ReasonTypeEnum::SAKIT
-                            || $type === ReasonTypeEnum::SAKIT->value
-                            || $type === ReasonTypeEnum::IZIN
-                            || $type === ReasonTypeEnum::IZIN->value;
+                        $isPulangCepatOrKegiatanLuar = in_array($typeKey, ['pulang_cepat', 'kegiatan_luar'], true);
+                        $isSakitOrIzin = in_array($typeKey, ['sakit', 'izin'], true);
 
                         if ($isPulangCepatOrKegiatanLuar) {
                             $set('start_date', now()->toDateString());
@@ -110,23 +113,15 @@ class LeaveRequestForm
                     ])
                     ->readOnly(function (Get $get) {
                         $type = $get('reason_type');
+                        $typeKey = $type instanceof ReasonTypeEnum ? $type->value : (is_string($type) ? strtolower(str_replace(' ', '_', $type)) : null);
 
-                        return $type === ReasonTypeEnum::PULANG_CEPAT
-                            || $type === ReasonTypeEnum::PULANG_CEPAT->value
-                            || $type === ReasonTypeEnum::KEGIATAN_LUAR
-                            || $type === ReasonTypeEnum::KEGIATAN_LUAR->value;
+                        return in_array($typeKey, ['pulang_cepat', 'kegiatan_luar'], true);
                     })
                     ->visible(function (Get $get) {
                         $type = $get('reason_type');
+                        $typeKey = $type instanceof ReasonTypeEnum ? $type->value : (is_string($type) ? strtolower(str_replace(' ', '_', $type)) : null);
 
-                        return $type === ReasonTypeEnum::SAKIT
-                            || $type === ReasonTypeEnum::SAKIT->value
-                            || $type === ReasonTypeEnum::IZIN
-                            || $type === ReasonTypeEnum::IZIN->value
-                            || $type === ReasonTypeEnum::PULANG_CEPAT
-                            || $type === ReasonTypeEnum::PULANG_CEPAT->value
-                            || $type === ReasonTypeEnum::KEGIATAN_LUAR
-                            || $type === ReasonTypeEnum::KEGIATAN_LUAR->value;
+                        return in_array($typeKey, ['sakit', 'izin', 'pulang_cepat', 'kegiatan_luar'], true);
                     })
                     ->afterStateUpdated(function (Get $get, Set $set, ?string $state) {
                         if ($state && $get('end_date') && $get('end_date') < $state) {
@@ -158,11 +153,9 @@ class LeaveRequestForm
                     ])
                     ->visible(function (Get $get) {
                         $type = $get('reason_type');
+                        $typeKey = $type instanceof ReasonTypeEnum ? $type->value : (is_string($type) ? strtolower(str_replace(' ', '_', $type)) : null);
 
-                        return $type === ReasonTypeEnum::SAKIT
-                            || $type === ReasonTypeEnum::SAKIT->value
-                            || $type === ReasonTypeEnum::IZIN
-                            || $type === ReasonTypeEnum::IZIN->value;
+                        return in_array($typeKey, ['sakit', 'izin'], true);
                     })
                     ->label('Tanggal Selesai'),
 
@@ -203,15 +196,9 @@ class LeaveRequestForm
                     })
                     ->visible(function (Get $get) {
                         $type = $get('reason_type');
+                        $typeKey = $type instanceof ReasonTypeEnum ? $type->value : (is_string($type) ? strtolower(str_replace(' ', '_', $type)) : null);
 
-                        return in_array($type, [
-                            ReasonTypeEnum::PULANG_CEPAT,
-                            ReasonTypeEnum::PULANG_CEPAT->value,
-                            ReasonTypeEnum::KEGIATAN_LUAR,
-                            ReasonTypeEnum::KEGIATAN_LUAR->value,
-                            'Pulang Cepat',
-                            'Kegiatan Luar',
-                        ]);
+                        return in_array($typeKey, ['pulang_cepat', 'kegiatan_luar'], true);
                     })
                     ->helperText('Pilih sesi jam pelajaran saat siswa mulai izin meninggalkan sekolah.'),
 

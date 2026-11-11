@@ -134,15 +134,22 @@ class HomeroomScheduleWidget extends Widget
             || $user->hasRole('Waka Kurikulum')
             || $user->role?->name === 'Waka Kurikulum';
 
+        $isBk = $user->hasRole('Guru BK') || $user->role?->name === 'Guru BK';
+
         // Get accessible classrooms
         $userClassrooms = $user->classrooms;
         if ($userClassrooms->isEmpty() && $user->classroom_id && $user->classroom) {
             $userClassrooms = collect([$user->classroom]);
         }
 
-        if (! $isSuperAdminOrWaka && $userClassrooms->isNotEmpty()) {
-            $allGrades = ClassLevel::whereHas('classrooms', fn ($q) => $q->whereIn('id', $userClassrooms->pluck('id')))->orderBy('level')->get();
-            $availableClassroomsQuery = Classroom::whereIn('id', $userClassrooms->pluck('id'));
+        if (! $isSuperAdminOrWaka) {
+            if ($userClassrooms->isNotEmpty()) {
+                $allGrades = ClassLevel::whereHas('classrooms', fn ($q) => $q->whereIn('id', $userClassrooms->pluck('id')))->orderBy('level')->get();
+                $availableClassroomsQuery = Classroom::whereIn('id', $userClassrooms->pluck('id'));
+            } else {
+                $allGrades = collect();
+                $availableClassroomsQuery = Classroom::whereRaw('1 = 0');
+            }
         } else {
             $allGrades = ClassLevel::orderBy('level')->get();
             $availableClassroomsQuery = Classroom::query();
@@ -158,6 +165,8 @@ class HomeroomScheduleWidget extends Widget
 
         if ($availableClassrooms->isNotEmpty() && ! $availableClassrooms->contains('id', $this->selectedClassroomId)) {
             $this->selectedClassroomId = $availableClassrooms->first()->id;
+        } elseif ($availableClassrooms->isEmpty()) {
+            $this->selectedClassroomId = null;
         }
 
         $query = Schedule::with(['subject', 'classroom.classLevel', 'classroom.major', 'teacher', 'room'])
@@ -168,12 +177,20 @@ class HomeroomScheduleWidget extends Widget
             $query->where('academic_year_id', $activeAcademicYearId);
         }
 
-        if ($this->selectedClassroomId) {
-            $query->where('classroom_id', $this->selectedClassroomId);
-        } elseif ($this->selectedGrade && $this->selectedGrade !== 'ALL') {
-            $query->forGrade($this->selectedGrade);
-        } elseif (! $isBk && $userClassrooms->isNotEmpty()) {
-            $query->whereIn('classroom_id', $userClassrooms->pluck('id'));
+        if (! $isSuperAdminOrWaka) {
+            if ($userClassrooms->isEmpty()) {
+                $query->whereRaw('1 = 0');
+            } elseif ($this->selectedClassroomId && $userClassrooms->contains('id', $this->selectedClassroomId)) {
+                $query->where('classroom_id', $this->selectedClassroomId);
+            } else {
+                $query->whereIn('classroom_id', $userClassrooms->pluck('id'));
+            }
+        } else {
+            if ($this->selectedClassroomId) {
+                $query->where('classroom_id', $this->selectedClassroomId);
+            } elseif ($this->selectedGrade && $this->selectedGrade !== 'ALL') {
+                $query->forGrade($this->selectedGrade);
+            }
         }
 
         $rawSchedules = $query->orderBy('start_time')->get();

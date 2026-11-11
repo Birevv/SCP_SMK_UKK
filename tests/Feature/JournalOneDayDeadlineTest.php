@@ -266,6 +266,7 @@ class JournalOneDayDeadlineTest extends TestCase
         $waliKelasRole = Role::firstOrCreate(['name' => 'Wali Kelas', 'guard_name' => 'web']);
         $waliKelas = User::factory()->create(['role_id' => $waliKelasRole->id]);
         $waliKelas->assignRole('Wali Kelas');
+        $waliKelas->classrooms()->attach($this->classroom->id);
         $this->classroom->update(['homeroom_teacher_id' => $waliKelas->id]);
 
         $this->actingAs($waliKelas);

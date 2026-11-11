@@ -6,6 +6,7 @@ use App\Filament\Concerns\HasCreateConfirmation;
 use App\Filament\Resources\Journals\JournalResource;
 use App\Filament\Resources\Journals\Schemas\JournalForm;
 use App\Models\Attendance;
+use App\Models\Journal;
 use App\Models\Schedule;
 use App\Models\User;
 use Carbon\Carbon;
@@ -41,8 +42,14 @@ class CreateJournal extends CreateRecord
             ]);
 
             if ($scheduleId) {
-                $fillData['schedule_id'] = (int) $scheduleId;
-                $fillData['attendances'] = JournalForm::getStudentsAttendanceData((int) $scheduleId, $date);
+                $isAlreadyFilled = Journal::where('schedule_id', $scheduleId)
+                    ->whereDate('date', $date)
+                    ->exists();
+
+                if (! $isAlreadyFilled) {
+                    $fillData['schedule_id'] = (int) $scheduleId;
+                    $fillData['attendances'] = JournalForm::getStudentsAttendanceData((int) $scheduleId, $date);
+                }
             }
 
             $this->form->fill($fillData);
@@ -82,7 +89,7 @@ class CreateJournal extends CreateRecord
             unset($data['attendances']);
         }
 
-        if (empty($data['teacher_id']) && ! empty($data['schedule_id'])) {
+        if (! empty($data['schedule_id'])) {
             $schedule = Schedule::find($data['schedule_id']);
             if ($schedule) {
                 $data['teacher_id'] = $schedule->teacher_id;
