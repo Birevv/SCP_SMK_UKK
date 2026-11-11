@@ -49,8 +49,8 @@ class DownloadPageTest extends TestCase
         $response = $this->get('/download');
 
         $response->assertOk();
-        $response->assertSee('href="'.$apkUrl.'"', false);
-        $response->assertSee('e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855');
+        $response->assertSee('href="'.route('download.apk').'"', false);
+        $response->assertDontSee('e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855');
     }
 
     public function test_download_page_is_stateless_and_has_security_headers(): void

@@ -78,8 +78,7 @@
                 @if ($apkUrl)
                     <div class="space-y-2">
                         <a
-                            href="{{ $apkUrl }}"
-                            rel="noopener"
+                            href="{{ route('download') }}"
                             class="inline-flex items-center gap-2 px-3 py-2 rounded-lg bg-slate-800 text-white border border-slate-700 hover:bg-slate-700 text-xs font-medium transition-colors"
                         >
                             <svg class="w-4 h-4 text-blue-400 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
@@ -90,9 +89,7 @@
                         @if ($apkVersion)
                             <p class="text-xs text-slate-400 tabular-nums">Versi {{ $apkVersion }}</p>
                         @endif
-                        @if ($apkSha256)
-                            <p class="text-[11px] text-slate-500 font-mono break-all">SHA-256: {{ $apkSha256 }}</p>
-                        @endif
+
                     </div>
                 @else
                     <div class="space-y-2">

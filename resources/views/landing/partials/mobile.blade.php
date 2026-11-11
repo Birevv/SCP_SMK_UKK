@@ -32,12 +32,11 @@
                         </svg>
                     </a>
 
-                    {{-- Opsi Android (Sesuai Konfigurasi MOBILE_APK_URL) --}}
+                    {{-- Opsi Android (Menuju Halaman Download APK) --}}
                     @if ($apkUrl)
                         <div class="inline-flex flex-col sm:flex-row items-center gap-3">
                             <a
-                                href="{{ $apkUrl }}"
-                                rel="noopener"
+                                href="{{ route('download') }}"
                                 class="inline-flex items-center justify-center gap-2.5 h-12 px-6 rounded-lg bg-white text-slate-800 border border-slate-300 shadow-xs hover:bg-slate-50 hover:border-slate-400 dark:bg-slate-800 dark:text-slate-100 dark:border-slate-600 dark:hover:bg-slate-700 text-[15px] font-medium ui-interactive ui-focus"
                             >
                                 <svg class="w-4.5 h-4.5 text-[#1D4ED8] shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
@@ -59,9 +58,7 @@
                     @endif
                 </div>
 
-                @if ($apkUrl && $apkSha256)
-                    <p class="text-xs text-ink-muted tabular-nums mt-3 font-mono break-all">SHA-256: {{ $apkSha256 }}</p>
-                @endif
+
 
                 @if (! $apkUrl)
                     <p class="text-xs text-ink-muted mt-3">

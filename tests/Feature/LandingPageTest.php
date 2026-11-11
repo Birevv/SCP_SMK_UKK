@@ -59,9 +59,9 @@ class LandingPageTest extends TestCase
         $response = $this->get('/');
 
         $response->assertOk();
-        $response->assertSee('href="'.$apkUrl.'"', false);
+        $response->assertSee('href="'.route('download').'"', false);
         $response->assertSee('Versi 1.0.0');
-        $response->assertSee('e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855');
+        $response->assertDontSee('e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855');
         $response->assertDontSee('Aplikasi Android segera hadir');
     }
 

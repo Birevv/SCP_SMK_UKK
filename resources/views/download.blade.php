@@ -173,9 +173,8 @@
                         <div class="mt-8 flex flex-wrap items-center gap-3.5">
                             @if ($apkUrl)
                                 <a
-                                    href="{{ $apkUrl }}"
+                                    href="{{ route('download.apk') }}"
                                     rel="noopener"
-                                    download
                                     class="inline-flex items-center gap-2.5 h-12.5 px-6 rounded-xl bg-slate-900 hover:bg-slate-800 text-white border border-slate-800 dark:bg-white dark:text-slate-900 dark:hover:bg-slate-100 dark:border-white text-[15px] font-semibold shadow-subtle ui-interactive ui-focus group transition-all"
                                 >
                                     <svg class="w-4 h-4 text-amber-400 dark:text-amber-600 group-hover:translate-y-0.5 transition-transform shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
@@ -215,7 +214,7 @@
                             </div>
                             <div>
                                 <span class="text-xs text-ink-muted block">Tanggal Rilis</span>
-                                <span class="text-sm font-semibold text-ink mt-0.5 block">5 Nov 2026</span>
+                                <span class="text-sm font-semibold text-ink mt-0.5 block">11 Nov 2026</span>
                             </div>
                             <div>
                                 <span class="text-xs text-ink-muted block">Minimal Sistem</span>
@@ -223,11 +222,7 @@
                             </div>
                         </div>
 
-                        @if ($apkSha256)
-                            <div class="mt-3 text-[11px] text-ink-muted font-mono break-all">
-                                <span>SHA-256: {{ $apkSha256 }}</span>
-                            </div>
-                        @endif
+
 
                     </div>
 
@@ -431,7 +426,7 @@
                                 Versi Terbaru
                             </span>
                         </div>
-                        <span class="text-xs text-ink-muted tabular-nums">Tanggal Rilis: 5 November 2026</span>
+                        <span class="text-xs text-ink-muted tabular-nums">Tanggal Rilis: 11 November 2026</span>
                     </div>
 
                     {{-- Tujuan Pembaruan --}}

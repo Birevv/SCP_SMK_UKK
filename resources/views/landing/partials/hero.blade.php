@@ -30,13 +30,11 @@
                     Kelola jurnal mengajar, presensi, dan perizinan siswa dalam satu sistem sekolah. School Class Progress membantu sekolah mengelola jadwal blok, jurnal mengajar, kehadiran siswa, serta pengajuan izin secara terintegrasi melalui panel web dan aplikasi Android.
                 </p>
 
-                {{-- CTA Group (Hanya Tombol Download APK) --}}
+                {{-- CTA Group (Hanya Tombol Menuju Halaman Download APK) --}}
                 <div class="mt-8 flex items-center enter-3">
                     @if ($apkUrl)
                         <a
-                            href="{{ $apkUrl }}"
-                            rel="noopener"
-                            download
+                            href="{{ route('download') }}"
                             class="inline-flex items-center gap-3 h-13 px-6 rounded-xl bg-slate-900 hover:bg-slate-800 text-white border border-slate-800 dark:bg-white dark:text-slate-900 dark:hover:bg-slate-100 dark:border-white shadow-subtle ui-interactive ui-focus group transition-all"
                         >
                             <div class="w-8 h-8 rounded-lg bg-slate-800 text-amber-400 dark:bg-amber-500/15 dark:text-amber-600 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">

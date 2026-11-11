@@ -60,9 +60,7 @@
                                 <span class="text-xs text-ink-secondary tabular-nums">Versi {{ $apkVersion }}</span>
                             @endif
                         </div>
-                        @if ($apkSha256)
-                            <p class="text-xs text-ink-muted tabular-nums mt-3 break-all">SHA-256: {{ $apkSha256 }}</p>
-                        @endif
+
                     @else
                         <div class="rounded-xl bg-raised border border-hairline-strong p-4 max-w-md" aria-disabled="true">
                             <div class="flex items-center gap-2.5">
