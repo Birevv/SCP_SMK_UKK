@@ -1,0 +1,140 @@
+@import 'tailwindcss';
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+@source '../views/docs/**/*.blade.php';
+@source '../views/docs.blade.php';
+
+@theme {
+    --font-sans: 'Plus Jakarta Sans', ui-sans-serif, system-ui, sans-serif;
+    --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace;
+
+    /* Landing Page Matched Color Tokens (Light & Clean) */
+    --color-paper: #fafafa;
+    --color-card: #ffffff;
+    --color-raised: #f4f4f5;
+    --color-ink: #171717;
+    --color-ink-secondary: #525252;
+    --color-ink-muted: #64748b;
+
+    --color-accent: #1d4ed8;
+    --color-accent-hover: #1e40af;
+    --color-accent-tint: #eff6ff;
+    --color-accent-border: #bfdbfe;
+
+    --color-hairline: #e5e7eb;
+    --color-hairline-strong: #d1d5db;
+
+    --shadow-subtle: 0 1px 3px rgba(0, 0, 0, 0.05), 0 1px 2px rgba(0, 0, 0, 0.03);
+    --shadow-sheet: 0 10px 25px -3px rgba(0, 0, 0, 0.06), 0 4px 6px -2px rgba(0, 0, 0, 0.02);
+}
+
+@layer base {
+    html {
+        background-color: #fafafa;
+        color: #171717;
+        font-family: var(--font-sans);
+        scroll-behavior: smooth;
+        scroll-padding-top: 5rem;
+        color-scheme: light;
+        -webkit-font-smoothing: antialiased;
+    }
+
+    html.dark {
+        background-color: #09090b;
+        color: #fafafa;
+        color-scheme: dark;
+    }
+
+    body {
+        background-color: #fafafa;
+        color: #171717;
+        margin: 0;
+        overflow-x: hidden;
+        font-size: 1rem;
+        line-height: 1.625;
+    }
+
+    html.dark body {
+        background-color: #09090b;
+        color: #fafafa;
+    }
+
+    /* Custom Clean Scrollbar */
+    ::-webkit-scrollbar {
+        width: 6px;
+        height: 6px;
+    }
+    ::-webkit-scrollbar-track {
+        background: transparent;
+    }
+    ::-webkit-scrollbar-thumb {
+        background: #cbd5e1;
+        border-radius: 9999px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+        background: #94a3b8;
+    }
+
+    html.dark ::-webkit-scrollbar-thumb {
+        background: #27272a;
+    }
+    html.dark ::-webkit-scrollbar-thumb:hover {
+        background: #3f3f46;
+    }
+}
+
+/* Callout Blocks (Clean Light Theme) */
+.callout {
+    position: relative;
+    padding: 1rem 1.25rem;
+    border-radius: 0.75rem;
+    border-left-width: 4px;
+    margin-top: 1.25rem;
+    margin-bottom: 1.25rem;
+}
+
+.callout-note {
+    border-left-color: #2563eb;
+    background-color: #eff6ff;
+    color: #1e3a8a;
+}
+.callout-tip {
+    border-left-color: #16a34a;
+    background-color: #f0fdf4;
+    color: #14532d;
+}
+.callout-warning {
+    border-left-color: #d97706;
+    background-color: #fffbeb;
+    color: #78350f;
+}
+.callout-important {
+    border-left-color: #dc2626;
+    background-color: #fef2f2;
+    color: #7f1d1d;
+}
+
+html.dark .callout-note {
+    background-color: rgba(37, 99, 235, 0.12);
+    color: #93c5fd;
+}
+html.dark .callout-tip {
+    background-color: rgba(22, 163, 74, 0.12);
+    color: #86efac;
+}
+html.dark .callout-warning {
+    background-color: rgba(217, 119, 6, 0.12);
+    color: #fde68a;
+}
+html.dark .callout-important {
+    background-color: rgba(220, 38, 38, 0.12);
+    color: #fca5a5;
+}
+
+/* Code Snippet Styles */
+pre code {
+    font-family: var(--font-mono);
+    font-size: 0.84rem;
+    line-height: 1.6;
+}

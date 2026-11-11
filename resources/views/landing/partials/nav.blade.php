@@ -27,6 +27,7 @@
             <a href="#fitur" class="text-[14px] font-medium text-ink-secondary hover:text-ink ui-interactive ui-focus rounded px-1 py-1">Fitur</a>
             <a href="#cara-kerja" class="text-[14px] font-medium text-ink-secondary hover:text-ink ui-interactive ui-focus rounded px-1 py-1">Cara kerja</a>
             <a href="#tentang" class="text-[14px] font-medium text-ink-secondary hover:text-ink ui-interactive ui-focus rounded px-1 py-1">Tentang kami</a>
+            <a href="{{ route('docs') }}" class="text-[14px] font-medium text-ink-secondary hover:text-[#ff2d20] ui-interactive ui-focus rounded px-1 py-1">Dokumentasi</a>
             <a href="{{ route('download') }}" class="text-[14px] font-medium text-ink-secondary hover:text-[#1D4ED8] dark:hover:text-blue-400 ui-interactive ui-focus rounded px-1 py-1">Download APK</a>
 
             <div class="h-4 w-px bg-hairline-strong mx-2" aria-hidden="true"></div>
@@ -122,6 +123,7 @@
                     <a href="#fitur" class="px-3 py-2 rounded-lg text-[14px] font-medium text-ink-secondary hover:bg-raised hover:text-ink ui-interactive">Fitur</a>
                     <a href="#cara-kerja" class="px-3 py-2 rounded-lg text-[14px] font-medium text-ink-secondary hover:bg-raised hover:text-ink ui-interactive">Cara kerja</a>
                     <a href="#tentang" class="px-3 py-2 rounded-lg text-[14px] font-medium text-ink-secondary hover:bg-raised hover:text-ink ui-interactive">Tentang kami</a>
+                    <a href="{{ route('docs') }}" class="px-3 py-2 rounded-lg text-[14px] font-medium text-ink-secondary hover:bg-raised hover:text-[#ff2d20] ui-interactive">Dokumentasi</a>
                     <a href="{{ route('download') }}" class="px-3 py-2 rounded-lg text-[14px] font-medium text-[#1D4ED8] dark:text-blue-400 hover:bg-raised ui-interactive">Download APK</a>
                     <a href="{{ $loginUrl }}" class="mt-1 px-3 py-2 rounded-lg text-[14px] font-semibold text-white bg-[#1D4ED8] hover:bg-blue-800 shadow-xs ui-interactive text-center">Masuk ke sistem</a>
                 </div>

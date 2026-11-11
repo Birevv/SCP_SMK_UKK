@@ -70,4 +70,17 @@ class DownloadPageTest extends TestCase
         $response->assertHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
         $this->assertStringContainsString("default-src 'self'", (string) $response->headers->get('Content-Security-Policy'));
     }
+
+    public function test_direct_download_endpoint_redirects_to_configured_apk_url(): void
+    {
+        $apkUrl = 'https://github.com/Birevv/scp_mobile/releases/latest/download/app-release.apk';
+
+        config([
+            'scp.mobile_apk_url' => $apkUrl,
+        ]);
+
+        $response = $this->get('/download/apk');
+
+        $response->assertRedirect($apkUrl);
+    }
 }

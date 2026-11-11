@@ -61,6 +61,9 @@
                         <a href="#faq" class="text-slate-400 hover:text-white transition-colors">FAQ</a>
                     </li>
                     <li>
+                        <a href="{{ route('docs') }}" class="text-[#ff2d20] hover:text-red-400 font-medium transition-colors">Dokumentasi</a>
+                    </li>
+                    <li>
                         <a href="{{ route('download') }}" class="text-white font-medium hover:text-blue-300 transition-colors">Download APK</a>
                     </li>
                 </ul>

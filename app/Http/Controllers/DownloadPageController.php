@@ -3,9 +3,11 @@
 namespace App\Http\Controllers;
 
 use Filament\Facades\Filament;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Support\Str;
+use Symfony\Component\HttpFoundation\BinaryFileResponse;
 
 class DownloadPageController extends Controller
 {
@@ -40,6 +42,33 @@ class DownloadPageController extends Controller
         $response->isNotModified($request);
 
         return $response;
+    }
+
+    /**
+     * Endpoint direct download / redirect ke file APK.
+     */
+    public function directDownload(): RedirectResponse|BinaryFileResponse
+    {
+        $apkUrl = $this->resolveValidatedApkUrl(config('scp.mobile_apk_url'));
+        if ($apkUrl) {
+            return redirect()->away($apkUrl, 302);
+        }
+
+        $localPath = public_path('downloads/app-release.apk');
+        if (file_exists($localPath)) {
+            return response()->download($localPath, 'SchoolClassProgress.apk', [
+                'Content-Type' => 'application/vnd.android.package-archive',
+            ]);
+        }
+
+        $alternativeLocal = public_path('downloads/scp-mobile.apk');
+        if (file_exists($alternativeLocal)) {
+            return response()->download($alternativeLocal, 'SchoolClassProgress.apk', [
+                'Content-Type' => 'application/vnd.android.package-archive',
+            ]);
+        }
+
+        return redirect()->route('download');
     }
 
     private function resolveValidatedApkUrl(mixed $candidate): ?string

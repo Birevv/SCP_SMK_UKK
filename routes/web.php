@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\AttendanceReportExportController;
 use App\Http\Controllers\AttendanceReportPrintController;
+use App\Http\Controllers\DocsController;
 use App\Http\Controllers\DownloadPageController;
 use App\Http\Controllers\JournalPhotoUploadController;
 use App\Http\Controllers\LandingController;
@@ -52,6 +53,34 @@ Route::get('/download', DownloadPageController::class)
     ])
     ->middleware(LandingSecurityHeaders::class)
     ->name('download');
+
+// Direct Download Endpoint APK Mobile SCP (Redirect / Direct file download)
+Route::get('/download/apk', [DownloadPageController::class, 'directDownload'])
+    ->withoutMiddleware([
+        EncryptCookies::class,
+        AddQueuedCookiesToResponse::class,
+        StartSession::class,
+        AuthenticateSession::class,
+        ShareErrorsFromSession::class,
+        PreventRequestForgery::class,
+        VerifyCsrfToken::class,
+    ])
+    ->middleware(LandingSecurityHeaders::class)
+    ->name('download.apk');
+
+// Halaman Dokumentasi Resmi SCP (Laravel Docs Style - Inspirasi UKK)
+Route::get('/docs/{section?}', [DocsController::class, 'index'])
+    ->withoutMiddleware([
+        EncryptCookies::class,
+        AddQueuedCookiesToResponse::class,
+        StartSession::class,
+        AuthenticateSession::class,
+        ShareErrorsFromSession::class,
+        PreventRequestForgery::class,
+        VerifyCsrfToken::class,
+    ])
+    ->middleware(LandingSecurityHeaders::class)
+    ->name('docs');
 
 // Redirect Permanen URL Auth Lama ke Panel (/app)
 Route::get('/login', [LandingController::class, 'redirectToLogin'])
