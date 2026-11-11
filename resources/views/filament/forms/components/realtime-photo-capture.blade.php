@@ -7,11 +7,16 @@
         }
         $initialUrl = null;
         if (is_string($initialState) && ! empty($initialState)) {
-            $initialUrl = str_starts_with($initialState, 'http') || str_starts_with($initialState, '/')
-                ? $initialState
-                : asset('storage/' . ltrim($initialState, '/'));
+            if (str_starts_with($initialState, 'http://') || str_starts_with($initialState, 'https://')) {
+                $initialUrl = $initialState;
+            } elseif (str_starts_with($initialState, '/storage/')) {
+                $initialUrl = asset(ltrim($initialState, '/'));
+            } else {
+                $initialUrl = asset('storage/' . ltrim($initialState, '/'));
+            }
         }
 
+        $isPdf = $initialState && (str_ends_with(strtolower($initialState), '.pdf') || str_contains(strtolower($initialState), '.pdf'));
         $directory = method_exists($field, 'getDirectory') ? $field->getDirectory() : 'journal_photos';
         $maxSizeKb = method_exists($field, 'getMaxSize') ? $field->getMaxSize() : 5120;
         $enableWatermark = method_exists($field, 'getEnableWatermark') ? $field->getEnableWatermark() : true;
@@ -46,51 +51,97 @@
         {{-- Main Inline Card (Directly embedded in form, no modal) --}}
         <div class="scp-cam-inline-card">
 
-            {{-- 1. KONDISI SUDAH ADA FOTO (PREVIEW HASIL FOTO REALTIME) --}}
-            <div x-show="hasItem" x-cloak>
+            {{-- 1. KONDISI SUDAH ADA FOTO / LAMPIRAN (PREVIEW HASIL FOTO REALTIME ATAU DOKUMEN) --}}
+            <div x-show="hasItem" @if(! $initialUrl) x-cloak @endif>
                 <div class="scp-cam-inline-header">
                     <div class="scp-cam-inline-title">
                         <svg class="h-4 w-4 text-emerald-600 dark:text-emerald-400" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                         </svg>
-                        <span>Foto Realtime Berhasil Diambil</span>
+                        <span>{{ $captureType === 'leave_request' ? 'Lampiran Bukti Perizinan' : 'Bukti Foto Kegiatan Pembelajaran' }}</span>
                     </div>
                     <span class="text-xs text-gray-500 dark:text-gray-400 font-mono" x-show="capturedTimestamp" x-text="capturedTimestamp"></span>
                 </div>
 
                 {{-- Preview Display Screen --}}
                 <div class="scp-cam-inline-viewport" style="aspect-ratio: 16 / 9; max-height: 380px;">
-                    <img :src="itemUrl" alt="Bukti Foto Realtime" class="scp-cam-inline-video" style="object-fit: contain; background-color: #020617;" />
+                    @if($isPdf)
+                        <div class="flex flex-col items-center justify-center h-full p-6 text-center bg-gray-50 dark:bg-gray-900 rounded-lg">
+                            <svg class="w-14 h-14 text-rose-500 mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m2.25 0H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z" />
+                            </svg>
+                            <span class="font-semibold text-sm text-gray-800 dark:text-gray-200">Berkas Dokumen Lampiran (PDF)</span>
+                            <span class="text-xs text-gray-500 dark:text-gray-400 mt-1 mb-3">{{ basename($initialState) }}</span>
+                            <a href="{{ $initialUrl }}" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-primary-600 hover:bg-primary-700 text-white text-xs font-medium shadow-sm transition">
+                                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" /></svg>
+                                Buka / Unduh Dokumen PDF
+                            </a>
+                        </div>
+                    @else
+                        <img
+                            :src="itemUrl"
+                            @if($initialUrl) src="{{ $initialUrl }}" @endif
+                            alt="Bukti Foto Realtime"
+                            class="scp-cam-inline-video"
+                            style="object-fit: contain; background-color: #020617;"
+                        />
+                    @endif
                 </div>
 
-                {{-- Action Buttons saat foto sudah ada --}}
-                <div class="scp-cam-inline-controls" x-show="!isDisabled">
-                    <button
-                        type="button"
-                        @click="retakePhoto()"
-                        class="scp-btn-cam-secondary"
-                    >
-                        <svg class="h-4 w-4 text-gray-600 dark:text-gray-300" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0l3.181 3.183a8.25 8.25 0 0013.803-3.7M4.031 9.865a8.25 8.25 0 0113.803-3.7l3.181 3.182m0-4.991v4.99" />
-                        </svg>
-                        <span>Ambil Ulang Foto</span>
-                    </button>
+                {{-- Action / Info Links & Buttons --}}
+                <div class="mt-3 flex items-center justify-between gap-2 flex-wrap">
+                    @if($initialUrl && ! $isPdf)
+                        <a
+                            href="{{ $initialUrl }}"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            class="text-xs font-semibold text-primary-600 hover:text-primary-700 dark:text-primary-400 inline-flex items-center gap-1"
+                        >
+                            <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 6H5.25A2.25 2.25 0 003 8.25v10.5A2.25 2.25 0 005.25 21h10.5A2.25 2.25 0 0018 18.75V10.5m-10.5 6L21 3m0 0h-5.25M21 3v5.25" />
+                            </svg>
+                            <span>Lihat Foto Ukuran Penuh</span>
+                        </a>
+                    @else
+                        <span></span>
+                    @endif
 
-                    <button
-                        type="button"
-                        @click="removeItem()"
-                        class="scp-btn-cam-danger"
-                    >
-                        <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0" />
-                        </svg>
-                        <span>Hapus</span>
-                    </button>
+                    <div class="scp-cam-inline-controls" x-show="!isDisabled">
+                        <button
+                            type="button"
+                            @click="retakePhoto()"
+                            class="scp-btn-cam-secondary"
+                        >
+                            <svg class="h-4 w-4 text-gray-600 dark:text-gray-300" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0l3.181 3.183a8.25 8.25 0 0013.803-3.7M4.031 9.865a8.25 8.25 0 0113.803-3.7l3.181 3.182m0-4.991v4.99" />
+                            </svg>
+                            <span>Ambil Ulang Foto</span>
+                        </button>
+
+                        <button
+                            type="button"
+                            @click="removeItem()"
+                            class="scp-btn-cam-danger"
+                        >
+                            <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0" />
+                            </svg>
+                            <span>Hapus</span>
+                        </button>
+                    </div>
                 </div>
             </div>
 
-            {{-- 2. KONDISI KAMERA LANGSUNG DITAMPILKAN DI HALAMAN (INLINE KAMERA) --}}
-            <div x-show="!hasItem" x-cloak>
+            {{-- KONDISI READONLY / DISABLED DAN BELUM ADA FOTO --}}
+            @if($isDisabled && ! $initialUrl)
+                <div class="p-4 text-center rounded-lg bg-gray-50 dark:bg-gray-900 border border-dashed border-gray-300 dark:border-gray-700">
+                    <p class="text-xs text-gray-500 dark:text-gray-400">Tidak ada bukti foto / dokumen perizinan yang dilampirkan.</p>
+                </div>
+            @endif
+
+            {{-- 2. KONDISI KAMERA LANGSUNG DITAMPILKAN DI HALAMAN (HANYA SAAT FORM EDIT/CREATE DAN TIDAK ADA FOTO) --}}
+            @if(! $isDisabled)
+            <div x-show="!hasItem" @if($initialUrl) x-cloak @endif>
                 <div class="scp-cam-inline-header">
                     <div class="scp-cam-inline-title">
                         <svg class="h-4 w-4 text-primary-600 dark:text-primary-400" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
@@ -266,11 +317,13 @@
                     </template>
                 </div>
             </div>
+            @endif
         </div>
     </div>
 
     <script>
-        function scpInlineCameraComponent(cfg) {
+        if (typeof window.scpInlineCameraComponent === 'undefined') {
+            window.scpInlineCameraComponent = function(cfg) {
             return {
                 statePath: cfg.statePath,
                 photoValue: cfg.initialValue,
@@ -563,6 +616,7 @@
                     }
                 }
             };
+        };
         }
     </script>
 </x-filament-forms::field-wrapper>

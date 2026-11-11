@@ -43,6 +43,24 @@ class LeaveRequestForm
 
                 Select::make('reason_type')
                     ->options(ReasonTypeEnum::class)
+                    ->formatStateUsing(function ($state) {
+                        if (! $state) {
+                            return null;
+                        }
+
+                        if ($state instanceof ReasonTypeEnum) {
+                            return $state->value;
+                        }
+
+                        return strtolower(str_replace(' ', '_', (string) $state));
+                    })
+                    ->dehydrateStateUsing(function ($state) {
+                        if (! $state) {
+                            return null;
+                        }
+
+                        return $state instanceof ReasonTypeEnum ? $state->value : (string) $state;
+                    })
                     ->required()
                     ->native(false)
                     ->label('Alasan')

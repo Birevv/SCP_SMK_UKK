@@ -13,6 +13,7 @@ use Filament\Actions\EditAction;
 use Filament\Actions\ViewAction;
 use Filament\Forms\Components\Textarea;
 use Filament\Notifications\Notification;
+use Filament\Tables\Columns\ImageColumn;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
 use Illuminate\Support\Carbon;
@@ -77,6 +78,13 @@ class LeaveRequestsTable
                         default => $state,
                     })
                     ->label('Jenis'),
+
+                ImageColumn::make('attachment_photo')
+                    ->label('Bukti Foto')
+                    ->disk('public')
+                    ->circular()
+                    ->defaultImageUrl(null)
+                    ->toggleable(),
 
                 TextColumn::make('status')
                     ->badge()

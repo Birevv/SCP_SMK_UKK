@@ -43,13 +43,18 @@ class JournalObserver
             $approvedLeave = $approvedLeaves->get($studentId);
 
             if ($approvedLeave) {
+                $normalizedLeaveStatus = match (strtolower(str_replace(' ', '_', (string) $approvedLeave->reason_type))) {
+                    'sakit' => 'Sakit',
+                    default => 'Izin',
+                };
+
                 Attendance::updateOrCreate(
                     [
                         'journal_id' => $journal->id,
                         'student_id' => $studentId,
                     ],
                     [
-                        'status' => $approvedLeave->reason_type,
+                        'status' => $normalizedLeaveStatus,
                         'date' => $journal->date,
                         'notes' => 'Otomatis tersinkronisasi dari Surat Izin (Approved oleh Wali Kelas)',
                     ]

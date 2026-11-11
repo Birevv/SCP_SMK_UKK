@@ -231,7 +231,10 @@ class JournalForm
         $attendances = [];
         foreach ($students as $student) {
             $leave = $approvedLeaves->get($student->id);
-            $status = $leave ? $leave->reason_type : 'Hadir';
+            $status = $leave ? match (strtolower(str_replace(' ', '_', (string) $leave->reason_type))) {
+                'sakit' => 'Sakit',
+                default => 'Izin',
+            } : 'Hadir';
             $notes = $leave ? 'Otomatis tersinkronisasi dari Surat Izin (Approved oleh Wali Kelas)' : null;
 
             $attendances[] = [

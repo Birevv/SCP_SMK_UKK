@@ -17,6 +17,7 @@ use Filament\Http\Middleware\DispatchServingFilamentEvent;
 use Filament\Panel;
 use Filament\PanelProvider;
 use Filament\Support\Assets\Css;
+use Filament\Support\Assets\Js;
 use Filament\Support\Colors\Color;
 use Filament\View\PanelsRenderHook;
 use Illuminate\Cookie\Middleware\AddQueuedCookiesToResponse;
@@ -66,6 +67,7 @@ class AdminPanelProvider extends PanelProvider
             ->assets([
                 Css::make('fullcalendar-styles', asset('css/filament/fullcalendar.css?v='.(file_exists(public_path('css/filament/fullcalendar.css')) ? filemtime(public_path('css/filament/fullcalendar.css')) : time()))),
                 Css::make('custom-filament-styles', asset('css/filament/custom.css?v='.(file_exists(public_path('css/filament/custom.css')) ? filemtime(public_path('css/filament/custom.css')) : time()))),
+                Js::make('realtime-photo-capture', asset('js/filament/realtime-photo-capture.js?v='.(file_exists(public_path('js/filament/realtime-photo-capture.js')) ? filemtime(public_path('js/filament/realtime-photo-capture.js')) : time()))),
             ])
             ->renderHook(
                 PanelsRenderHook::SIMPLE_PAGE_START,
