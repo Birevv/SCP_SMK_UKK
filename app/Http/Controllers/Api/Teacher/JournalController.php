@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api\Teacher;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Api\StoreJournalRequest;
+use App\Http\Requests\Api\UpdateJournalRequest;
 use App\Http\Resources\Api\JournalResource;
 use App\Models\Attendance;
 use App\Models\Journal;
@@ -26,7 +27,7 @@ class JournalController extends Controller
             return $this->errorResponse('Guru BK tidak diizinkan melihat jurnal mengajar', 403);
         }
 
-        $query = Journal::with(['schedule.subject', 'schedule.classroom', 'attendances'])
+        $query = Journal::with(['schedule.subject', 'schedule.classroom', 'schedule.room', 'attendances'])
             ->where('teacher_id', $teacher->id)
             ->latest('date');
 
@@ -121,9 +122,99 @@ class JournalController extends Controller
             return $this->errorResponse('Gagal menyimpan jurnal dan presensi: '.$e->getMessage(), 500);
         }
 
-        $journal->load(['schedule.subject', 'schedule.classroom', 'attendances']);
+        $journal->load(['schedule.subject', 'schedule.classroom', 'schedule.room', 'attendances']);
 
         return $this->successResponse(new JournalResource($journal), 'Jurnal dan presensi berhasil disimpan', 201);
+    }
+
+    public function show(Request $request, Journal $journal): JsonResponse
+    {
+        $teacher = $request->user();
+
+        if ($teacher && ($teacher->hasRole('Guru BK') || $teacher->role?->name === 'Guru BK') && ! $teacher->hasRole('Super Admin')) {
+            return $this->errorResponse('Guru BK tidak diizinkan melihat jurnal mengajar', 403);
+        }
+
+        $isSuperAdmin = $teacher && ($teacher->hasRole('Super Admin') || $teacher->role?->name === 'Super Admin');
+        if (! $isSuperAdmin && $journal->teacher_id !== $teacher?->id) {
+            return $this->errorResponse('Anda tidak memiliki akses ke jurnal ini', 403);
+        }
+
+        $journal->load(['schedule.subject', 'schedule.classroom', 'schedule.room', 'attendances.student']);
+
+        return $this->successResponse(new JournalResource($journal), 'Detail jurnal berhasil diambil');
+    }
+
+    public function update(UpdateJournalRequest $request, Journal $journal): JsonResponse
+    {
+        $teacher = $request->user();
+
+        if ($teacher && ($teacher->hasRole('Guru BK') || $teacher->role?->name === 'Guru BK') && ! $teacher->hasRole('Super Admin')) {
+            return $this->errorResponse('Guru BK tidak diizinkan mengubah jurnal mengajar', 403);
+        }
+
+        $isSuperAdmin = $teacher && ($teacher->hasRole('Super Admin') || $teacher->role?->name === 'Super Admin');
+        if (! $isSuperAdmin && $journal->teacher_id !== $teacher?->id) {
+            return $this->errorResponse('Anda tidak memiliki akses ke jurnal ini', 403);
+        }
+
+        $data = $request->validated();
+
+        $uploadedPhotoPath = null;
+        $oldPhotoPath = $journal->activity_photo;
+        if ($request->hasFile('activity_photo')) {
+            $uploadedPhotoPath = $request->file('activity_photo')->store('journal_photos', 'public');
+        }
+
+        $attendancesData = $data['attendances'] ?? null;
+
+        try {
+            DB::transaction(function () use ($journal, $data, $uploadedPhotoPath, $attendancesData) {
+                $updatePayload = [
+                    'teaching_material' => $data['teaching_material'],
+                    'notes' => $data['notes'] ?? null,
+                ];
+
+                if ($uploadedPhotoPath !== null) {
+                    $updatePayload['activity_photo'] = $uploadedPhotoPath;
+                }
+
+                $journal->update($updatePayload);
+
+                if (is_array($attendancesData)) {
+                    foreach ($attendancesData as $att) {
+                        Attendance::updateOrCreate(
+                            [
+                                'journal_id' => $journal->id,
+                                'student_id' => $att['student_id'],
+                            ],
+                            [
+                                'status' => $att['status'],
+                                'date' => $journal->date,
+                                'notes' => $att['notes'] ?? null,
+                            ]
+                        );
+                    }
+                }
+            });
+        } catch (\Throwable $e) {
+            if ($uploadedPhotoPath && Storage::disk('public')->exists($uploadedPhotoPath)) {
+                Storage::disk('public')->delete($uploadedPhotoPath);
+            }
+
+            report($e);
+
+            return $this->errorResponse('Gagal memperbarui jurnal dan presensi: '.$e->getMessage(), 500);
+        }
+
+        if ($uploadedPhotoPath && $oldPhotoPath && $oldPhotoPath !== $uploadedPhotoPath && Storage::disk('public')->exists($oldPhotoPath)) {
+            Storage::disk('public')->delete($oldPhotoPath);
+        }
+
+        $journal->refresh();
+        $journal->load(['schedule.subject', 'schedule.classroom', 'schedule.room', 'attendances.student']);
+
+        return $this->successResponse(new JournalResource($journal), 'Jurnal dan presensi berhasil diperbarui');
     }
 
     public function journalHistory(Request $request): JsonResponse

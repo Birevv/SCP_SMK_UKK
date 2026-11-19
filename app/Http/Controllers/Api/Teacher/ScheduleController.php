@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Api\StoreScheduleRequest;
 use App\Http\Resources\Api\ScheduleResource;
 use App\Models\AcademicYear;
+use App\Models\Journal;
 use App\Models\LeaveRequest;
 use App\Models\Schedule;
 use App\Models\SystemConfiguration;
@@ -48,12 +49,32 @@ class ScheduleController extends Controller
         $schedules = $query->orderBy('start_time')->get();
 
         $days = ['Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat'];
+        $now = Carbon::now('Asia/Jakarta');
+        $today = $now->copy()->startOfDay();
 
         $grouped = [];
         foreach ($days as $day) {
-            $grouped[$day] = ScheduleResource::collection(
-                $schedules->where('day_of_week', $day)->values()
-            );
+            $daySchedules = $schedules->where('day_of_week', $day)->values();
+            $targetDate = Schedule::resolveTargetDateForDay($day, $today);
+            $dayScheduleIds = $daySchedules->pluck('id')->all();
+
+            $filledIds = ! empty($dayScheduleIds)
+                ? Journal::whereIn('schedule_id', $dayScheduleIds)
+                    ->whereDate('date', $targetDate)
+                    ->pluck('schedule_id')
+                    ->flip()
+                    ->all()
+                : [];
+
+            $daySchedules->each(function (Schedule $schedule) use ($filledIds, $config, $now) {
+                $hasJournal = isset($filledIds[$schedule->id]);
+                $schedule->setAttribute(
+                    'journal_window_status',
+                    $schedule->resolveJournalWindowStatus($hasJournal, $config->active_cycle, $now)
+                );
+            });
+
+            $grouped[$day] = ScheduleResource::collection($daySchedules);
         }
 
         return $this->successResponse([
@@ -121,7 +142,7 @@ class ScheduleController extends Controller
         }
 
         $classroomId = $schedule->classroom_id;
-        $today = Carbon::today();
+        $today = Carbon::today('Asia/Jakarta');
 
         $students = User::whereHas('role', fn ($q) => $q->where('name', 'Siswa'))
             ->whereHas('classrooms', fn ($q) => $q->where('classrooms.id', $classroomId))
@@ -130,8 +151,8 @@ class ScheduleController extends Controller
             ->map(function (User $student) use ($today) {
                 $approvedLeave = LeaveRequest::where('student_id', $student->id)
                     ->where('status', 'Approved')
-                    ->where('start_date', '<=', $today)
-                    ->where('end_date', '>=', $today)
+                    ->whereDate('start_date', '<=', $today)
+                    ->whereDate('end_date', '>=', $today)
                     ->first();
 
                 return [
@@ -143,15 +164,19 @@ class ScheduleController extends Controller
                 ];
             });
 
+        $windowStatus = $schedule->resolveJournalWindowStatus();
+
         return $this->successResponse([
-            'schedule' => [
+            'schedule' => array_merge([
                 'id' => $schedule->id,
                 'subject_name' => $schedule->subject?->name,
                 'classroom_name' => $schedule->classroom?->name,
                 'room_name' => $schedule->room?->name,
+                'day_of_week' => $schedule->day_of_week,
+                'cycle_type' => $schedule->cycle_type,
                 'start_time' => $schedule->start_time,
                 'end_time' => $schedule->end_time,
-            ],
+            ], $windowStatus),
             'students' => $students,
         ], 'Data siswa berhasil diambil');
     }

@@ -55,6 +55,9 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/schedules/{schedule}/students', [TeacherScheduleController::class, 'students']);
         Route::post('/journals', [TeacherJournalController::class, 'store']);
         Route::get('/journals', [TeacherJournalController::class, 'index']);
+        Route::get('/journals/{journal}', [TeacherJournalController::class, 'show']);
+        Route::put('/journals/{journal}', [TeacherJournalController::class, 'update']);
+        Route::post('/journals/{journal}', [TeacherJournalController::class, 'update']);
     });
 
     // Homeroom & Tim Kesiswaan (Wali Kelas & Guru BK) API

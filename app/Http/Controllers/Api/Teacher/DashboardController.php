@@ -18,8 +18,9 @@ class DashboardController extends Controller
     public function index(Request $request): JsonResponse
     {
         $teacher = $request->user();
-        $today = Carbon::today();
-        $dayName = $today->locale('id')->isoFormat('dddd');
+        $now = Carbon::now('Asia/Jakarta');
+        $today = Carbon::today('Asia/Jakarta');
+        $dayName = Schedule::indonesianDayName($today) ?? $today->locale('id')->isoFormat('dddd');
         $config = SystemConfiguration::current();
 
         $schedulesQuery = Schedule::with(['subject', 'classroom', 'room'])
@@ -38,23 +39,23 @@ class DashboardController extends Controller
         $todaySchedules = $schedulesQuery
             ->orderBy('start_time')
             ->get()
-            ->map(function (Schedule $schedule) use ($today) {
+            ->map(function (Schedule $schedule) use ($today, $config, $now) {
                 $hasJournal = Journal::where('schedule_id', $schedule->id)
-                    ->where('date', $today)
+                    ->whereDate('date', $today)
                     ->exists();
 
-                return [
+                return array_merge([
                     'id' => $schedule->id,
                     'subject_name' => $schedule->subject?->name,
                     'classroom_name' => $schedule->classroom?->name,
                     'room_name' => $schedule->room?->name,
+                    'day_of_week' => $schedule->day_of_week,
+                    'cycle_type' => $schedule->cycle_type,
                     'start_time' => $schedule->start_time,
                     'end_time' => $schedule->end_time,
-                    'has_journal' => $hasJournal,
-                ];
+                ], $schedule->resolveJournalWindowStatus($hasJournal, $config->active_cycle, $now));
             });
 
-        $now = Carbon::now('Asia/Jakarta');
         $pendingJournals = $todaySchedules->filter(function ($s) use ($now) {
             $endTime = Carbon::parse($s['end_time'], 'Asia/Jakarta');
 

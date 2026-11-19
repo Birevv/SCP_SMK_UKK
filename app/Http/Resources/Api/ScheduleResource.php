@@ -14,7 +14,11 @@ class ScheduleResource extends JsonResource
      */
     public function toArray(Request $request): array
     {
-        return [
+        $windowStatus = is_array($this->journal_window_status ?? null)
+            ? $this->journal_window_status
+            : $this->resource->resolveJournalWindowStatus();
+
+        return array_merge([
             'id' => $this->id,
             'subject_name' => $this->subject?->name,
             'teacher_name' => $this->teacher?->full_name,
@@ -24,6 +28,6 @@ class ScheduleResource extends JsonResource
             'start_time' => $this->start_time,
             'end_time' => $this->end_time,
             'cycle_type' => $this->cycle_type,
-        ];
+        ], $windowStatus);
     }
 }

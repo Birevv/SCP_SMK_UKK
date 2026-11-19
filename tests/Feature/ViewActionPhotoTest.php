@@ -109,8 +109,13 @@ class ViewActionPhotoTest extends TestCase
             return method_exists($c, 'getName') && $c->getName() === 'reason_type';
         });
         $this->assertNotNull($reasonField);
-        $this->assertArrayHasKey('sakit', $reasonField->getOptions());
-        $this->assertEquals('Sakit', $reasonField->getOptions()['sakit']);
+        $this->assertEquals([
+            'sakit' => 'Sakit',
+            'izin' => 'Izin',
+            'pulang_cepat' => 'Izin Pulang Cepat',
+            'kegiatan_luar' => 'Izin Kegiatan Luar',
+        ], $reasonField->getOptions());
+        $this->assertEquals('sakit', $reasonField->getState());
     }
 
     public function test_journal_form_renders_activity_photo_correctly(): void

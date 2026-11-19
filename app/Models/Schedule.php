@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -195,5 +196,126 @@ class Schedule extends Model
     public function scopeForRombel(Builder $query, string|int $rombel): Builder
     {
         return $query->whereHas('classroom', fn (Builder $q) => $q->forRombel($rombel));
+    }
+
+    public static function indonesianDayName(Carbon $date): ?string
+    {
+        return match ($date->dayOfWeekIso) {
+            1 => 'Senin',
+            2 => 'Selasa',
+            3 => 'Rabu',
+            4 => 'Kamis',
+            5 => 'Jumat',
+            6 => 'Sabtu',
+            7 => 'Minggu',
+            default => null,
+        };
+    }
+
+    public static function dayIndex(string $dayName): ?int
+    {
+        return match (strtolower(trim($dayName))) {
+            'senin' => 1,
+            'selasa' => 2,
+            'rabu' => 3,
+            'kamis' => 4,
+            'jumat' => 5,
+            'sabtu' => 6,
+            'minggu' => 7,
+            default => null,
+        };
+    }
+
+    public static function resolveTargetDateForDay(string $dayName, ?Carbon $referenceDate = null): Carbon
+    {
+        $today = ($referenceDate ? $referenceDate->copy() : Carbon::today('Asia/Jakarta'))->startOfDay();
+
+        // Pada akhir pekan (Sabtu/Minggu), jadwal Senin-Jumat mengarah ke minggu pembelajaran berikutnya.
+        $weekStart = $today->dayOfWeekIso >= 6
+            ? $today->copy()->startOfWeek()->addWeek()
+            : $today->copy()->startOfWeek();
+
+        $targetDayIndex = self::dayIndex($dayName) ?? 1;
+
+        return $weekStart->copy()->addDays($targetDayIndex - 1)->startOfDay();
+    }
+
+    /**
+     * Evaluasi status pengisian jurnal untuk jadwal ini (selaras dengan TeacherScheduleWidget).
+     *
+     * @return array{
+     *     has_journal: bool,
+     *     can_fill: bool,
+     *     is_today: bool,
+     *     is_future: bool,
+     *     is_expired: bool,
+     *     is_inactive_cycle: bool,
+     *     target_date: string,
+     *     target_date_formatted: string,
+     *     status: string,
+     *     status_label: string
+     * }
+     */
+    public function resolveJournalWindowStatus(
+        ?bool $hasJournal = null,
+        ?string $activeCycle = null,
+        ?Carbon $now = null
+    ): array {
+        $now = $now ? $now->copy() : Carbon::now('Asia/Jakarta');
+        $today = $now->copy()->startOfDay();
+        $activeCycle = $activeCycle ?? SystemConfiguration::current()->active_cycle;
+
+        $targetDate = self::resolveTargetDateForDay((string) $this->day_of_week, $today);
+        $resolvedHasJournal = $hasJournal ?? Journal::where('schedule_id', $this->id)
+            ->whereDate('date', $targetDate)
+            ->exists();
+
+        $isActiveCycle = empty($activeCycle) || empty($this->cycle_type) || $this->cycle_type === $activeCycle;
+        $isInactiveCycle = ! $isActiveCycle;
+        $isToday = $targetDate->equalTo($today);
+        $isFuture = $targetDate->greaterThan($today);
+
+        $endTimeStr = substr((string) $this->end_time, 0, 5) ?: '23:59';
+        $scheduleEndDateTime = Carbon::parse($targetDate->toDateString().' '.$endTimeStr, 'Asia/Jakarta');
+
+        if ($resolvedHasJournal) {
+            $status = 'filled';
+            $statusLabel = 'Sudah Diisi';
+            $isExpired = false;
+            $canFill = false;
+        } elseif ($isInactiveCycle) {
+            $status = 'inactive_cycle';
+            $statusLabel = 'Siklus Tidak Aktif';
+            $isExpired = false;
+            $canFill = false;
+        } elseif ($isFuture) {
+            $status = 'unfilled';
+            $statusLabel = 'Belum Diisi';
+            $isExpired = false;
+            $canFill = false;
+        } elseif ($isToday && $now->lessThanOrEqualTo($scheduleEndDateTime->copy()->addDay())) {
+            $status = 'unfilled';
+            $statusLabel = 'Belum Diisi';
+            $isExpired = false;
+            $canFill = true;
+        } else {
+            $status = 'not_filled';
+            $statusLabel = 'Tidak Mengisi Jurnal';
+            $isExpired = true;
+            $canFill = false;
+        }
+
+        return [
+            'has_journal' => $resolvedHasJournal,
+            'can_fill' => $canFill,
+            'is_today' => $isToday,
+            'is_future' => $isFuture,
+            'is_expired' => $isExpired,
+            'is_inactive_cycle' => $isInactiveCycle,
+            'target_date' => $targetDate->toDateString(),
+            'target_date_formatted' => $targetDate->copy()->locale('id')->translatedFormat('d M Y'),
+            'status' => $status,
+            'status_label' => $statusLabel,
+        ];
     }
 }

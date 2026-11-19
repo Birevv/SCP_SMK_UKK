@@ -8,7 +8,7 @@
     $canonicalUrl = rtrim((string) config('app.url', url('/')), '/').'/download';
     $metaDescription = 'Unduh langsung aplikasi School Class Progress (SCP) untuk Android — SMK Negeri 1 Bantul. Pengelolaan jurnal mengajar, presensi siswa, dan perizinan sekolah dalam satu genggaman.';
     $apkUrl = $apkUrl ?? null;
-    $apkVersion = $apkVersion ?? '1.0.1';
+    $apkVersion = $apkVersion ?? '1.0.2';
     $apkSha256 = $apkSha256 ?? null;
 @endphp
 <!DOCTYPE html>
@@ -214,7 +214,7 @@
                             </div>
                             <div>
                                 <span class="text-xs text-ink-muted block">Tanggal Rilis</span>
-                                <span class="text-sm font-semibold text-ink mt-0.5 block">11 Nov 2026</span>
+                                <span class="text-sm font-semibold text-ink mt-0.5 block">19 Nov 2026</span>
                             </div>
                             <div>
                                 <span class="text-xs text-ink-muted block">Minimal Sistem</span>
@@ -418,7 +418,7 @@
                 {{-- Changelog Cards Container --}}
                 <div class="max-w-4xl mx-auto mt-10 space-y-6">
 
-                    {{-- Versi 1.0.1 (Versi Terbaru) --}}
+                    {{-- Versi 1.0.2 (Versi Terbaru) --}}
                     <div class="rounded-2xl bg-card border border-hairline-strong p-6 sm:p-9 shadow-sheet">
                         
                         {{-- Header Rilis --}}
@@ -429,14 +429,14 @@
                                     Versi Terbaru
                                 </span>
                             </div>
-                            <span class="text-xs text-ink-muted tabular-nums">Tanggal Rilis: 11 November 2026</span>
+                            <span class="text-xs text-ink-muted tabular-nums">Tanggal Rilis: 19 November 2026</span>
                         </div>
 
                         {{-- Tujuan Pembaruan --}}
                         <div class="pt-6">
                             <h4 class="text-xs font-bold text-ink uppercase tracking-wider">Tujuan Pembaruan:</h4>
                             <p class="text-sm text-ink-secondary leading-relaxed mt-2">
-                                Meningkatkan akurasi dan integritas data pada pengisian jurnal tatap muka oleh guru, mewajibkan dokumentasi foto kegiatan belajar mengajar secara langsung melalui kamera, serta mencegah pencatatan ganda pada jadwal mengajar yang sama.
+                                Menambahkan fitur pengeditan jurnal mengajar guru, menertibkan akses pengisian jurnal berdasarkan waktu jadwal hari ini, serta menyempurnakan navigasi tombol kembali sistem Android dan tampilan dashboard siswa.
                             </p>
                         </div>
 
@@ -450,7 +450,7 @@
                                             <path d="m4.5 12.75 6 6 9-13.5" />
                                         </svg>
                                     </span>
-                                    <span><strong>Validasi Status &amp; Anti-Duplikasi Jurnal:</strong> Jadwal mengajar yang telah diisi kini ditandai dengan badge status "Sudah Diisi", dan tombol simpan dinonaktifkan otomatis agar tidak terjadi entri ganda pada jadwal yang sama.</span>
+                                    <span><strong>Edit Jurnal Mengajar Guru:</strong> Guru kini dapat memperbarui catatan jurnal dan presensi langsung dari halaman Riwayat Jurnal melalui alur edit terintegrasi.</span>
                                 </li>
                                 <li class="flex items-start gap-3">
                                     <span class="w-5 h-5 rounded-full bg-amber-500/15 text-amber-600 dark:text-amber-400 flex items-center justify-center shrink-0 mt-0.5">
@@ -458,7 +458,7 @@
                                             <path d="m4.5 12.75 6 6 9-13.5" />
                                         </svg>
                                     </span>
-                                    <span><strong>Prioritas Pemilihan Jadwal Hari Ini:</strong> Saat membuka formulir jurnal, aplikasi secara cerdas memprioritaskan jadwal yang belum diisi agar guru dapat langsung bekerja tanpa harus mencari jadwal secara manual.</span>
+                                    <span><strong>Validasi Jadwal &amp; Timeline Mengajar:</strong> Pengisian jurnal mengikuti status jadwal aktif hari ini dan tampilan linimasa jadwal guru diperjelas.</span>
                                 </li>
                                 <li class="flex items-start gap-3">
                                     <span class="w-5 h-5 rounded-full bg-amber-500/15 text-amber-600 dark:text-amber-400 flex items-center justify-center shrink-0 mt-0.5">
@@ -466,7 +466,7 @@
                                             <path d="m4.5 12.75 6 6 9-13.5" />
                                         </svg>
                                     </span>
-                                    <span><strong>Validasi Wajib Kamera Realtime:</strong> Dokumentasi foto kegiatan belajar mengajar (KBM) wajib diambil secara langsung dari kamera perangkat guru sebelum formulir jurnal dapat dikirimkan.</span>
+                                    <span><strong>Navigasi Tombol Kembali Android:</strong> Tombol kembali sistem kini menavigasi mundur antar halaman bersarang atau kembali ke tab beranda tanpa langsung menutup aplikasi, disertai konfirmasi saat formulir belum disimpan.</span>
                                 </li>
                                 <li class="flex items-start gap-3">
                                     <span class="w-5 h-5 rounded-full bg-amber-500/15 text-amber-600 dark:text-amber-400 flex items-center justify-center shrink-0 mt-0.5">
@@ -474,19 +474,49 @@
                                             <path d="m4.5 12.75 6 6 9-13.5" />
                                         </svg>
                                     </span>
-                                    <span><strong>Integrasi Multipart API &amp; HTTP Parser:</strong> Penambahan dependensi pustaka parser multipart untuk meningkatkan keandalan pengunggahan berkas foto dokumentasi ke server sekolah.</span>
-                                </li>
-                                <li class="flex items-start gap-3">
-                                    <span class="w-5 h-5 rounded-full bg-amber-500/15 text-amber-600 dark:text-amber-400 flex items-center justify-center shrink-0 mt-0.5">
-                                        <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                                            <path d="m4.5 12.75 6 6 9-13.5" />
-                                        </svg>
-                                    </span>
-                                    <span><strong>Penyempurnaan Navigasi Guru &amp; Wali Murid:</strong> Perbaikan pada dialog pemilih jadwal tatap muka serta optimalisasi pemantauan rekapitulasi kehadiran siswa pada dashboard wali.</span>
+                                    <span><strong>Pembaruan Dashboard Siswa &amp; Status Data:</strong> Penyempurnaan tampilan jadwal aktif pada dashboard siswa serta penanganan status muat ulang saat terjadi gangguan koneksi pada riwayat jurnal.</span>
                                 </li>
                             </ul>
                         </div>
 
+                    </div>
+
+                    {{-- Versi 1.0.1 (Rilis Sebelumnya) --}}
+                    <div class="rounded-2xl bg-card border border-hairline p-6 sm:p-8 opacity-90 transition-opacity hover:opacity-100">
+                        <div class="pb-4 border-b border-hairline flex flex-wrap items-center justify-between gap-3">
+                            <div class="flex items-center gap-3">
+                                <h3 class="text-base sm:text-lg font-bold text-ink">Changelog SCP — Versi 1.0.1</h3>
+                                <span class="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-medium bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700">
+                                    Rilis Sebelumnya
+                                </span>
+                            </div>
+                            <span class="text-xs text-ink-muted tabular-nums">11 November 2026</span>
+                        </div>
+
+                        <div class="pt-4">
+                            <ul class="space-y-2 text-xs sm:text-sm text-ink-secondary">
+                                <li class="flex items-start gap-2.5">
+                                    <span class="text-ink-muted mt-0.5">•</span>
+                                    <span><strong>Validasi Status &amp; Anti-Duplikasi Jurnal:</strong> Jadwal mengajar yang telah diisi ditandai dengan badge "Sudah Diisi" dan tombol simpan dinonaktifkan otomatis agar tidak terjadi entri ganda.</span>
+                                </li>
+                                <li class="flex items-start gap-2.5">
+                                    <span class="text-ink-muted mt-0.5">•</span>
+                                    <span><strong>Prioritas Pemilihan Jadwal Hari Ini:</strong> Formulir jurnal memprioritaskan jadwal yang belum diisi saat dibuka.</span>
+                                </li>
+                                <li class="flex items-start gap-2.5">
+                                    <span class="text-ink-muted mt-0.5">•</span>
+                                    <span><strong>Validasi Wajib Kamera Realtime:</strong> Dokumentasi foto KBM wajib diambil langsung dari kamera perangkat guru sebelum formulir dikirimkan.</span>
+                                </li>
+                                <li class="flex items-start gap-2.5">
+                                    <span class="text-ink-muted mt-0.5">•</span>
+                                    <span><strong>Integrasi Multipart API &amp; HTTP Parser:</strong> Penambahan pustaka parser multipart untuk keandalan unggahan foto dokumentasi.</span>
+                                </li>
+                                <li class="flex items-start gap-2.5">
+                                    <span class="text-ink-muted mt-0.5">•</span>
+                                    <span><strong>Penyempurnaan Navigasi Guru &amp; Wali Murid:</strong> Perbaikan dialog pemilih jadwal tatap muka dan pemantauan rekap kehadiran siswa pada dashboard wali.</span>
+                                </li>
+                            </ul>
+                        </div>
                     </div>
 
                     {{-- Versi 1.0.0 (Rilis Sebelumnya) --}}

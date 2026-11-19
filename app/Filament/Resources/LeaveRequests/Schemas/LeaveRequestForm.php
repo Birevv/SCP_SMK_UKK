@@ -43,16 +43,11 @@ class LeaveRequestForm
                     ->default(fn () => Auth::id()),
 
                 Select::make('reason_type')
-                    ->options([
-                        'sakit' => 'Sakit',
-                        'izin' => 'Izin',
-                        'pulang_cepat' => 'Izin Pulang Cepat',
-                        'kegiatan_luar' => 'Izin Kegiatan Luar',
-                        'Sakit' => 'Sakit',
-                        'Izin' => 'Izin',
-                        'Pulang Cepat' => 'Izin Pulang Cepat',
-                        'Kegiatan Luar' => 'Izin Kegiatan Luar',
-                    ])
+                    ->options(
+                        collect(ReasonTypeEnum::cases())
+                            ->mapWithKeys(fn (ReasonTypeEnum $case) => [$case->value => $case->getLabel()])
+                            ->all()
+                    )
                     ->formatStateUsing(function ($state, ?Model $record = null) {
                         $raw = $state ?? $record?->reason_type;
                         if (! $raw) {

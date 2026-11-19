@@ -18,6 +18,8 @@ use App\Models\SystemConfiguration;
 use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Storage;
 use Livewire\Livewire;
 use Spatie\Permission\Models\Permission;
 use Tests\TestCase;
@@ -282,5 +284,127 @@ class JournalTodayScheduleFilterTest extends TestCase
 
         $response->assertStatus(422)
             ->assertJsonValidationErrors(['schedule_id']);
+
+        Carbon::setTestNow();
+    }
+
+    public function test_api_rejects_future_date_past_date_mismatched_day_and_inactive_cycle(): void
+    {
+        Storage::fake('public');
+        // Hari ini adalah Rabu, 11 November 2026 (Putaran 1 aktif)
+        Carbon::setTestNow(Carbon::parse('2026-11-11 10:00:00', 'Asia/Jakarta'));
+
+        $studentRole = Role::firstOrCreate(['name' => 'Siswa', 'guard_name' => 'web']);
+        $student = User::factory()->create(['role_id' => $studentRole->id]);
+
+        $sub = Subject::create(['name' => 'Pemrograman Mobile', 'code' => 'PMOB']);
+
+        $schedRabuP1 = Schedule::create([
+            'academic_year_id' => $this->academicYear->id,
+            'teacher_id' => $this->teacher->id,
+            'classroom_id' => $this->classroom->id,
+            'room_id' => $this->room->id,
+            'subject_id' => $sub->id,
+            'day_of_week' => 'Rabu',
+            'start_time' => '07:15:00',
+            'end_time' => '09:15:00',
+            'cycle_type' => 'Putaran 1',
+        ]);
+
+        $schedKamisP1 = Schedule::create([
+            'academic_year_id' => $this->academicYear->id,
+            'teacher_id' => $this->teacher->id,
+            'classroom_id' => $this->classroom->id,
+            'room_id' => $this->room->id,
+            'subject_id' => $sub->id,
+            'day_of_week' => 'Kamis',
+            'start_time' => '07:15:00',
+            'end_time' => '09:15:00',
+            'cycle_type' => 'Putaran 1',
+        ]);
+
+        $schedSeninP1 = Schedule::create([
+            'academic_year_id' => $this->academicYear->id,
+            'teacher_id' => $this->teacher->id,
+            'classroom_id' => $this->classroom->id,
+            'room_id' => $this->room->id,
+            'subject_id' => $sub->id,
+            'day_of_week' => 'Senin',
+            'start_time' => '07:15:00',
+            'end_time' => '09:15:00',
+            'cycle_type' => 'Putaran 1',
+        ]);
+
+        $schedRabuP2 = Schedule::create([
+            'academic_year_id' => $this->academicYear->id,
+            'teacher_id' => $this->teacher->id,
+            'classroom_id' => $this->classroom->id,
+            'room_id' => $this->room->id,
+            'subject_id' => $sub->id,
+            'day_of_week' => 'Rabu',
+            'start_time' => '10:00:00',
+            'end_time' => '12:00:00',
+            'cycle_type' => 'Putaran 2',
+        ]);
+
+        $basePayload = [
+            'teaching_material' => 'Materi Flutter',
+            'notes' => 'Berjalan lancar',
+            'activity_photo' => UploadedFile::fake()->image('kelas.jpg'),
+            'attendances' => [
+                ['student_id' => $student->id, 'status' => 'Hadir'],
+            ],
+        ];
+
+        // 1. Mengirim jadwal hari Kamis (mendatang) pada hari Rabu (tanggal hari ini) -> ditolak 422
+        $resFutureDay = $this->actingAs($this->teacher, 'sanctum')->postJson('/api/teacher/journals', array_merge($basePayload, [
+            'schedule_id' => $schedKamisP1->id,
+            'date' => '2026-11-11',
+        ]));
+        $resFutureDay->assertStatus(422)
+            ->assertJsonValidationErrors(['schedule_id']);
+
+        // 2. Mengirim jadwal hari Kamis dengan tanggal besok (2026-11-12) -> ditolak 422
+        $resFutureDate = $this->actingAs($this->teacher, 'sanctum')->postJson('/api/teacher/journals', array_merge($basePayload, [
+            'schedule_id' => $schedKamisP1->id,
+            'date' => '2026-11-12',
+        ]));
+        $resFutureDate->assertStatus(422)
+            ->assertJsonValidationErrors(['date']);
+
+        // 3. Mengirim jadwal hari Senin dengan tanggal lampau (2026-11-09) -> ditolak 422
+        $resPastDate = $this->actingAs($this->teacher, 'sanctum')->postJson('/api/teacher/journals', array_merge($basePayload, [
+            'schedule_id' => $schedSeninP1->id,
+            'date' => '2026-11-09',
+        ]));
+        $resPastDate->assertStatus(422)
+            ->assertJsonValidationErrors(['date']);
+
+        // 4. Mengirim jadwal hari Rabu tetapi Putaran 2 (siklus belum aktif) -> ditolak 422
+        $resInactiveCycle = $this->actingAs($this->teacher, 'sanctum')->postJson('/api/teacher/journals', array_merge($basePayload, [
+            'schedule_id' => $schedRabuP2->id,
+            'date' => '2026-11-11',
+        ]));
+        $resInactiveCycle->assertStatus(422)
+            ->assertJsonValidationErrors(['schedule_id']);
+
+        // 5. Endpoint GET /api/teacher/schedules mengembalikan flag can_fill, is_future, is_expired yang akurat
+        $schedListRes = $this->actingAs($this->teacher, 'sanctum')->getJson('/api/teacher/schedules');
+        $schedListRes->assertOk()
+            ->assertJsonPath('data.schedules.Senin.0.can_fill', false)
+            ->assertJsonPath('data.schedules.Senin.0.is_expired', true)
+            ->assertJsonPath('data.schedules.Rabu.0.can_fill', true)
+            ->assertJsonPath('data.schedules.Rabu.0.is_today', true)
+            ->assertJsonPath('data.schedules.Kamis.0.can_fill', false)
+            ->assertJsonPath('data.schedules.Kamis.0.is_future', true);
+
+        // 6. Mengirim jadwal hari ini (Rabu, Putaran 1) pada tanggal hari ini -> berhasil 201
+        $resValidToday = $this->actingAs($this->teacher, 'sanctum')->postJson('/api/teacher/journals', array_merge($basePayload, [
+            'schedule_id' => $schedRabuP1->id,
+            'date' => '2026-11-11',
+        ]));
+        $resValidToday->assertStatus(201);
+
+        Carbon::setTestNow();
     }
 }
